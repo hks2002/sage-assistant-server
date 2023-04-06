@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+status: log4j2 log level, monitorInterval="30" could let auto reload
+the config
+-->
+<Configuration status="OFF">
+	<Properties>
+		<Property name="patternConsole">
+			%d{HH:mm:ss.SSS} %highlight{[%-5level]} [%c{36}] %msg%n
+		</Property>
+	</Properties>
+	<Appenders>
+		<Console name="Console" target="SYSTEM_OUT">
+			<ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY" />
+			<PatternLayout disableAnsi="false" noConsoleNoAnsi="false">
+				<Pattern>
+					${patternConsole}
+				</Pattern>
+			</PatternLayout>
+		</Console>
+	</Appenders>
+	<Loggers>
+		<Root level="DEBUG">
+			<AppenderRef ref="Console" />
+		</Root>
+		<!-- Bellow will limit to setting level, high than `DEBUG` -->
+		<!-- tomcat log -->
+		<Logger name="org.apache.catalina" level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="org.apache.tomcat" level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<!-- httpclient log -->
+		<Logger name="jdk.internal.httpclient.debug" level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<!-- springframework log -->
+		<Logger name="org.springframework" level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="_org.springframework" level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<!-- mybatis log -->
+		<Logger name="com.baomidou.mybatisplus" level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+		<Logger name="org.mybatis.spring" level="INFO" additivity="false">
+			<AppenderRef ref="Console" />
+		</Logger>
+	</Loggers>
+</Configuration>

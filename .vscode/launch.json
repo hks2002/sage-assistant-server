@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-DataServer",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            // The vscode console does not support colors used by Jest output
+            "console": "integratedTerminal",
+            "mainClass": "sageassistant.data.SageAssistantDataServerApplication",
+            "projectName": "sage-assistant-data-server",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}
