@@ -1,27 +1,15 @@
 {
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
     "configurations": [
         {
             "type": "java",
-            "name": "Spring Boot-SrvApplication<SageAssistantSrv>",
+            "name": "Sage Assistant Server",
             "request": "launch",
-            "cwd": "${workspaceFolder}",
-            "console": "internalConsole",
-            "mainClass": "sageassistant.SrvApplication",
-            "projectName": "SageAssistantSrv",
-            "args": "",
-            "envFile": "${workspaceFolder}/.env"
+            "mainClass": "com.da.sageassistantserver.SageAssistantServerApplication",
+            "projectName": "SageAssistantServer"
         }
     ]
-    // "configurations": [
-    //     {
-    //         "type": "java",
-    //         "name": "Spring Boot-SageAssistantSrv",
-    //         "request": "launch",
-    //         "cwd": "${workspaceFolder}",
-    //         "console": "internalConsole",
-    //         "mainClass": "sageassistant.SrvApplication",
-    //         "projectName": "SageAssistantSrv",
-    //         "args": ""
-    //     }
-    // ]
 }

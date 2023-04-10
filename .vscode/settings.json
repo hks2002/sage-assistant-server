@@ -1,5 +1,20 @@
 {
     "java.configuration.updateBuildConfiguration": "automatic",
-    "java.help.showReleaseNotes": false,
-    "boot-java.change-detection.on": true
+    "boot-java.change-detection.on": true,
+    "[java]": {
+        "editor.defaultFormatter": "mwpb.java-prettier-formatter"
+    },
+    "cSpell.customDictionaries": {
+        "project-words": {
+            "name": "project-words",
+            "path": "${workspaceRoot}/project-words.txt",
+            "description": "Words used in this project",
+            "addWords": true
+        },
+        "custom": true, // Enable the `custom` dictionary
+        "internal-terms": false // Disable the `internal-terms` dictionary
+    },
+    "java.compile.nullAnalysis.mode": "automatic",
+    "auto-header-plus.pathContainsWorkspaceFolder": false
+
 }

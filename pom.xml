@@ -1,65 +1,72 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.4.RELEASE</version>
-		<relativePath />
-		<!-- lookup parent from repository -->
+		<version>3.1.0</version>
+		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>sageassistant</groupId>
-	<artifactId>SageAssistantSrv</artifactId>
-	<!-- version A.B.C.D A: project B: add/remove function C: fix bug D: build 
-		time stamp ${maven.build.timestamp} -->
-	<version>2.2.1</version>
-	<packaging>war</packaging>
-	<name>SageAssistantSrv</name>
+
+
+	<groupId>com.da</groupId>
+	<artifactId>sage-assistant-server</artifactId>
+	<version>3.0.0</version>
+	<name>SageAassistantServer</name>
 	<description>Sage assistant data server</description>
+	<packaging>war</packaging>
+
+	<url>https://github.com/hks2002/sage-assistant-server</url>
+	<!-- Define where the source code for this project lives -->
+	<scm>
+		<connection>scm:git:https://github.com/hks2002/sage-assistant-server.git</connection>
+		<developerConnection>scm:git:https://github.com/hks2002/sage-assistant-server.git</developerConnection>
+		<url>https://github.com/hks2002/sage-assistant-server</url>
+	</scm>
+
+	<licenses>
+		<license>
+			<name>MIT</name>
+			<url>https://opensource.org/licenses/MIT</url>
+		</license>
+	</licenses>
+
+	<developers>
+		<developer>
+			<name>Robert Huang</name>
+			<email>56649783@qq.com</email>
+			<organization>Dedienne Aerospace China ZhuHai</organization>
+			<organizationUrl></organizationUrl>
+		</developer>
+	</developers>
 
 	<properties>
-		<java.version>1.8</java.version>
-		<maven.test.skip>true</maven.test.skip>
-		<maven.build.timestamp.format>MMddHHmmss</maven.build.timestamp.format>
+		<java.version>17</java.version>
 	</properties>
 
 	<dependencies>
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<!-- remove default logger config, default is logback -->
 			<exclusions>
-				<!-- remove default logger config, default is logback -->
 				<exclusion>
 					<groupId>org.springframework.boot</groupId>
 					<artifactId>spring-boot-starter-logging</artifactId>
 				</exclusion>
 			</exclusions>
 		</dependency>
-
+		<!-- use log4j2 -->
 		<dependency>
-			<!-- use log4j2 -->
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-log4j2</artifactId>
 		</dependency>
-
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-tomcat</artifactId>
-			<scope>provided</scope>
-		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
-			<exclusions>
-				<exclusion>
-					<groupId>com.vaadin.external.google</groupId>
-					<artifactId>android-json</artifactId>
-				</exclusion>
-			</exclusions>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-devtools</artifactId>
@@ -67,32 +74,30 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-jdbc</artifactId>
+			<groupId>org.projectlombok</groupId>
+			<artifactId>lombok</artifactId>
 		</dependency>
-
+		<!-- https://mvnrepository.com/artifact/com.github.ben-manes.caffeine/caffeine -->
+		<dependency>
+			<groupId>com.github.ben-manes.caffeine</groupId>
+			<artifactId>caffeine</artifactId>
+		</dependency>
 		<dependency>
 			<groupId>com.microsoft.sqlserver</groupId>
 			<artifactId>mssql-jdbc</artifactId>
 		</dependency>
 
-		<!-- h2 database for self db-->
+		<!-- mybatis-plus-boot-starter it contains mybatis and  spring-boot-starter-jdbc-->
+		<!-- mybatis-plus is better than mybatis -->
 		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
+			<groupId>com.baomidou</groupId>
+			<artifactId>mybatis-plus-boot-starter</artifactId>
+			<version>3.5.3.1</version>
 		</dependency>
-		<!-- pagehelper it contains mybatis and mybatis boot starter -->
 		<dependency>
-			<groupId>com.github.pagehelper</groupId>
-			<artifactId>pagehelper-spring-boot-starter</artifactId>
-			<version>1.2.13</version>
-		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>31.0.1-jre</version>
+			<groupId>com.baomidou</groupId>
+			<artifactId>mybatis-plus-boot-starter-test</artifactId>
+			<version>3.5.3.1</version>
 		</dependency>
 
 		<dependency>
@@ -101,171 +106,82 @@
 			<version>1.2.83</version>
 		</dependency>
 
+		<!-- RSS Feed -->
+		<!-- https://mvnrepository.com/artifact/com.rometools/rome -->
 		<dependency>
 			<groupId>com.rometools</groupId>
 			<artifactId>rome</artifactId>
-			<version>1.8.0</version>
-		</dependency>
-
-		<!-- Crystal Reports lib in maven central -->
-		<dependency>
-			<groupId>commons-collections</groupId>
-			<artifactId>commons-collections</artifactId>
-			<version>3.2.2</version>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-lang</groupId>
-			<artifactId>commons-lang</artifactId>
-			<version>2.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>commons-logging</groupId>
-			<artifactId>commons-logging</artifactId>
-			<version>1.2</version>
-		</dependency>
-
-		<!-- Adapter change log4j to log4j2 <dependency> <groupId>org.apache.logging.log4j</groupId> 
-			<artifactId>log4j-api</artifactId> <version>2.13.3</version> </dependency> 
-			<dependency> <groupId>org.apache.logging.log4j</groupId> <artifactId>log4j-core</artifactId> 
-			<version>2.13.3</version> </dependency> -->
-		<dependency>
-			<groupId>org.apache.logging.log4j</groupId>
-			<artifactId>log4j-1.2-api</artifactId>
-		</dependency>
-
-		<dependency>
-			<groupId>com.ibm.icu</groupId>
-			<artifactId>icu4j</artifactId>
-			<version>60.1</version>
-		</dependency>
-
-		<!-- Crystal Reports lib in project -->
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>AzleaUflBarcode</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/com.azalea.ufl.barcode.1.0.jar
-			</systemPath>
-		</dependency>
-
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>CrystalCommon2</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/CrystalCommon2.jar
-			</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>CrystalReportsRuntime</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/CrystalReportsRuntime.jar
-			</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>cvom</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/cvom.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>DatabaseConnectors</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/DatabaseConnectors.jar
-			</systemPath>
-		</dependency>
-
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>JaiImageio</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/jai_imageio.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>JDBInterface</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/JDBInterface.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>jrcerom</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/jrcerom.jar</systemPath>
-		</dependency>
-
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>logging</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/logging.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>pfjgraphics</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/pfjgraphics.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>QueryBuilder</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/QueryBuilder.jar</systemPath>
-		</dependency>
-		<dependency>
-			<groupId>SAP</groupId>
-			<artifactId>keycodeDecoder</artifactId>
-			<version>1.0.0</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/keycodeDecoder.jar</systemPath>
-		</dependency>
-		<!-- don't replace below with maven central -->
-		<dependency>
-			<groupId>commons-configuration</groupId>
-			<artifactId>commons-configuration</artifactId>
-			<version>1.10</version>
-			<scope>system</scope>
-			<systemPath>${pom.basedir}/lib/commons-configuration-1.2.jar</systemPath>
-		</dependency>
-
+			<version>2.0.0</version>
+		</dependency>	
 	</dependencies>
 
 	<build>
-		<finalName>ROOT</finalName>
-		<pluginManagement>
-			<plugins>
-				<!-- Package referenced libraries to war -->
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-war-plugin</artifactId>
-					<configuration>
-						<webResources>
-							<resource>
-								<directory>lib</directory>
-								<targetPath>WEB-INF/lib/</targetPath>
-								<includes>
-									<include>**/*.jar</include>
-								</includes>
-							</resource>
-						</webResources>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
+		<!-- ❗️❗️❗️ Don't use <resources> at here, properties @project.name@ don't works ❗️❗️❗️ -->
+		<!-- ❗️❗️❗️ <resources> </resources> ❗️❗️❗️ -->
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+			</plugin> 
+			<plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <configuration>
+                    <encoding>utf-8</encoding>
+                    <useDefaultDelimiters>true</useDefaultDelimiters>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>process-sources</phase>
+                        <goals>
+                            <goal>resources</goal>
+                        </goals>
+                        <configuration>
+							<!-- Because we use cumstomer resource path, we need to all resource -->
+							<!-- ✔️✔️✔️Properties @project.name@ works here ✔️✔️✔️-->
+                            <resources>
+								<resource>
+									<directory>src/main/mapper</directory>
+									<targetPath>mapper</targetPath>
+									<includes>
+										<include>**/*.xml</include>
+									</includes>
+								</resource>
+								<resource>
+									<directory>src/main/resources</directory>
+									<includes>
+										<include>**/*.*</include>
+									</includes>
+								</resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+			<!-- Skip running tests, we will run it manually -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<skipTests>true</skipTests>
+					<forkCount>1</forkCount>
+					<reuseForks>true</reuseForks>
+				</configuration>
+			</plugin>
+			<!-- Sign project artifact, the POM, and attached artifacts with GnuPG for deployment. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-gpg-plugin</artifactId>
+				<version>3.1.0</version>
+				<executions>
+					<execution>
+						<id>sign-artifacts</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>sign</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
 	</build>
-
 </project>

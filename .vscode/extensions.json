@@ -1,12 +1,8 @@
 {
     "recommendations": [
-        "visualstudioexptteam.vscodeintellicode",
-        "eamodio.gitlens",
-        "pivotal.vscode-boot-dev-pack",
-        "vscjava.vscode-java-test",
-        "redhat.vscode-xml"
-    ],
-    "unwantedRecommendations": [
-        "DavidAnson.vscode-markdownlint"
+        "mwpb.java-prettier-formatter",
+        "merbleueaviation.auto-header-plus",
+        "streetsidesoftware.code-spell-checker",
+        "merbleueaviation.emoji-commit-tiny"
     ]
-  }
+}
