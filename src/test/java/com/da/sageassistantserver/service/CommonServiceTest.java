@@ -9,12 +9,13 @@
 
 package com.da.sageassistantserver.service;
 
-import com.baomidou.mybatisplus.test.autoconfigure.MybatisPlusTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
+
+import com.baomidou.mybatisplus.test.autoconfigure.MybatisPlusTest;
 
 @MybatisPlusTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)

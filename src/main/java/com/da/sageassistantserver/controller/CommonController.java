@@ -9,12 +9,13 @@
 
 package com.da.sageassistantserver.controller;
 
-import com.alibaba.fastjson2.JSONArray;
-import com.da.sageassistantserver.service.CommonService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import com.alibaba.fastjson2.JSONArray;
+import com.da.sageassistantserver.service.CommonService;
 
 @CrossOrigin
 @RestController

@@ -9,6 +9,11 @@
 
 package com.da.sageassistantserver.dao;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import com.da.sageassistantserver.model.CustomerDelayHistory;
 import com.da.sageassistantserver.model.CustomerDeliveryHistory;
 import com.da.sageassistantserver.model.CustomerDetails;
@@ -16,9 +21,6 @@ import com.da.sageassistantserver.model.CustomerName;
 import com.da.sageassistantserver.model.CustomerOpenItems;
 import com.da.sageassistantserver.model.CustomerSummaryAmount;
 import com.da.sageassistantserver.model.CustomerSummaryQty;
-import java.util.List;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface CustomerMapper {

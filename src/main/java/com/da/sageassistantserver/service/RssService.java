@@ -2,12 +2,20 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-03-12 13:24:35                                                                      *
- * @FilePath              : src/main/java/sageassistant/dataSrv/service/RssService.java                              *
+ * @LastEditDate          : 2023-06-24 16:03:12                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/service/RssService.java                         *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Iterator;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.da.sageassistantserver.model.PnStatus;
 import com.da.sageassistantserver.model.TobeDealWithOrderLine;
@@ -15,19 +23,13 @@ import com.da.sageassistantserver.model.TobeDelivery;
 import com.da.sageassistantserver.model.TobePurchaseBom;
 import com.da.sageassistantserver.model.TobeReceive;
 import com.da.sageassistantserver.utils.Utils;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class RssService {
 
-    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     private PnService pnService;

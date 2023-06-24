@@ -2,15 +2,13 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:07                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-19 21:51:11                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/service/HttpService.java                             *
+ * @LastEditDate          : 2023-06-24 16:02:35                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/service/HttpService.java                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
 import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -29,17 +27,21 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
+
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
 import org.springframework.stereotype.Service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class HttpService {
-
-    private static final Logger log = LogManager.getLogger();
 
     /**
      * Caffeine cache
@@ -158,7 +160,7 @@ public class HttpService {
                 cache.put("LastCookie", cookieStr);
             }
 
-            log.debug(response.statusCode());
+            log.debug("{}",response.statusCode());
             log.debug(response.body());
 
             return response;

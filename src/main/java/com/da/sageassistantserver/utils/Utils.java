@@ -2,16 +2,13 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2023-03-10 15:42:04                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-23 19:41:55                                                                      *
+ * @LastEditDate          : 2023-06-24 16:04:54                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/utils/Utils.java                                *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
-import com.alibaba.fastjson2.JSONWriter;
-import com.alibaba.fastjson2.JSONWriter.Context;
-import com.alibaba.fastjson2.writer.ObjectWriterProvider;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -25,12 +22,16 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
+import com.alibaba.fastjson2.JSONWriter;
+import com.alibaba.fastjson2.JSONWriter.Context;
+import com.alibaba.fastjson2.writer.ObjectWriterProvider;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class Utils {
 
-    private static final Logger log = LogManager.getLogger(Utils.class);
 
     public static boolean isNullOrEmpty(String str) {
         if (str == null || str.isEmpty() || str.isBlank()) {

@@ -2,12 +2,21 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-31 16:27:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-20 16:48:36                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/service/CustomerService.java                         *
+ * @LastEditDate          : 2023-06-24 16:01:06                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/service/CustomerService.java                    *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.da.sageassistantserver.dao.CustomerMapper;
 import com.da.sageassistantserver.model.CustomerDelayHistory;
@@ -18,20 +27,13 @@ import com.da.sageassistantserver.model.CustomerOpenItems;
 import com.da.sageassistantserver.model.CustomerSummaryAmount;
 import com.da.sageassistantserver.model.CustomerSummaryQty;
 import com.da.sageassistantserver.utils.Utils;
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import org.apache.ibatis.annotations.Param;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class CustomerService {
 
-    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     private CustomerMapper customerMapper;

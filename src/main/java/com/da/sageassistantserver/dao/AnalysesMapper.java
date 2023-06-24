@@ -9,13 +9,15 @@
 
 package com.da.sageassistantserver.dao;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import com.da.sageassistantserver.model.AnalysesPurchase;
 import com.da.sageassistantserver.model.AnalysesQuote;
 import com.da.sageassistantserver.model.AnalysesQuoteSalesCost;
 import com.da.sageassistantserver.model.AnalysesSales;
-import java.util.List;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface AnalysesMapper {

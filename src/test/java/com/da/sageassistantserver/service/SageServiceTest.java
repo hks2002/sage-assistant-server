@@ -2,24 +2,27 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2023-03-16 17:14:44                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-20 16:56:37                                                                      *
- * @FilePath              : src/test/java/com/da/sage/assistant/service/SageServiceTest.java                         *
+ * @LastEditDate          : 2023-06-24 16:07:46                                                                      *
+ * @FilePath              : src/test/java/com/da/sageassistantserver/service/SageServiceTest.java                    *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
-import com.da.sageassistantserver.utils.Utils;
 import java.util.concurrent.ExecutionException;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import com.da.sageassistantserver.utils.Utils;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 public class SageServiceTest {
 
-    private static final Logger log = LogManager.getLogger();
+ 
 
     private static String auth;
 

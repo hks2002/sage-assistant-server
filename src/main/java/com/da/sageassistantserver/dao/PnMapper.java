@@ -9,6 +9,11 @@
 
 package com.da.sageassistantserver.dao;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import com.da.sageassistantserver.model.CostHistory;
 import com.da.sageassistantserver.model.DeliveryDuration;
 import com.da.sageassistantserver.model.PnDetails;
@@ -16,9 +21,6 @@ import com.da.sageassistantserver.model.PnRootPn;
 import com.da.sageassistantserver.model.PnStatus;
 import com.da.sageassistantserver.model.QuoteHistory;
 import com.da.sageassistantserver.model.SalesHistory;
-import java.util.List;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface PnMapper {

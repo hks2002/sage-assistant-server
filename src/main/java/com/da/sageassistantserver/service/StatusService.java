@@ -2,12 +2,18 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-20 16:50:34                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/service/StatusService.java                           *
+ * @LastEditDate          : 2023-06-24 16:03:39                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/service/StatusService.java                      *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
+
+import java.math.BigDecimal;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.da.sageassistantserver.dao.StatusMapper;
 import com.da.sageassistantserver.model.TobeClosedWO;
@@ -21,17 +27,12 @@ import com.da.sageassistantserver.model.TobeTrackingQALine;
 import com.da.sageassistantserver.model.TobeTrackingReceiptLine;
 import com.da.sageassistantserver.model.TobeTrackingSalesOrderLine;
 import com.da.sageassistantserver.utils.Utils;
-import java.math.BigDecimal;
-import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class StatusService {
-
-    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     private StatusMapper statusMapper;

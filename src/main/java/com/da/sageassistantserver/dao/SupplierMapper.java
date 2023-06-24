@@ -9,6 +9,11 @@
 
 package com.da.sageassistantserver.dao;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import com.da.sageassistantserver.model.SupplierDelayHistory;
 import com.da.sageassistantserver.model.SupplierDeliveryHistory;
 import com.da.sageassistantserver.model.SupplierDetails;
@@ -16,9 +21,6 @@ import com.da.sageassistantserver.model.SupplierName;
 import com.da.sageassistantserver.model.SupplierOpenItems;
 import com.da.sageassistantserver.model.SupplierSummaryAmount;
 import com.da.sageassistantserver.model.SupplierSummaryQty;
-import java.util.List;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface SupplierMapper {

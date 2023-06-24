@@ -2,8 +2,8 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2023-03-11 15:45:58                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-04-08 22:35:20                                                                      *
- * @FilePath              : src/test/java/com/da/sage/assistant/utils/UtilsTest.java                                 *
+ * @LastEditDate          : 2023-06-24 16:08:00                                                                      *
+ * @FilePath              : src/test/java/com/da/sageassistantserver/utils/UtilsTest.java                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
@@ -12,16 +12,16 @@ package com.da.sageassistantserver.utils;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @SpringBootTest
 public class UtilsTest {
-
-    private static final Logger log = LogManager.getLogger(Utils.class);
 
     @Test
     void testIsNullOrEmpty() {

@@ -2,19 +2,18 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2023-03-15 23:49:52                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 10:27:04                                                                      *
+ * @LastEditDate          : 2023-06-24 16:06:20                                                                      *
  * @FilePath              : src/test/java/com/da/sageassistantserver/controller/CommonControllerTest.java            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
  
 package com.da.sageassistantserver.controller;
 
-import java.util.ArrayList; 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -31,11 +30,13 @@ import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.mvc.method.RequestMappingInfo;
 import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
 public class CommonControllerTest {
 
-    static final Logger logger = LogManager.getLogger();
 
     @Autowired
     private WebApplicationContext applicationContext;
@@ -66,7 +67,7 @@ public class CommonControllerTest {
             for (int i = 0; methodAnnotation !=null && i < methodAnnotation.path().length && i < methodAnnotation.method().length; i++) {
                 RequestMethod requestMethod = methodAnnotation.method()[0];
                 String requestPath = methodAnnotation.path()[0];
-                logger.info(requestMethod + ":" + requestPath);
+                log.info(requestMethod + ":" + requestPath);
 
                 // make the request parameters string
                 String reqParamsStr = "";
@@ -76,7 +77,7 @@ public class CommonControllerTest {
 
                         if (requestParam != null) {
                             String paramName = requestParam.name();
-                            logger.debug(paramName);
+                            log.debug(paramName);
                             switch (paramName) {
                                 case "Site":
                                     reqParamsStr += paramName + "=" + "ZHU" + "&";
@@ -144,7 +145,7 @@ public class CommonControllerTest {
                 if (reqParamsStr.length() > 0) {
                     reqParamsStr = "?" + reqParamsStr.substring(0, reqParamsStr.length() - 1);
                 }
-                logger.info(reqParamsStr);
+                log.info(reqParamsStr);
 
                 // Do request
                 switch (requestMethod) {
@@ -155,7 +156,7 @@ public class CommonControllerTest {
                                     .perform(MockMvcRequestBuilders.get(requestPath + reqParamsStr))
                                     .andExpect(MockMvcResultMatchers.status().isOk());
                             } catch (Exception e) {
-                                logger.error(e);
+                                log.error(e.getMessage());
                             }
                         }
 

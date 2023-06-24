@@ -9,12 +9,14 @@
 
 package com.da.sageassistantserver.dao;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import com.da.sageassistantserver.model.StockHistory;
 import com.da.sageassistantserver.model.StockInfo;
 import com.da.sageassistantserver.model.StockSummary;
-import java.util.List;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface StockMapper {

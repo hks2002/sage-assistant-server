@@ -2,12 +2,20 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-23 10:49:44                                                                      *
+ * @LastEditDate          : 2023-06-24 16:00:52                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/service/CurrencyService.java                    *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
+
+import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.da.sageassistantserver.dao.CurrencyMapper;
@@ -15,19 +23,13 @@ import com.da.sageassistantserver.model.CurrencyHistory;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import java.text.NumberFormat;
-import java.util.HashMap;
-import java.util.List;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class CurrencyService {
 
-    private static final Logger log = LogManager.getLogger();
 
     private static HashMap<String, String> defaultRate = new HashMap<String, String>();
     static HttpService httpService;

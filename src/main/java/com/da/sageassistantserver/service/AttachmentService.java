@@ -2,35 +2,37 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:07                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-23 10:49:33                                                                      *
+ * @LastEditDate          : 2023-06-24 16:00:26                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/service/AttachmentService.java                  *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
-import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
-import com.da.sageassistantserver.dao.AttachmentMapper;
-import com.da.sageassistantserver.model.Attachment;
-import com.da.sageassistantserver.utils.Utils;
-import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.da.sageassistantserver.dao.AttachmentMapper;
+import com.da.sageassistantserver.model.Attachment;
+import com.da.sageassistantserver.utils.Utils;
+
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class AttachmentService {
 
-    private static final Logger log = LoggerFactory.getLogger(AttachmentService.class);
 
     @Autowired
     private AttachmentMapper attachmentMapper;

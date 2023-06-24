@@ -9,6 +9,11 @@
 
 package com.da.sageassistantserver.dao;
 
+import java.util.List;
+
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
+
 import com.da.sageassistantserver.model.TobeClosedWO;
 import com.da.sageassistantserver.model.TobeDealWithOrderLine;
 import com.da.sageassistantserver.model.TobeDelivery;
@@ -19,9 +24,6 @@ import com.da.sageassistantserver.model.TobeTrackingPurchaseOrderLine;
 import com.da.sageassistantserver.model.TobeTrackingQALine;
 import com.da.sageassistantserver.model.TobeTrackingReceiptLine;
 import com.da.sageassistantserver.model.TobeTrackingSalesOrderLine;
-import java.util.List;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface StatusMapper {

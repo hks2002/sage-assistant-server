@@ -2,12 +2,19 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-22 16:47:01                                                                      *
+ * @LastEditDate          : 2023-06-24 16:00:08                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/service/AnalysesService.java                    *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.da.sageassistantserver.dao.AnalysesMapper;
 import com.da.sageassistantserver.dao.CommonMapper;
@@ -16,18 +23,13 @@ import com.da.sageassistantserver.model.AnalysesQuote;
 import com.da.sageassistantserver.model.AnalysesQuoteSalesCost;
 import com.da.sageassistantserver.model.AnalysesSales;
 import com.da.sageassistantserver.utils.Utils;
-import java.util.ArrayList;
-import java.util.List;
-import org.apache.ibatis.annotations.Param;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
+import lombok.extern.slf4j.Slf4j;
+
+@Slf4j
 @Service
 public class AnalysesService {
 
-    private static final Logger log = LogManager.getLogger();
 
     @Autowired
     private AnalysesMapper analysesMapper;
