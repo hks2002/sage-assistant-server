@@ -9,16 +9,13 @@
 
 package com.da.sageassistantserver.model;
 
-import com.da.sageassistantserver.model.base.ModelTemplate;
 import java.math.BigDecimal;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class FinancialBalance extends ModelTemplate {
-
-    private static final long serialVersionUID = 1L;
+public class FinancialBalance {
 
     private String AccountNO;
     private String Currency;

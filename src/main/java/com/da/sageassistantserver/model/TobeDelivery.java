@@ -9,7 +9,6 @@
 
 package com.da.sageassistantserver.model;
 
-import com.da.sageassistantserver.model.base.ModelTemplate;
 import java.math.BigDecimal;
 import java.util.Date;
 import lombok.Getter;
@@ -17,9 +16,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class TobeDelivery extends ModelTemplate {
-
-    private static final long serialVersionUID = 1L;
+public class TobeDelivery {
 
     private String ProjectNO;
     private String OrderNO;

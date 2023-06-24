@@ -2,13 +2,16 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2023-03-10 15:42:04                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-20 16:55:29                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/utils/Utils.java                                     *
+ * @LastEditDate          : 2023-06-23 19:41:55                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/utils/Utils.java                                *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
+import com.alibaba.fastjson2.JSONWriter;
+import com.alibaba.fastjson2.JSONWriter.Context;
+import com.alibaba.fastjson2.writer.ObjectWriterProvider;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -251,8 +254,14 @@ public class Utils {
         }
         return newPn;
     }
+
     // Page{count=true, pageNum=1, pageSize=50, startRow=0, endRow=50, total=13346,
     // pages=267, reasonable=true, pageSizeZero=false}[{},{}]
     // [{},{}]
 
+    public static Context JSON2Ctx() {
+        JSONWriter.Context ctx = new JSONWriter.Context(new ObjectWriterProvider());
+        ctx.setDateFormat("yyyy-MM-dd");
+        return ctx;
+    }
 }

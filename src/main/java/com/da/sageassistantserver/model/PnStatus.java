@@ -9,15 +9,12 @@
 
 package com.da.sageassistantserver.model;
 
-import com.da.sageassistantserver.model.base.ModelTemplate;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class PnStatus extends ModelTemplate {
-
-    private static final long serialVersionUID = 1L;
+public class PnStatus {
 
     private String PN;
     private String Desc1;

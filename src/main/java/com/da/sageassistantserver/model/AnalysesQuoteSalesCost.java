@@ -2,22 +2,19 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:01:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-03-12 13:19:31                                                                      *
- * @FilePath              : src/main/java/sageassistant/dataSrv/model/AnalysesQuoteSalesCost.java                    *
+ * @LastEditDate          : 2023-06-23 20:28:06                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/model/AnalysesQuoteSalesCost.java               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.model;
 
-import com.da.sageassistantserver.model.base.ModelTemplate;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class AnalysesQuoteSalesCost extends ModelTemplate {
-
-    private static final long serialVersionUID = 1L;
+public class AnalysesQuoteSalesCost {
 
     private String PN;
     private String Description;

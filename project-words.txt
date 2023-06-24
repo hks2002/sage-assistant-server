@@ -7,9 +7,12 @@ BONTTC
 CADUSD
 CDMB
 CPDPRT
+Curr
+Cust
 Dedienne
 DNSA
 EURUSD
+Fapiao
 GBPUSD
 GESPOH
 GESSDH
@@ -24,11 +27,13 @@ Mybatis
 Nrange
 omsd
 Piao
+PNROOT
 postdata
 QARUSD
 Referer
 Rhek
 RMBUSD
+ROWNUM
 sageassistant
 sageassistantserver
 sagex

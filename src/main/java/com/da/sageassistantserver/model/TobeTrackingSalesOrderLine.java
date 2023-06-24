@@ -9,16 +9,14 @@
 
 package com.da.sageassistantserver.model;
 
-import com.da.sageassistantserver.model.base.ModelTemplate;
 import java.util.Date;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class TobeTrackingSalesOrderLine extends ModelTemplate {
+public class TobeTrackingSalesOrderLine {
 
-    private static final long serialVersionUID = 1L;
     private Integer ItemNO;
     private String OrderNO;
     private String OrderLine;

@@ -2,14 +2,13 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:01:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-03-12 13:19:42                                                                      *
- * @FilePath              : src/main/java/sageassistant/dataSrv/model/CostHistory.java                               *
+ * @LastEditDate          : 2023-06-23 22:03:52                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/model/CostHistory.java                          *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.model;
 
-import com.da.sageassistantserver.model.base.ModelTemplate;
 import java.math.BigDecimal;
 import java.util.Date;
 import lombok.Getter;
@@ -17,9 +16,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class CostHistory extends ModelTemplate {
-
-    private static final long serialVersionUID = 1L;
+public class CostHistory {
 
     private String PurchaseSite;
     private String ProjectNO;

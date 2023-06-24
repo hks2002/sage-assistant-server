@@ -2,15 +2,16 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 21:46:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-22 16:46:46                                                                      *
+ * @LastEditDate          : 2023-06-23 20:26:18                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/controller/AnalysesController.java              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson2.JSON;
 import com.da.sageassistantserver.service.AnalysesService;
+import com.da.sageassistantserver.utils.Utils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,11 +51,15 @@ public class AnalysesController {
         String categoryCode = CategoryCode;
 
         if (Site.equals("ALL")) {
-            return analysesService.analysesQuoteSalesCostAll(categoryCode, PnRoot, DateFrom, DateTo, limit).toString();
+            return JSON.toJSONString(
+                analysesService.analysesQuoteSalesCostAll(categoryCode, PnRoot, DateFrom, DateTo, limit),
+                Utils.JSON2Ctx()
+            );
         } else {
-            return analysesService
-                .analysesQuoteSalesCost(Site, categoryCode, PnRoot, DateFrom, DateTo, limit)
-                .toString();
+            return JSON.toJSONString(
+                analysesService.analysesQuoteSalesCost(Site, categoryCode, PnRoot, DateFrom, DateTo, limit),
+                Utils.JSON2Ctx()
+            );
         }
     }
 
@@ -76,7 +81,10 @@ public class AnalysesController {
         if (limit > 10) {
             limit = 10;
         }
-        return analysesService.analysesQuoteSalesCostByTarget(Site, PnRoot, DateFrom, DateTo, limit, Target).toString();
+        return JSON.toJSONString(
+            analysesService.analysesQuoteSalesCostByTarget(Site, PnRoot, DateFrom, DateTo, limit, Target),
+            Utils.JSON2Ctx()
+        );
     }
 
     @GetMapping("/Data/AnalysesPurchase")
@@ -91,7 +99,10 @@ public class AnalysesController {
             log.info("request url error");
             return "https://sageassistant/Data/AnalysesPurchase?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,ProjectNO,PurchaseDate,PurchaseNO,PurchaseDate";
         }
-        return JSONArray.toJSONString(analysesService.analysesPurchase(Site, PnRoot, Currency, Target, LastN));
+        return JSON.toJSONString(
+            analysesService.analysesPurchase(Site, PnRoot, Currency, Target, LastN),
+            Utils.JSON2Ctx()
+        );
     }
 
     @GetMapping("/Data/AnalysesQuote")
@@ -106,7 +117,10 @@ public class AnalysesController {
             log.info("request url error");
             return "https://sageassistant/Data/AnalysesQuote?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,QuoteNO,QuoteDate,CustomerCode,CustomerName,OrderNO,OrderFlag,QTY";
         }
-        return JSONArray.toJSONString(analysesService.analysesQuote(Site, PnRoot, Currency, Target, LastN));
+        return JSON.toJSONString(
+            analysesService.analysesQuote(Site, PnRoot, Currency, Target, LastN),
+            Utils.JSON2Ctx()
+        );
     }
 
     @GetMapping("/Data/AnalysesSales")
@@ -121,6 +135,9 @@ public class AnalysesController {
             log.info("request url error");
             return "https://sageassistant/Data/AnalysesSales?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,OrderNO,OrderDate,CustomerCode,CustomerName,QTY";
         }
-        return JSONArray.toJSONString(analysesService.analysesSales(Site, PnRoot, Currency, Target, LastN));
+        return JSON.toJSONString(
+            analysesService.analysesSales(Site, PnRoot, Currency, Target, LastN),
+            Utils.JSON2Ctx()
+        );
     }
 }

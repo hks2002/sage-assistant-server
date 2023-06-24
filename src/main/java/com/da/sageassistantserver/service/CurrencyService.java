@@ -2,14 +2,14 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-20 16:47:26                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/service/CurrencyService.java                         *
+ * @LastEditDate          : 2023-06-23 10:49:44                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/service/CurrencyService.java                    *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson2.JSONArray;
 import com.da.sageassistantserver.dao.CurrencyMapper;
 import com.da.sageassistantserver.model.CurrencyHistory;
 import com.github.benmanes.caffeine.cache.CacheLoader;

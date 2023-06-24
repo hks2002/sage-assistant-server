@@ -2,14 +2,14 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2023-03-15 23:49:52                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-04-08 22:19:04                                                                      *
- * @FilePath              : src/test/java/com/da/sage/assistant/controller/CommonControllerTest.java                 *
+ * @LastEditDate          : 2023-06-24 10:27:04                                                                      *
+ * @FilePath              : src/test/java/com/da/sageassistantserver/controller/CommonControllerTest.java            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
-
+ 
 package com.da.sageassistantserver.controller;
 
-import java.util.ArrayList;
+import java.util.ArrayList; 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -63,7 +63,7 @@ public class CommonControllerTest {
             String funName = method.getMethod().getName();
 
             // path[] method[]
-            for (int i = 0; i < methodAnnotation.path().length && i < methodAnnotation.method().length; i++) {
+            for (int i = 0; methodAnnotation !=null && i < methodAnnotation.path().length && i < methodAnnotation.method().length; i++) {
                 RequestMethod requestMethod = methodAnnotation.method()[0];
                 String requestPath = methodAnnotation.path()[0];
                 logger.info(requestMethod + ":" + requestPath);
@@ -72,68 +72,72 @@ public class CommonControllerTest {
                 String reqParamsStr = "";
                 for (MethodParameter param : params) {
                     if (param.hasParameterAnnotation(RequestParam.class)) {
-                        String paramName = param.getParameterAnnotation(RequestParam.class).name();
-                        logger.debug(paramName);
-                        switch (paramName) {
-                            case "Site":
-                                reqParamsStr += paramName + "=" + "ZHU" + "&";
-                                break;
-                            case "PN":
-                                reqParamsStr += paramName + "=" + "956A1001G01" + "&";
-                                break;
-                            case "Pn":
-                                reqParamsStr += paramName + "=" + "956A1001_A" + "&";
-                                break;
-                            case "PnRoot":
-                                reqParamsStr += paramName + "=" + "956A1001G01" + "&";
-                                break;
-                            case "DateFrom":
-                                reqParamsStr += paramName + "=" + "2022-01-01" + "&";
-                                break;
-                            case "DateTo":
-                                reqParamsStr += paramName + "=" + "2022-01-07" + "&";
-                                break;
-                            case "Limit":
-                                reqParamsStr += paramName + "=" + "1" + "&";
-                                break;
-                            case "LastN":
-                                reqParamsStr += paramName + "=" + "1" + "&";
-                                break;
-                            case "Count":
-                                reqParamsStr += paramName + "=" + "1" + "&";
-                                break;
-                            case "Target":
-                                reqParamsStr += paramName + "=" + "NetPrice" + "&";
-                                break;
-                            case "Currency":
-                                reqParamsStr += paramName + "=" + "USD" + "&";
-                                break;
-                            case "Sour":
-                                reqParamsStr += paramName + "=" + "RMB" + "&";
-                                break;
-                            case "Dest":
-                                reqParamsStr += paramName + "=" + "RMB" + "&";
-                                break;
-                            case "Date":
-                                reqParamsStr += paramName + "=" + "2022-01-01" + "&";
-                                break;
-                            case "Year":
-                                reqParamsStr += paramName + "=" + "2022" + "&";
-                                break;
-                            case "AccountNO":
-                                reqParamsStr += paramName + "=" + "1002210" + "&";
-                                break;
-                            case "CustomerCode":
-                                reqParamsStr += paramName + "=" + "00870" + "&";
-                                break;
-                            case "SupplierCode":
-                                reqParamsStr += paramName + "=" + "00870" + "&";
-                                break;
-                            case "FaPiao":
-                                reqParamsStr += paramName + "=" + "NULL" + "&";
-                            case "InvoiceNO":
-                                reqParamsStr += paramName + "=" + "NULL" + "&";
-                            default:
+                        RequestParam requestParam = param.getParameterAnnotation(RequestParam.class);
+
+                        if (requestParam != null) {
+                            String paramName = requestParam.name();
+                            logger.debug(paramName);
+                            switch (paramName) {
+                                case "Site":
+                                    reqParamsStr += paramName + "=" + "ZHU" + "&";
+                                    break;
+                                case "PN":
+                                    reqParamsStr += paramName + "=" + "956A1001G01" + "&";
+                                    break;
+                                case "Pn":
+                                    reqParamsStr += paramName + "=" + "956A1001_A" + "&";
+                                    break;
+                                case "PnRoot":
+                                    reqParamsStr += paramName + "=" + "956A1001G01" + "&";
+                                    break;
+                                case "DateFrom":
+                                    reqParamsStr += paramName + "=" + "2022-01-01" + "&";
+                                    break;
+                                case "DateTo":
+                                    reqParamsStr += paramName + "=" + "2022-01-07" + "&";
+                                    break;
+                                case "Limit":
+                                    reqParamsStr += paramName + "=" + "1" + "&";
+                                    break;
+                                case "LastN":
+                                    reqParamsStr += paramName + "=" + "1" + "&";
+                                    break;
+                                case "Count":
+                                    reqParamsStr += paramName + "=" + "1" + "&";
+                                    break;
+                                case "Target":
+                                    reqParamsStr += paramName + "=" + "NetPrice" + "&";
+                                    break;
+                                case "Currency":
+                                    reqParamsStr += paramName + "=" + "USD" + "&";
+                                    break;
+                                case "Sour":
+                                    reqParamsStr += paramName + "=" + "RMB" + "&";
+                                    break;
+                                case "Dest":
+                                    reqParamsStr += paramName + "=" + "RMB" + "&";
+                                    break;
+                                case "Date":
+                                    reqParamsStr += paramName + "=" + "2022-01-01" + "&";
+                                    break;
+                                case "Year":
+                                    reqParamsStr += paramName + "=" + "2022" + "&";
+                                    break;
+                                case "AccountNO":
+                                    reqParamsStr += paramName + "=" + "1002210" + "&";
+                                    break;
+                                case "CustomerCode":
+                                    reqParamsStr += paramName + "=" + "00870" + "&";
+                                    break;
+                                case "SupplierCode":
+                                    reqParamsStr += paramName + "=" + "00870" + "&";
+                                    break;
+                                case "FaPiao":
+                                    reqParamsStr += paramName + "=" + "NULL" + "&";
+                                case "InvoiceNO":
+                                    reqParamsStr += paramName + "=" + "NULL" + "&";
+                                default:
+                            }
                         }
                     }
                 }

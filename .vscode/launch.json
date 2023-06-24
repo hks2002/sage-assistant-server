@@ -9,7 +9,7 @@
             "name": "Sage Assistant Server",
             "request": "launch",
             "mainClass": "com.da.sageassistantserver.SageAssistantServerApplication",
-            "projectName": "SageAssistantServer"
+            "projectName": "sage-assistant-server"
         }
     ]
 }

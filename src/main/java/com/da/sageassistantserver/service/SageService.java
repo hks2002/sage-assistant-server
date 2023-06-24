@@ -2,14 +2,14 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
  * @CreatedDate           : 2022-11-23 20:45:00                                                                       *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2023-06-21 14:35:22                                                                       *
- * @FilePath              : src/main/java/com/da/sage/assistant/service/SageService.java                              *
+ * @LastEditDate          : 2023-06-23 10:49:59                                                                       *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/service/SageService.java                         *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
  *********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.da.sageassistantserver.utils.SageActionHelper;
 import com.da.sageassistantserver.utils.SageActionHelper.Action;
 import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;

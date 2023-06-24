@@ -2,14 +2,14 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2023-02-19 20:31:38                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-20 16:38:55                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/utils/SageActionHelper.java                          *
+ * @LastEditDate          : 2023-06-23 10:49:07                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/utils/SageActionHelper.java                     *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import java.util.HashMap;
 import java.util.regex.Pattern;
 import org.apache.logging.log4j.LogManager;

@@ -9,15 +9,13 @@
 
 package com.da.sageassistantserver.model;
 
-import com.da.sageassistantserver.model.base.ModelTemplate;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public class TobeTrackingBOMLine extends ModelTemplate {
+public class TobeTrackingBOMLine {
 
-    private static final long serialVersionUID = 1L;
     private String BomProjectNO;
     private String WorkOrderNO;
     private String BomSeq;

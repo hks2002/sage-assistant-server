@@ -2,15 +2,15 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:07                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-03-12 13:23:34                                                                      *
- * @FilePath              : src/main/java/sageassistant/dataSrv/service/AttachmentService.java                       *
+ * @LastEditDate          : 2023-06-23 10:49:33                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/service/AttachmentService.java                  *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.da.sageassistantserver.dao.AttachmentMapper;
 import com.da.sageassistantserver.model.Attachment;
 import com.da.sageassistantserver.utils.Utils;

@@ -2,14 +2,16 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 20:13:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-04-08 21:46:31                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/controller/StatusController.java                     *
+ * @LastEditDate          : 2023-06-23 20:17:58                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/controller/StatusController.java                *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
+import com.alibaba.fastjson2.JSON;
 import com.da.sageassistantserver.service.StatusService;
+import com.da.sageassistantserver.utils.Utils;
 //import org.apache.logging.log4j.LogManager;
 //import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,31 +31,31 @@ public class StatusController {
 
     @GetMapping("/Data/TobeDelivery")
     public String getTobeDelivery(@RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site) {
-        return statusService.findTobeDeliveryBySite(Site).toString();
+        return JSON.toJSONString(statusService.findTobeDeliveryBySite(Site), Utils.JSON2Ctx());
     }
 
     @GetMapping("/Data/TobeReceive")
     public String getTobeReceive(@RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site) {
-        return statusService.findTobeReceiveBySite(Site).toString();
+        return JSON.toJSONString(statusService.findTobeReceiveBySite(Site), Utils.JSON2Ctx());
     }
 
     @GetMapping("/Data/TobeDealWithOrderLine")
     public String getTobeDealWithOrderLineBySite(
         @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site
     ) {
-        return statusService.findTobeDealWithOrderLineBySite(Site).toString();
+        return JSON.toJSONString(statusService.findTobeDealWithOrderLineBySite(Site), Utils.JSON2Ctx());
     }
 
     @GetMapping("/Data/TobePurchaseBom")
     public String getTobePurchaseBom(
         @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site
     ) {
-        return statusService.findTobePurchaseBomBySite(Site).toString();
+        return JSON.toJSONString(statusService.findTobePurchaseBomBySite(Site), Utils.JSON2Ctx());
     }
 
     @GetMapping("/Data/TobeClosedWO")
     public String getTobeClosedWO(@RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site) {
-        return statusService.findTobeClosedWOBySite(Site).toString();
+        return JSON.toJSONString(statusService.findTobeClosedWOBySite(Site), Utils.JSON2Ctx());
     }
 
     @GetMapping("/Data/TobeTrackingSalesOrderLineCnt")
@@ -79,8 +81,8 @@ public class StatusController {
         @RequestParam(value = "Offset", required = false, defaultValue = "0") Integer Offset,
         @RequestParam(value = "Limit", required = false, defaultValue = "50") Integer Limit
     ) {
-        return statusService
-            .findTobeTrackingSalesOrderLine(
+        return JSON.toJSONString(
+            statusService.findTobeTrackingSalesOrderLine(
                 Site,
                 OrderType,
                 CustomerCode,
@@ -89,8 +91,9 @@ public class StatusController {
                 Descending,
                 Offset,
                 Limit
-            )
-            .toString();
+            ),
+            Utils.JSON2Ctx()
+        );
     }
 
     @GetMapping("/Data/TobeTrackingBOMLine")
@@ -104,9 +107,19 @@ public class StatusController {
         @RequestParam(value = "Offset", required = false, defaultValue = "0") Integer Offset,
         @RequestParam(value = "Limit", required = false, defaultValue = "50") Integer Limit
     ) {
-        return statusService
-            .findTobeTrackingBOMLine(Site, OrderType, CustomerCode, VendorCode, OrderBy, Descending, Offset, Limit)
-            .toString();
+        return JSON.toJSONString(
+            statusService.findTobeTrackingBOMLine(
+                Site,
+                OrderType,
+                CustomerCode,
+                VendorCode,
+                OrderBy,
+                Descending,
+                Offset,
+                Limit
+            ),
+            Utils.JSON2Ctx()
+        );
     }
 
     @GetMapping("/Data/TobeTrackingPurchaseOrderLine")
@@ -120,8 +133,8 @@ public class StatusController {
         @RequestParam(value = "Offset", required = false, defaultValue = "0") Integer Offset,
         @RequestParam(value = "Limit", required = false, defaultValue = "50") Integer Limit
     ) {
-        return statusService
-            .findTobeTrackingPurchaseOrderLine(
+        return JSON.toJSONString(
+            statusService.findTobeTrackingPurchaseOrderLine(
                 Site,
                 OrderType,
                 CustomerCode,
@@ -130,8 +143,9 @@ public class StatusController {
                 Descending,
                 Offset,
                 Limit
-            )
-            .toString();
+            ),
+            Utils.JSON2Ctx()
+        );
     }
 
     @GetMapping("/Data/TobeTrackingReceiptLine")
@@ -145,9 +159,19 @@ public class StatusController {
         @RequestParam(value = "Offset", required = false, defaultValue = "0") Integer Offset,
         @RequestParam(value = "Limit", required = false, defaultValue = "50") Integer Limit
     ) {
-        return statusService
-            .findTobeTrackingReceiptLine(Site, OrderType, CustomerCode, VendorCode, OrderBy, Descending, Offset, Limit)
-            .toString();
+        return JSON.toJSONString(
+            statusService.findTobeTrackingReceiptLine(
+                Site,
+                OrderType,
+                CustomerCode,
+                VendorCode,
+                OrderBy,
+                Descending,
+                Offset,
+                Limit
+            ),
+            Utils.JSON2Ctx()
+        );
     }
 
     @GetMapping("/Data/TobeTrackingQALine")
@@ -161,8 +185,18 @@ public class StatusController {
         @RequestParam(value = "Offset", required = false, defaultValue = "0") Integer Offset,
         @RequestParam(value = "Limit", required = false, defaultValue = "50") Integer Limit
     ) {
-        return statusService
-            .findTobeTrackingQALine(Site, OrderType, CustomerCode, VendorCode, OrderBy, Descending, Offset, Limit)
-            .toString();
+        return JSON.toJSONString(
+            statusService.findTobeTrackingQALine(
+                Site,
+                OrderType,
+                CustomerCode,
+                VendorCode,
+                OrderBy,
+                Descending,
+                Offset,
+                Limit
+            ),
+            Utils.JSON2Ctx()
+        );
     }
 }
