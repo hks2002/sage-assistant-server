@@ -9,11 +9,10 @@
 
 package com.da.sageassistantserver.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+
+@Data
 public class CustomerSummaryQty {
 
     private String Site;

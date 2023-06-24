@@ -10,11 +10,11 @@
 package com.da.sageassistantserver.model;
 
 import java.math.BigDecimal;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
+import lombok.Data;
+
+
+@Data
 public class SupplierSummaryAmount {
 
     private String Site;

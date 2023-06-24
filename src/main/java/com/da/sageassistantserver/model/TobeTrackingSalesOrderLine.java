@@ -10,11 +10,11 @@
 package com.da.sageassistantserver.model;
 
 import java.util.Date;
-import lombok.Getter;
-import lombok.Setter;
 
-@Getter
-@Setter
+import lombok.Data;
+
+
+@Data
 public class TobeTrackingSalesOrderLine {
 
     private Integer ItemNO;

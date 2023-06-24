@@ -9,11 +9,9 @@
 
 package com.da.sageassistantserver.model;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+@Data
 public class AnalysesQuoteSalesCost {
 
     private String PN;
