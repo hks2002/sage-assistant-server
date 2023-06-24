@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2023-03-10 15:42:04                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:04:54                                                                      *
+ * @LastEditDate          : 2023-06-24 18:13:24                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/utils/Utils.java                                *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
@@ -22,10 +22,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
-import com.alibaba.fastjson2.JSONWriter;
-import com.alibaba.fastjson2.JSONWriter.Context;
-import com.alibaba.fastjson2.writer.ObjectWriterProvider;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -260,9 +256,4 @@ public class Utils {
     // pages=267, reasonable=true, pageSizeZero=false}[{},{}]
     // [{},{}]
 
-    public static Context JSON2Ctx() {
-        JSONWriter.Context ctx = new JSONWriter.Context(new ObjectWriterProvider());
-        ctx.setDateFormat("yyyy-MM-dd");
-        return ctx;
-    }
 }

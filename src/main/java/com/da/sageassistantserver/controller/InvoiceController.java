@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 21:57:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-23 20:09:05                                                                      *
+ * @LastEditDate          : 2023-06-24 18:21:11                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/controller/InvoiceController.java               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson2.JSON;
 import com.da.sageassistantserver.service.InvoiceService;
-import com.da.sageassistantserver.utils.Utils;
 
 @CrossOrigin
 @RestController
@@ -38,27 +37,27 @@ public class InvoiceController {
     public String getInvoiceHeader(
         @RequestParam(value = "InvoiceNO", required = false, defaultValue = "NULL") String InvoiceNO
     ) {
-        return JSON.toJSONString(invoiceService.findInvoiceHeaderByInvoiceNO(InvoiceNO), Utils.JSON2Ctx());
+        return JSON.toJSONString(invoiceService.findInvoiceHeaderByInvoiceNO(InvoiceNO));
     }
 
     @GetMapping("/Data/InvoiceBodyByInvoiceNO")
     public String getInvoiceBody(
         @RequestParam(value = "InvoiceNO", required = false, defaultValue = "NULL") String InvoiceNO
     ) {
-        return JSON.toJSONString(invoiceService.findInvoiceBodyByInvoiceNO(InvoiceNO), Utils.JSON2Ctx());
+        return JSON.toJSONString(invoiceService.findInvoiceBodyByInvoiceNO(InvoiceNO));
     }
 
     @GetMapping("/Data/InvoiceHeaderByFaPiao")
     public String getInvoiceHeaderByFaPiao(
         @RequestParam(value = "FaPiao", required = false, defaultValue = "NULL") String FaPiao
     ) {
-        return JSON.toJSONString(invoiceService.findInvoiceHeaderByFaPiao(FaPiao), Utils.JSON2Ctx());
+        return JSON.toJSONString(invoiceService.findInvoiceHeaderByFaPiao(FaPiao));
     }
 
     @GetMapping("/Data/InvoiceBodyByFaPiao")
     public String getInvoiceBodyByFaPiao(
         @RequestParam(value = "FaPiao", required = false, defaultValue = "NULL") String FaPiao
     ) {
-        return JSON.toJSONString(invoiceService.findInvoiceBodyByFaPiao(FaPiao), Utils.JSON2Ctx());
+        return JSON.toJSONString(invoiceService.findInvoiceBodyByFaPiao(FaPiao));
     }
 }

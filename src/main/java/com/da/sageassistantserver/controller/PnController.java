@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 19:06:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 15:56:34                                                                      *
+ * @LastEditDate          : 2023-06-24 18:21:34                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/controller/PnController.java                    *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
@@ -56,34 +56,34 @@ public class PnController {
     public String getSalesHistory(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findSalesHistoryByPnRoot(PnRoot), Utils.JSON2Ctx());
+        return JSON.toJSONString(pnService.findSalesHistoryByPnRoot(PnRoot));
     }
 
     @GetMapping("/Data/QuoteHistory")
     public String getQuoteHistory(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findQuoteHistoryByPnRoot(PnRoot), Utils.JSON2Ctx());
+        return JSON.toJSONString(pnService.findQuoteHistoryByPnRoot(PnRoot));
     }
 
     @GetMapping("/Data/CostHistory")
     public String getCostHistory(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findCostHistoryByPnRoot(PnRoot), Utils.JSON2Ctx());
+        return JSON.toJSONString(pnService.findCostHistoryByPnRoot(PnRoot));
     }
 
     @GetMapping("/Data/DeliveryDuration")
     public String getDeliveryDuration(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findDeliveryDurationByPnRoot(PnRoot), Utils.JSON2Ctx());
+        return JSON.toJSONString(pnService.findDeliveryDurationByPnRoot(PnRoot));
     }
 
     @GetMapping("/Data/InventoryStock")
     public String getInventoryStock(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findStockInfoByPnRoot(PnRoot), Utils.JSON2Ctx());
+        return JSON.toJSONString(pnService.findStockInfoByPnRoot(PnRoot));
     }
 }

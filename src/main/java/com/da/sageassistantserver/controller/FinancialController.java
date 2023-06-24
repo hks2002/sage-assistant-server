@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 22:30:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 15:56:19                                                                      *
+ * @LastEditDate          : 2023-06-24 18:20:33                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/controller/FinancialController.java             *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson2.JSON;
 import com.da.sageassistantserver.service.FinancialService;
-import com.da.sageassistantserver.utils.Utils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -37,11 +36,11 @@ public class FinancialController {
         @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO
     ) {
         if (AccountNO.equals("")) {
-            return JSON.toJSONString(financialService.getAccountBalanceForAll(Site, Year), Utils.JSON2Ctx());
+            return JSON.toJSONString(financialService.getAccountBalanceForAll(Site, Year) );
         } else {
             return JSON.toJSONString(
-                financialService.getAccountBalanceForAccountNO(Site, Year, AccountNO),
-                Utils.JSON2Ctx()
+                financialService.getAccountBalanceForAccountNO(Site, Year, AccountNO)
+                
             );
         }
     }
@@ -92,8 +91,8 @@ public class FinancialController {
             return "Must set AccountNO, if more than one AccountNO, use ',' between AccountNOs";
         }
         return JSON.toJSONString(
-            financialService.getAccountBalanceForAccountNOByCat(Site, Year, Cat, AccountNO),
-            Utils.JSON2Ctx()
+            financialService.getAccountBalanceForAccountNOByCat(Site, Year, Cat, AccountNO)
+            
         );
     }
 
@@ -105,8 +104,8 @@ public class FinancialController {
         @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
     ) {
         return JSON.toJSONString(
-            financialService.getInvoicePay(Site, CustomerCode, DateFrom, DateTo),
-            Utils.JSON2Ctx()
+            financialService.getInvoicePay(Site, CustomerCode, DateFrom, DateTo)
+            
         );
     }
 
@@ -118,8 +117,8 @@ public class FinancialController {
         @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
     ) {
         return JSON.toJSONString(
-            financialService.getInvoicePayPro(Site, CustomerCode, DateFrom, DateTo),
-            Utils.JSON2Ctx()
+            financialService.getInvoicePayPro(Site, CustomerCode, DateFrom, DateTo)
+            
         );
     }
 }

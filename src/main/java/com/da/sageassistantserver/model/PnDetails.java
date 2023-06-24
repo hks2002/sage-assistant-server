@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:01:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-23 22:07:19                                                                      *
+ * @LastEditDate          : 2023-06-24 21:20:13                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/model/PnDetails.java                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
@@ -12,7 +12,6 @@ package com.da.sageassistantserver.model;
 import java.util.Date;
 
 import lombok.Data;
-
 
 @Data
 public class PnDetails {

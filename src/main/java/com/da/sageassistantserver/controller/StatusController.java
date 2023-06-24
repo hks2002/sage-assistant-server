@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 20:13:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 15:57:08                                                                      *
+ * @LastEditDate          : 2023-06-24 18:22:17                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/controller/StatusController.java                *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson2.JSON;
 import com.da.sageassistantserver.service.StatusService;
-import com.da.sageassistantserver.utils.Utils;
 
 @CrossOrigin
 @RestController
@@ -29,31 +28,31 @@ public class StatusController {
 
     @GetMapping("/Data/TobeDelivery")
     public String getTobeDelivery(@RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site) {
-        return JSON.toJSONString(statusService.findTobeDeliveryBySite(Site), Utils.JSON2Ctx());
+        return JSON.toJSONString(statusService.findTobeDeliveryBySite(Site) );
     }
 
     @GetMapping("/Data/TobeReceive")
     public String getTobeReceive(@RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site) {
-        return JSON.toJSONString(statusService.findTobeReceiveBySite(Site), Utils.JSON2Ctx());
+        return JSON.toJSONString(statusService.findTobeReceiveBySite(Site) );
     }
 
     @GetMapping("/Data/TobeDealWithOrderLine")
     public String getTobeDealWithOrderLineBySite(
         @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site
     ) {
-        return JSON.toJSONString(statusService.findTobeDealWithOrderLineBySite(Site), Utils.JSON2Ctx());
+        return JSON.toJSONString(statusService.findTobeDealWithOrderLineBySite(Site) );
     }
 
     @GetMapping("/Data/TobePurchaseBom")
     public String getTobePurchaseBom(
         @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site
     ) {
-        return JSON.toJSONString(statusService.findTobePurchaseBomBySite(Site), Utils.JSON2Ctx());
+        return JSON.toJSONString(statusService.findTobePurchaseBomBySite(Site) );
     }
 
     @GetMapping("/Data/TobeClosedWO")
     public String getTobeClosedWO(@RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site) {
-        return JSON.toJSONString(statusService.findTobeClosedWOBySite(Site), Utils.JSON2Ctx());
+        return JSON.toJSONString(statusService.findTobeClosedWOBySite(Site) );
     }
 
     @GetMapping("/Data/TobeTrackingSalesOrderLineCnt")
@@ -89,8 +88,8 @@ public class StatusController {
                 Descending,
                 Offset,
                 Limit
-            ),
-            Utils.JSON2Ctx()
+            )
+            
         );
     }
 
@@ -115,8 +114,8 @@ public class StatusController {
                 Descending,
                 Offset,
                 Limit
-            ),
-            Utils.JSON2Ctx()
+            )
+            
         );
     }
 
@@ -141,8 +140,8 @@ public class StatusController {
                 Descending,
                 Offset,
                 Limit
-            ),
-            Utils.JSON2Ctx()
+            )
+            
         );
     }
 
@@ -167,8 +166,8 @@ public class StatusController {
                 Descending,
                 Offset,
                 Limit
-            ),
-            Utils.JSON2Ctx()
+            )
+            
         );
     }
 
@@ -193,8 +192,8 @@ public class StatusController {
                 Descending,
                 Offset,
                 Limit
-            ),
-            Utils.JSON2Ctx()
+            )
+            
         );
     }
 }

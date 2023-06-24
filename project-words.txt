@@ -6,6 +6,7 @@ BONLIV
 BONTTC
 CADUSD
 CDMB
+classpath
 CPDPRT
 Curr
 Cust

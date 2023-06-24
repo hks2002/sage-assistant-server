@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 21:46:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 15:53:59                                                                      *
+ * @LastEditDate          : 2023-06-24 18:17:38                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/controller/AnalysesController.java              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson2.JSON;
 import com.da.sageassistantserver.service.AnalysesService;
-import com.da.sageassistantserver.utils.Utils;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -25,7 +24,6 @@ import lombok.extern.slf4j.Slf4j;
 @CrossOrigin
 @RestController
 public class AnalysesController {
-
 
     @Autowired
     private AnalysesService analysesService;
@@ -53,13 +51,11 @@ public class AnalysesController {
 
         if (Site.equals("ALL")) {
             return JSON.toJSONString(
-                analysesService.analysesQuoteSalesCostAll(categoryCode, PnRoot, DateFrom, DateTo, limit),
-                Utils.JSON2Ctx()
+                analysesService.analysesQuoteSalesCostAll(categoryCode, PnRoot, DateFrom, DateTo, limit)
             );
         } else {
             return JSON.toJSONString(
-                analysesService.analysesQuoteSalesCost(Site, categoryCode, PnRoot, DateFrom, DateTo, limit),
-                Utils.JSON2Ctx()
+                analysesService.analysesQuoteSalesCost(Site, categoryCode, PnRoot, DateFrom, DateTo, limit)
             );
         }
     }
@@ -83,8 +79,7 @@ public class AnalysesController {
             limit = 10;
         }
         return JSON.toJSONString(
-            analysesService.analysesQuoteSalesCostByTarget(Site, PnRoot, DateFrom, DateTo, limit, Target),
-            Utils.JSON2Ctx()
+            analysesService.analysesQuoteSalesCostByTarget(Site, PnRoot, DateFrom, DateTo, limit, Target)
         );
     }
 
@@ -100,10 +95,7 @@ public class AnalysesController {
             log.info("request url error");
             return "https://sageassistant/Data/AnalysesPurchase?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,ProjectNO,PurchaseDate,PurchaseNO,PurchaseDate";
         }
-        return JSON.toJSONString(
-            analysesService.analysesPurchase(Site, PnRoot, Currency, Target, LastN),
-            Utils.JSON2Ctx()
-        );
+        return JSON.toJSONString(analysesService.analysesPurchase(Site, PnRoot, Currency, Target, LastN));
     }
 
     @GetMapping("/Data/AnalysesQuote")
@@ -118,10 +110,7 @@ public class AnalysesController {
             log.info("request url error");
             return "https://sageassistant/Data/AnalysesQuote?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,QuoteNO,QuoteDate,CustomerCode,CustomerName,OrderNO,OrderFlag,QTY";
         }
-        return JSON.toJSONString(
-            analysesService.analysesQuote(Site, PnRoot, Currency, Target, LastN),
-            Utils.JSON2Ctx()
-        );
+        return JSON.toJSONString(analysesService.analysesQuote(Site, PnRoot, Currency, Target, LastN));
     }
 
     @GetMapping("/Data/AnalysesSales")
@@ -136,9 +125,6 @@ public class AnalysesController {
             log.info("request url error");
             return "https://sageassistant/Data/AnalysesSales?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,OrderNO,OrderDate,CustomerCode,CustomerName,QTY";
         }
-        return JSON.toJSONString(
-            analysesService.analysesSales(Site, PnRoot, Currency, Target, LastN),
-            Utils.JSON2Ctx()
-        );
+        return JSON.toJSONString(analysesService.analysesSales(Site, PnRoot, Currency, Target, LastN));
     }
 }
