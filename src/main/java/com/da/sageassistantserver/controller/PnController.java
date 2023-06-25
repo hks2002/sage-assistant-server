@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 19:06:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 18:21:34                                                                      *
+ * @LastEditDate          : 2023-06-24 22:40:25                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/controller/PnController.java                    *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONArray;
 import com.da.sageassistantserver.service.PnService;
 import com.da.sageassistantserver.utils.Utils;
 
@@ -36,7 +35,6 @@ public class PnController {
         @RequestParam(value = "PN", required = false, defaultValue = "%%") String pnOrPnRoot,
         @RequestParam(value = "Count", required = false, defaultValue = "200") Integer Count
     ) {
-        log.info("PNHelper: " + JSONArray.toJSONString(pnService.findPnByStartWith(pnOrPnRoot, Count)));
         return JSON.toJSONString(pnService.findPnByStartWith(pnOrPnRoot, Count));
     }
 
