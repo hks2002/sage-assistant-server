@@ -1,13 +1,15 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 19:06:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 22:40:25                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/PnController.java                    *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-03-26 19:06:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2023-09-01 00:22:28                                                                       *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/controller/PnController.java                     *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,7 +17,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.fastjson2.JSON;
+import com.da.sageassistantserver.model.CostHistory;
+import com.da.sageassistantserver.model.DeliveryDuration;
+import com.da.sageassistantserver.model.PnDetails;
+import com.da.sageassistantserver.model.PnRootPn;
+import com.da.sageassistantserver.model.QuoteHistory;
+import com.da.sageassistantserver.model.SalesHistory;
+import com.da.sageassistantserver.model.StockInfo;
 import com.da.sageassistantserver.service.PnService;
 import com.da.sageassistantserver.utils.Utils;
 
@@ -31,11 +39,11 @@ public class PnController {
     private PnService pnService;
 
     @GetMapping("/Data/PNHelper")
-    public String getPNs(
+    public List<PnRootPn> getPNs(
         @RequestParam(value = "PN", required = false, defaultValue = "%%") String pnOrPnRoot,
         @RequestParam(value = "Count", required = false, defaultValue = "200") Integer Count
     ) {
-        return JSON.toJSONString(pnService.findPnByStartWith(pnOrPnRoot, Count));
+        return (pnService.findPnByStartWith(pnOrPnRoot, Count));
     }
 
     @GetMapping("/Data/MakeShortPn")
@@ -44,44 +52,44 @@ public class PnController {
     }
 
     @GetMapping("/Data/PNsInFamily")
-    public String getPNsInFamily(
+    public List<PnDetails> getPNsInFamily(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findAllPnByPnRoot(PnRoot));
+        return (pnService.findAllPnByPnRoot(PnRoot));
     }
 
     @GetMapping("/Data/SalesHistory")
-    public String getSalesHistory(
+    public List<SalesHistory> getSalesHistory(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findSalesHistoryByPnRoot(PnRoot));
+        return (pnService.findSalesHistoryByPnRoot(PnRoot));
     }
 
     @GetMapping("/Data/QuoteHistory")
-    public String getQuoteHistory(
+    public List<QuoteHistory> getQuoteHistory(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findQuoteHistoryByPnRoot(PnRoot));
+        return (pnService.findQuoteHistoryByPnRoot(PnRoot));
     }
 
     @GetMapping("/Data/CostHistory")
-    public String getCostHistory(
+    public List<CostHistory> getCostHistory(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findCostHistoryByPnRoot(PnRoot));
+        return (pnService.findCostHistoryByPnRoot(PnRoot));
     }
 
     @GetMapping("/Data/DeliveryDuration")
-    public String getDeliveryDuration(
+    public List<DeliveryDuration> getDeliveryDuration(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findDeliveryDurationByPnRoot(PnRoot));
+        return (pnService.findDeliveryDurationByPnRoot(PnRoot));
     }
 
     @GetMapping("/Data/InventoryStock")
-    public String getInventoryStock(
+    public List<StockInfo> getInventoryStock(
         @RequestParam(value = "PnRoot", required = false, defaultValue = "NULL") String PnRoot
     ) {
-        return JSON.toJSONString(pnService.findStockInfoByPnRoot(PnRoot));
+        return (pnService.findStockInfoByPnRoot(PnRoot));
     }
 }

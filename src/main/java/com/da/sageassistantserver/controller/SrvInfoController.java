@@ -1,11 +1,11 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-25 15:19:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-23 10:48:49                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/SrvInfoController.java               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-03-25 15:19:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2023-09-01 00:15:29                                                                       *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/controller/SrvInfoController.java                *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 
 @CrossOrigin
 @RestController
@@ -43,27 +44,21 @@ public class SrvInfoController {
     }
 
     @GetMapping("/Data/SrvInfo")
-    public String getInfo() {
-        return """
-            {
-                "name": "%s",
-                "version": "%s",
-                "springBootVersion": "%s"
-            }
-            """.formatted(
-                name,
-                version,
-                springBootVersion
-            );
+    public JSONObject getInfo() {
+        JSONObject obj = new JSONObject();
+        obj.put("name", name);
+        obj.put("version", version);
+        obj.put("springBootVersion", springBootVersion);
+        return obj;
     }
 
     @GetMapping("/Data/SrvProjectDependencies")
-    public String getDependencies() {
+    public JSONArray getDependencies() {
         String str = "";
         str = dependencies.replace("Dependency", "");
         str = str.replaceAll("=", ":");
         str = str.replaceAll(":([^,}]+)", ":\"$1\"");
         JSONArray json = JSONArray.parseArray(str);
-        return json.toString();
+        return json;
     }
 }

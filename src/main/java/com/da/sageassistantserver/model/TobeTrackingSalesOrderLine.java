@@ -1,11 +1,11 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-06-09 13:13:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-03-12 13:23:08                                                                      *
- * @FilePath              : src/main/java/sageassistant/dataSrv/model/TobeTrackingSalesOrderLine.java                *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-06-09 13:13:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2023-08-31 15:09:11                                                                       *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/model/TobeTrackingSalesOrderLine.java            *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.model;
 
@@ -31,7 +31,7 @@ public class TobeTrackingSalesOrderLine {
     private String OrderCurrency;
     private String CustomerCode;
     private String CustomerName;
-    private Date OrderDate;
+    private Date OrderDate;    
     private Date OrderRequestDate;
     private Date OrderPlanedDate;
     private String OrderSADFlag;

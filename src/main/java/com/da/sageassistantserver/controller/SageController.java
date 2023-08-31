@@ -2,8 +2,8 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-25 15:19:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-21 14:13:23                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/controller/SageController.java                       *
+ * @LastEditDate          : 2023-09-01 00:09:30                                                                      *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/controller/SageController.java                  *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.da.sageassistantserver.service.HttpService;
 import com.da.sageassistantserver.service.SageService;
 import com.da.sageassistantserver.utils.SageActionHelper;
@@ -32,44 +33,45 @@ import jakarta.servlet.http.HttpServletResponse;
 @CrossOrigin
 @RestController
 public class SageController {
+   
 
-    public String missingAuth() {
-        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Authorization is required.").toJSONString();
+    public JSONObject missingAuth() {
+        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Authorization is required.");
     }
 
-    public String paraRequired(String name) {
-        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, name + " is required.").toJSONString();
+    public JSONObject paraRequired(String name) {
+        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, name + " is required.");
     }
 
     @PostMapping("/Data/Login")
-    public String doLogin(@RequestHeader(value = "authorization", required = false) String Auth) {
+    public JSONObject doLogin(@RequestHeader(value = "authorization", required = false) String Auth) {
         if (Auth == null) {
             return missingAuth();
         }
 
-        return SageService.doLogin(Auth).toJSONString();
+        return SageService.doLogin(Auth);
     }
 
     @PostMapping("/Data/Profile")
-    public String getProfile(@RequestHeader(value = "authorization", required = false) String Auth) {
+    public JSONObject getProfile(@RequestHeader(value = "authorization", required = false) String Auth) {
         if (Auth == null) {
             return missingAuth();
         }
 
-        return SageService.getProfile(Auth).toJSONString();
+        return SageService.getProfile(Auth);
     }
 
     @PostMapping("/Data/Function")
-    public String getFunction(@RequestHeader(value = "authorization", required = false) String Auth) {
+    public JSONObject getFunction(@RequestHeader(value = "authorization", required = false) String Auth) {
         if (Auth == null) {
             return missingAuth();
         }
 
-        return SageService.getFunction(Auth).toJSONString();
+        return SageService.getFunction(Auth);
     }
 
     @PostMapping("/Data/PrintUUID")
-    public String getPrintUUID(
+    public JSONObject getPrintUUID(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "Report", required = false) String Report,
         @RequestParam(value = "ReportNO", required = false) String ReportNO,
@@ -80,18 +82,18 @@ public class SageController {
         }
 
         if (SageActionHelper.getFunction(Report) == null) {
-            return SageActionHelper.rtnObj(false, MsgTyp.WARN, "Report is not supported.").toJSONString();
+            return SageActionHelper.rtnObj(false, MsgTyp.WARN, "Report is not supported.");
         }
 
         if (ReportNO == null) {
             return paraRequired("ReportNO");
         }
 
-        return SageService.getPrintUUID(Auth, Report, ReportNO, Opt).toJSONString();
+        return SageService.getPrintUUID(Auth, Report, ReportNO, Opt);
     }
 
     @PostMapping("/Data/ReportUUID")
-    public String getReportUUID(
+    public JSONObject getReportUUID(
         @RequestHeader(value = "authorization", required = true) String Auth,
         @RequestParam(value = "PrintUUID", required = true) String PrintUUID
     ) {
@@ -103,7 +105,7 @@ public class SageController {
             return paraRequired("PrintUUID");
         }
 
-        return SageService.getReportUUID(Auth, PrintUUID).toJSONString();
+        return SageService.getReportUUID(Auth, PrintUUID);
     }
 
     @GetMapping("/Data/ReportFile")
@@ -115,7 +117,7 @@ public class SageController {
             OutputStream out = response.getOutputStream();
 
             if (ReportUUID == null) {
-                out.write(paraRequired("ReportUUID").getBytes());
+                out.write(paraRequired("ReportUUID").toJSONBBytes());
             }
             if (ReportNO == null) {
                 ReportNO = "Untitled-Report";
@@ -140,7 +142,7 @@ public class SageController {
     }
 
     @PutMapping("/Data/SageSADReady")
-    public String updateSageSADReady(
+    public JSONObject updateSageSADReady(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -159,11 +161,11 @@ public class SageController {
             return paraRequired("Ready");
         }
 
-        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA51", Ready).toJSONString();
+        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA51", Ready);
     }
 
     @PutMapping("/Data/SageDeliveryReady")
-    public String updateSageDeliveryReady(
+    public JSONObject updateSageDeliveryReady(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -181,11 +183,11 @@ public class SageController {
         if (Ready == null) {
             return paraRequired("Ready");
         }
-        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA52", Ready).toJSONString();
+        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA52", Ready);
     }
 
     @PutMapping("/Data/SageProductReady")
-    public String updateSageProductReady(
+    public JSONObject updateSageProductReady(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -203,11 +205,11 @@ public class SageController {
         if (Flag == null) {
             return paraRequired("Flag");
         }
-        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA54", Flag).toJSONString();
+        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA54", Flag);
     }
 
     @PutMapping("/Data/SageProjectStatus")
-    public String updateSageProjectStatus(
+    public JSONObject updateSageProjectStatus(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -222,11 +224,11 @@ public class SageController {
         if (Line == null) {
             return paraRequired("Line");
         }
-        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA72", Status).toJSONString();
+        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA72", Status);
     }
 
     @PutMapping("/Data/SageProjectBlockReason")
-    public String updateSageProjectBlockReason(
+    public JSONObject updateSageProjectBlockReason(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -241,11 +243,11 @@ public class SageController {
         if (Line == null) {
             return paraRequired("Line");
         }
-        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA73", Reason).toJSONString();
+        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA73", Reason);
     }
 
     @PutMapping("/Data/SageProjectComment")
-    public String updateSageProjectComment(
+    public JSONObject updateSageProjectComment(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -260,11 +262,11 @@ public class SageController {
         if (Line == null) {
             return paraRequired("Line");
         }
-        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA77", Comment).toJSONString();
+        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA77", Comment);
     }
 
     @PutMapping("/Data/SageProjectAction")
-    public String updateSageProjectAction(
+    public JSONObject updateSageProjectAction(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -279,11 +281,11 @@ public class SageController {
         if (Line == null) {
             return paraRequired("Line");
         }
-        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA78", Action).toJSONString();
+        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA78", Action);
     }
 
     @PutMapping("/Data/SageDeliveryPlanDate")
-    public String updateSageDeliveryPlanDate(
+    public JSONObject updateSageDeliveryPlanDate(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -298,11 +300,11 @@ public class SageController {
         if (Line == null) {
             return paraRequired("Line");
         }
-        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA29", PlanDate).toJSONString();
+        return SageService.updateSageField(Auth, "SalesOrder", OrderNO, Line, "EA29", PlanDate);
     }
 
     @PutMapping("/Data/SagePurchaseAckDate")
-    public String updateSagePurchaseAckDate(
+    public JSONObject updateSagePurchaseAckDate(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -317,11 +319,11 @@ public class SageController {
         if (Line == null) {
             return paraRequired("Line");
         }
-        return SageService.updateSageField(Auth, "PurchaseOrder", OrderNO, Line, "CA66", AckDate).toJSONString();
+        return SageService.updateSageField(Auth, "PurchaseOrder", OrderNO, Line, "CA66", AckDate);
     }
 
     @PutMapping("/Data/SagePurchaseComment")
-    public String updateSagePurchaseComment(
+    public JSONObject updateSagePurchaseComment(
         @RequestHeader(value = "authorization", required = false) String Auth,
         @RequestParam(value = "OrderNO", required = false) String OrderNO,
         @RequestParam(value = "Line", required = false) Integer Line,
@@ -336,6 +338,6 @@ public class SageController {
         if (Line == null) {
             return paraRequired("Line");
         }
-        return SageService.updateSageField(Auth, "PurchaseOrder", OrderNO, Line, "CA68", Comment).toJSONString();
+        return SageService.updateSageField(Auth, "PurchaseOrder", OrderNO, Line, "CA68", Comment);
     }
 }

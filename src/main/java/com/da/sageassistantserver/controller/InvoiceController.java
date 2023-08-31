@@ -1,13 +1,15 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 21:57:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 18:21:11                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/InvoiceController.java               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-03-26 21:57:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2023-09-01 00:25:44                                                                       *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/controller/InvoiceController.java                *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,7 +17,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.fastjson2.JSON;
+import com.da.sageassistantserver.model.InvoiceBody;
+import com.da.sageassistantserver.model.InvoiceHeader;
 import com.da.sageassistantserver.service.InvoiceService;
 
 @CrossOrigin
@@ -34,30 +37,30 @@ public class InvoiceController {
     }
 
     @GetMapping("/Data/InvoiceHeaderByInvoiceNO")
-    public String getInvoiceHeader(
+    public InvoiceHeader getInvoiceHeader(
         @RequestParam(value = "InvoiceNO", required = false, defaultValue = "NULL") String InvoiceNO
     ) {
-        return JSON.toJSONString(invoiceService.findInvoiceHeaderByInvoiceNO(InvoiceNO));
+        return (invoiceService.findInvoiceHeaderByInvoiceNO(InvoiceNO));
     }
 
     @GetMapping("/Data/InvoiceBodyByInvoiceNO")
-    public String getInvoiceBody(
+    public List<InvoiceBody> getInvoiceBody(
         @RequestParam(value = "InvoiceNO", required = false, defaultValue = "NULL") String InvoiceNO
     ) {
-        return JSON.toJSONString(invoiceService.findInvoiceBodyByInvoiceNO(InvoiceNO));
+        return (invoiceService.findInvoiceBodyByInvoiceNO(InvoiceNO));
     }
 
     @GetMapping("/Data/InvoiceHeaderByFaPiao")
-    public String getInvoiceHeaderByFaPiao(
+    public InvoiceHeader getInvoiceHeaderByFaPiao(
         @RequestParam(value = "FaPiao", required = false, defaultValue = "NULL") String FaPiao
     ) {
-        return JSON.toJSONString(invoiceService.findInvoiceHeaderByFaPiao(FaPiao));
+        return (invoiceService.findInvoiceHeaderByFaPiao(FaPiao));
     }
 
     @GetMapping("/Data/InvoiceBodyByFaPiao")
-    public String getInvoiceBodyByFaPiao(
+    public List<InvoiceBody> getInvoiceBodyByFaPiao(
         @RequestParam(value = "FaPiao", required = false, defaultValue = "NULL") String FaPiao
     ) {
-        return JSON.toJSONString(invoiceService.findInvoiceBodyByFaPiao(FaPiao));
+        return (invoiceService.findInvoiceBodyByFaPiao(FaPiao));
     }
 }

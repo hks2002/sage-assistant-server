@@ -1,13 +1,15 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 21:35:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 18:23:32                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/SupplierController.java              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-03-26 21:35:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2023-08-31 23:54:21                                                                       *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/controller/SupplierController.java               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -15,7 +17,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.fastjson2.JSON;
+import com.da.sageassistantserver.model.SupplierDelayHistory;
+import com.da.sageassistantserver.model.SupplierDeliveryHistory;
+import com.da.sageassistantserver.model.SupplierDetails;
+import com.da.sageassistantserver.model.SupplierName;
+import com.da.sageassistantserver.model.SupplierOpenItems;
+import com.da.sageassistantserver.model.SupplierSummaryAmount;
+import com.da.sageassistantserver.model.SupplierSummaryQty;
 import com.da.sageassistantserver.service.SupplierService;
 
 @CrossOrigin
@@ -26,146 +34,146 @@ public class SupplierController {
     private SupplierService SupplierService;
 
     @GetMapping("/Data/SupplierHelper")
-    public String getSupplierName(
-        @RequestParam(value = "SupplierName", required = false, defaultValue = "%%") String SupplierCodeOrName,
-        @RequestParam(value = "Count", required = false, defaultValue = "50") Integer count
+    public List<SupplierName> getSupplierName(
+        @RequestParam(value = "supplierName", required = false, defaultValue = "%%") String SupplierCodeOrName,
+        @RequestParam(value = "count", required = false, defaultValue = "50") Integer count
     ) {
-        return JSON.toJSONString(SupplierService.getSupplierByCodeOrName(SupplierCodeOrName, count ));
+        return (SupplierService.getSupplierByCodeOrName(SupplierCodeOrName, count ));
     }
 
     @GetMapping("/Data/SupplierDetails")
-    public String getSupplierDetails(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode
+    public List<SupplierDetails> getSupplierDetails(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode
     ) {
-        return JSON.toJSONString(SupplierService.getSupplierDetails(SupplierCode ));
+        return (SupplierService.getSupplierDetails(SupplierCode ));
     }
 
     @GetMapping("/Data/SupplierTotalAmount")
-    public String getSupplierTotalAmount(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
+    public List<SupplierSummaryAmount> getSupplierTotalAmount(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode,
+        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
     ) {
-        return JSON.toJSONString(
+        return (
             SupplierService.getSupplierTotalAmount(SupplierCode, DateFrom, DateTo
             )
         );
     }
 
     @GetMapping("/Data/SupplierTotalProjectQty")
-    public String getSupplierTotalProjectQty(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
+    public List<SupplierSummaryQty> getSupplierTotalProjectQty(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode,
+        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
     ) {
-        return JSON.toJSONString(
+        return (
             SupplierService.getSupplierTotalProjectQty(SupplierCode, DateFrom, DateTo
             )
         );
     }
 
     @GetMapping("/Data/SupplierTotalItemQty")
-    public String getSupplierTotalItemQty(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
+    public List<SupplierSummaryQty> getSupplierTotalItemQty(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode,
+        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
     ) {
-        return JSON.toJSONString(
+        return (
             SupplierService.getSupplierTotalItemQty(SupplierCode, DateFrom, DateTo
             )
         );
     }
 
     @GetMapping("/Data/SupplierTotalQty")
-    public String getSupplierTotalQty(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
+    public List<SupplierSummaryQty> getSupplierTotalQty(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode,
+        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
     ) {
-        return JSON.toJSONString(SupplierService.getSupplierTotalQty(SupplierCode, DateFrom, DateTo ));
+        return (SupplierService.getSupplierTotalQty(SupplierCode, DateFrom, DateTo ));
     }
 
     @GetMapping("/Data/SupplierTotalProductQty")
-    public String getSupplierTotalProductQty(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
+    public List<SupplierSummaryQty> getSupplierTotalProductQty(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode,
+        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
     ) {
-        return JSON.toJSONString(
+        return (
             SupplierService.getSupplierTotalProductQty(SupplierCode, DateFrom, DateTo
             )
         );
     }
 
     @GetMapping("/Data/SupplierOpenAmount")
-    public String getSupplierOpenAmount(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode
+    public List<SupplierSummaryAmount> getSupplierOpenAmount(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode
     ) {
-        return JSON.toJSONString(SupplierService.getSupplierOpenAmount(SupplierCode ));
+        return (SupplierService.getSupplierOpenAmount(SupplierCode ));
     }
 
     @GetMapping("/Data/SupplierOpenProjectQty")
-    public String getSupplierOpenProjectQty(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode
+    public List<SupplierSummaryQty> getSupplierOpenProjectQty(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode
     ) {
-        return JSON.toJSONString(SupplierService.getSupplierOpenProjectQty(SupplierCode ));
+        return (SupplierService.getSupplierOpenProjectQty(SupplierCode ));
     }
 
     @GetMapping("/Data/SupplierOpenItemQty")
-    public String getSupplierOpenItemQty(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode
+    public List<SupplierSummaryQty> getSupplierOpenItemQty(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode
     ) {
-        return JSON.toJSONString(SupplierService.getSupplierOpenItemQty(SupplierCode ));
+        return (SupplierService.getSupplierOpenItemQty(SupplierCode ));
     }
 
     @GetMapping("/Data/SupplierOpenQty")
-    public String getSupplierOpenQty(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode
+    public List<SupplierSummaryQty> getSupplierOpenQty(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode
     ) {
-        return JSON.toJSONString(SupplierService.getSupplierOpenQty(SupplierCode ));
+        return (SupplierService.getSupplierOpenQty(SupplierCode ));
     }
 
     @GetMapping("/Data/SupplierOpenProductQty")
-    public String getSupplierOpenProductQty(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode
+    public List<SupplierSummaryQty> getSupplierOpenProductQty(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode
     ) {
-        return JSON.toJSONString(SupplierService.getSupplierOpenProductQty(SupplierCode ));
+        return (SupplierService.getSupplierOpenProductQty(SupplierCode ));
     }
 
     @GetMapping("/Data/SupplierDeliveryHistory")
-    public String getSupplierDeliveryHistory(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
+    public List<SupplierDeliveryHistory>  getSupplierDeliveryHistory(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode,
+        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
     ) {
-        return JSON.toJSONString(
+        return (
             SupplierService.getSupplierDeliveryHistory(SupplierCode, DateFrom, DateTo
             )
         );
     }
 
     @GetMapping("/Data/SupplierDelayHistory")
-    public String getSupplierDelayHistory(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
+    public List<SupplierDelayHistory> getSupplierDelayHistory(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode,
+        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
     ) {
-        return JSON.toJSONString(
+        return (
             SupplierService.getSupplierDelayHistory(SupplierCode, DateFrom, DateTo
             )
         );
     }
 
     @GetMapping("/Data/SupplierOpenItems")
-    public String getSupplierOpenItems(
-        @RequestParam(value = "SupplierCode", required = false, defaultValue = "NULL") String SupplierCode
+    public List<SupplierOpenItems> getSupplierOpenItems(
+        @RequestParam(value = "supplierCode", required = false, defaultValue = "NULL") String SupplierCode
     ) {
-        return JSON.toJSONString(SupplierService.getSupplierOpenItems(SupplierCode ));
+        return (SupplierService.getSupplierOpenItems(SupplierCode ));
     }
 
     @GetMapping("/Data/PurchaseDate")
     public String getPurchaseDate(
-        @RequestParam(value = "PurchaseNO", required = true, defaultValue = "NULL") String PurchaseNO
+        @RequestParam(value = "purchaseNO", required = true, defaultValue = "NULL") String PurchaseNO
     ) {
         return SupplierService.getPurchaseDate(PurchaseNO);
     }

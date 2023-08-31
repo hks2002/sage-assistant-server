@@ -1,13 +1,15 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 21:46:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 18:17:38                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/AnalysesController.java              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-03-26 21:46:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2023-09-01 00:52:32                                                                       *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/controller/AnalysesController.java               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson2.JSON;
+import com.da.sageassistantserver.model.AnalysesQuoteSalesCost;
 import com.da.sageassistantserver.service.AnalysesService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +32,7 @@ public class AnalysesController {
     private AnalysesService analysesService;
 
     @GetMapping("/Data/AnalysesQuoteSalesCost")
-    public String analysesQuoteSalesCost(
+    public List<AnalysesQuoteSalesCost>  analysesQuoteSalesCost(
         @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
         @RequestParam(value = "CategoryCode", required = false, defaultValue = "") String CategoryCode,
         @RequestParam(value = "PnRoot", required = false, defaultValue = "") String PnRoot,
@@ -50,18 +53,18 @@ public class AnalysesController {
         String categoryCode = CategoryCode;
 
         if (Site.equals("ALL")) {
-            return JSON.toJSONString(
+            return(
                 analysesService.analysesQuoteSalesCostAll(categoryCode, PnRoot, DateFrom, DateTo, limit)
             );
         } else {
-            return JSON.toJSONString(
+            return (
                 analysesService.analysesQuoteSalesCost(Site, categoryCode, PnRoot, DateFrom, DateTo, limit)
             );
         }
     }
 
     @GetMapping("/Data/AnalysesQuoteSalesCostByTarget")
-    public String analysesQuoteSalesCostByTarget(
+    public AnalysesQuoteSalesCost analysesQuoteSalesCostByTarget(
         @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
         @RequestParam(value = "PnRoot", required = false, defaultValue = "") String PnRoot,
         @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
@@ -78,7 +81,7 @@ public class AnalysesController {
         if (limit > 10) {
             limit = 10;
         }
-        return JSON.toJSONString(
+        return (
             analysesService.analysesQuoteSalesCostByTarget(Site, PnRoot, DateFrom, DateTo, limit, Target)
         );
     }
