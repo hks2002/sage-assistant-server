@@ -1,11 +1,11 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 17:57:07                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:00:26                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/service/AttachmentService.java                  *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-03-26 17:57:07                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2023-09-07 01:02:28                                                                       *
+ * @FilePath              : src/main/java/com/da/sageassistantserver/service/AttachmentService.java                   *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +34,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class AttachmentService {
 
-
     @Autowired
     private AttachmentMapper attachmentMapper;
 
@@ -49,11 +49,6 @@ public class AttachmentService {
         final MultipartFile uploadFile,
         HttpServletResponse response
     ) {
-        if (!Utils.isServerAtZhuhai()) {
-            response.setStatus(403);
-            return "Server doesn't support this action!";
-        }
-
         String attachmentPath = Utils.isWin() ? attachmentPathWindows : attachmentPathLinux;
 
         // change / \ * ? to -
@@ -86,11 +81,6 @@ public class AttachmentService {
     }
 
     public String handleFileDelete(String file, HttpServletResponse response) {
-        if (!Utils.isServerAtZhuhai()) {
-            response.setStatus(403);
-            return "Server doesn't support this action!";
-        }
-
         String attachmentPath = Utils.isWin() ? attachmentPathWindows : attachmentPathLinux;
         Path path = Paths.get(attachmentPath + file.replaceFirst("^(/File)", ""));
 
@@ -105,42 +95,38 @@ public class AttachmentService {
         }
     }
 
-    public String getAttachmentPath(String pn) {
+    public List<Attachment> getAttachmentPath(String pn) {
         if (pn.equals("NULL")) {
-            return "[]";
+            return new ArrayList<>();
         }
 
-        if (!Utils.isServerAtZhuhai()) {
-            List<Attachment> listAttachment = attachmentMapper.getAttachment(pn);
-            for (Attachment o : listAttachment) {
-                // make the url with server path
-                String pathStd = o.getPath();
-                pathStd = pathStd.replace("\\", "/");
+        List<Attachment> listAttachment = attachmentMapper.getAttachment(pn);
+        for (Attachment o : listAttachment) {
+            // make the url with server path
+            String pathOri = o.getPath();
+            pathOri = pathOri.replace("\\", "/");
 
-                Path path = Paths.get(pathStd, "");
-                o.setFile(path.getFileName().toString());
+            Path path = Paths.get(pathOri, "");
+            o.setFile(path.getFileName().toString());
 
-                // stand path is /File/docs_sagex3/*
-                if (pathStd.startsWith("%")) {
-                    if (pathStd.toLowerCase().contains("docs_sagex3")) {
-                        pathStd = "/File/" + pathStd.substring(1);
-                    } else {
-                        pathStd = "/File/docs_sagex3/" + pathStd.substring(1);
-                    }
-                } else if (pathStd.startsWith("//")) {
-                    if (pathStd.toLowerCase().startsWith("//srvdata01/docs_sagex3")) {
-                        pathStd = "/File/" + pathStd.substring(12);
-                    } else if (pathStd.toLowerCase().startsWith("//192.168.10.47/docs_sagex3")) {
-                        pathStd = "/File/" + pathStd.substring(16);
-                    }
-                } else {
-                    pathStd = "/File/docs_sagex3/";
-                }
-
-                o.setPath(pathStd);
+            // stand path is /File/docs_sagex3/*
+            if (pathOri.startsWith("[DOCS_SAGEX3]")) {
+                pathOri = "/File/docs_sagex3/" + pathOri.substring(14);
+            } else {
+                // Here keep the path
             }
-            return listAttachment.toString();
-        } else { // Zhuhai
+
+            o.setPath(pathOri);
+        }
+        return listAttachment;
+    }
+
+
+    public JSONArray getAttachmentPathForChina(String pn) {
+        if (pn.equals("NULL")) {
+            return new JSONArray();
+        }
+
             // change / \ * ? to -
             String pnShort = pn.replaceAll("(\\\\|\\*|\\/|\\?)", "-");
             pnShort = Utils.makeShortPn(pnShort);
@@ -155,8 +141,8 @@ public class AttachmentService {
             all.addAll(ManualsShort);
             all.addAll(DrawingShort);
 
-            return all.toJSONString();
-        }
+            return all;
+       
     }
 
     private JSONArray makeJsonArray(String pn, String catStr, String folder) {

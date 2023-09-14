@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2023-03-10 15:42:04                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 18:13:24                                                                      *
+ * @LastEditDate          : 2023-09-08 17:30:09                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/utils/Utils.java                                *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
@@ -14,8 +14,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -27,7 +25,22 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Utils {
+    
+    public static final String[] IP_HEADERS = {
+        "X-Forwarded-For",
+        "Proxy-Client-IP",
+        "WL-Proxy-Client-IP",
+        "HTTP_X_FORWARDED_FOR",
+        "HTTP_X_FORWARDED",
+        "HTTP_X_CLUSTER_CLIENT_IP",
+        "HTTP_CLIENT_IP",
+        "HTTP_FORWARDED_FOR",
+        "HTTP_FORWARDED",
+        "HTTP_VIA",
+        "REMOTE_ADDR"
 
+        // you can add more matching headers here ...
+    };
 
     public static boolean isNullOrEmpty(String str) {
         if (str == null || str.isEmpty() || str.isBlank()) {
@@ -55,21 +68,8 @@ public class Utils {
         }
     }
 
-    public static Boolean isServerAtZhuhai() {
-        InetAddress addr;
-        try {
-            addr = InetAddress.getLocalHost();
-            if (addr.getHostAddress().startsWith("192.168.0.")) {
-                return true;
-            }
-        } catch (UnknownHostException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
     public static Boolean isClientFromZhuhai(String ip) {
-        if (ip.startsWith("192.168.0.") || ip.startsWith("192.168.253.")) {
+        if (ip.startsWith("192.168.0.") || ip.startsWith("192.168.8.") || ip.startsWith("192.168.253.")) {
             return true;
         }
         return false;
@@ -251,7 +251,6 @@ public class Utils {
         }
         return newPn;
     }
-
     // Page{count=true, pageNum=1, pageSize=50, startRow=0, endRow=50, total=13346,
     // pages=267, reasonable=true, pageSizeZero=false}[{},{}]
     // [{},{}]

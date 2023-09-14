@@ -2,12 +2,14 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 22:53:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 15:55:39                                                                      *
+ * @LastEditDate          : 2023-09-07 01:02:50                                                                      *
  * @FilePath              : src/main/java/com/da/sageassistantserver/controller/AttachmentController.java            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
+
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,6 +19,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.da.sageassistantserver.model.Attachment;
 import com.da.sageassistantserver.service.AttachmentService;
 
 import jakarta.servlet.http.HttpServletResponse;
@@ -50,7 +54,16 @@ public class AttachmentController {
      * @param pn could be Pn or PnRoot, PnRoot without version
      */
     @GetMapping("/Data/AttachmentPath")
-    public String getAttachmentPath(@RequestParam(value = "Pn", required = false, defaultValue = "NULL") String pn) {
+    public List<Attachment> getAttachmentPath(
+        @RequestParam(value = "Pn", required = false, defaultValue = "NULL") String pn
+    ) {
         return attachmentService.getAttachmentPath(pn);
+    }
+
+    @GetMapping("/Data/AttachmentPathForChina")
+    public JSONArray getAttachmentPathForChina(
+        @RequestParam(value = "Pn", required = false, defaultValue = "NULL") String pn
+    ) {
+        return attachmentService.getAttachmentPathForChina(pn);
     }
 }
