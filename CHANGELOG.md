@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.1.1](https://github.com/hks2002/sage-assistant-server/compare/v3.1.0...v3.1.1) (2023-11-08)
+
+
+### Bug Fixes
+
+* 🐛fix pn cost sql text error ([a15ee4b](https://github.com/hks2002/sage-assistant-server/commit/a15ee4b3c23a021b9fb9426baf0a303cca9419e0))
+* 🐛fix version error ([6687f8c](https://github.com/hks2002/sage-assistant-server/commit/6687f8c90a4cbfea3a2fe7d1a963889c5ffd33ba))
+
 ## 1.0.0 (2023-11-08)
 
 
