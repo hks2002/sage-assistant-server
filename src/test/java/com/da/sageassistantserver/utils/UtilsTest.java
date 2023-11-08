@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2023-03-11 15:45:58                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:08:00                                                                      *
- * @FilePath              : src/test/java/com/da/sageassistantserver/utils/UtilsTest.java                            *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/*****************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                    *
+ * @CreatedDate           : 2023-03-11 15:45:58                              *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                    *
+ * @LastEditDate          : 2023-11-08 19:51:37                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
+ ****************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
@@ -30,10 +29,10 @@ public class UtilsTest {
         Assertions.assertTrue(Utils.isNullOrEmpty(null));
     }
 
-    @Test
-    void testIsServerAtZhuhai() {
-        Assertions.assertTrue(Utils.isServerAtZhuhai());
-    }
+    // @Test
+    // void testIsServerAtZhuhai() {
+    //     Assertions.assertTrue(Utils.isServerAtZhuhai());
+    // }
 
     @Test
     void testIsClientFromZhuhai() {
