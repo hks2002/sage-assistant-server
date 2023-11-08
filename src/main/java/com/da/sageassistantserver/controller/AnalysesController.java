@@ -1,15 +1,15 @@
-/**********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CreatedDate           : 2022-03-26 21:46:00                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2023-09-01 00:52:32                                                                       *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/AnalysesController.java               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
- *********************************************************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2022-03-26 21:46:00                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2023-11-08 19:15:54                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.alibaba.fastjson2.JSON;
 import com.da.sageassistantserver.model.AnalysesQuoteSalesCost;
 import com.da.sageassistantserver.service.AnalysesService;
 
@@ -98,7 +97,7 @@ public class AnalysesController {
             log.info("request url error");
             return "https://sageassistant/Data/AnalysesPurchase?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,ProjectNO,PurchaseDate,PurchaseNO,PurchaseDate";
         }
-        return JSON.toJSONString(analysesService.analysesPurchase(Site, PnRoot, Currency, Target, LastN));
+        return String.join(";", analysesService.analysesPurchase(Site, PnRoot, Currency, Target, LastN).stream().distinct().collect(Collectors.toList()));
     }
 
     @GetMapping("/Data/AnalysesQuote")
@@ -113,7 +112,7 @@ public class AnalysesController {
             log.info("request url error");
             return "https://sageassistant/Data/AnalysesQuote?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,QuoteNO,QuoteDate,CustomerCode,CustomerName,OrderNO,OrderFlag,QTY";
         }
-        return JSON.toJSONString(analysesService.analysesQuote(Site, PnRoot, Currency, Target, LastN));
+        return String.join(";", analysesService.analysesQuote(Site, PnRoot, Currency, Target, LastN).stream().distinct().collect(Collectors.toList()));
     }
 
     @GetMapping("/Data/AnalysesSales")
@@ -128,6 +127,6 @@ public class AnalysesController {
             log.info("request url error");
             return "https://sageassistant/Data/AnalysesSales?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,OrderNO,OrderDate,CustomerCode,CustomerName,QTY";
         }
-        return JSON.toJSONString(analysesService.analysesSales(Site, PnRoot, Currency, Target, LastN));
+        return String.join(";", analysesService.analysesSales(Site, PnRoot, Currency, Target, LastN).stream().distinct().collect(Collectors.toList()));
     }
 }

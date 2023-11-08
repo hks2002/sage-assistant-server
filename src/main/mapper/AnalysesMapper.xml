@@ -48,12 +48,12 @@
 				LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER 
 					ON SQUOTED.ITMREF_0 = ITMMASTER.ITMREF_0
 			WHERE SQUOTED.NETPRI_0 > 0
-				<if test="CategoryCode != null and CategoryCode != ''">
+		<if test="CategoryCode != null and CategoryCode != ''">
 					AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-				</if>
-				<if test="PnRoot != null and PnRoot != ''">
+		</if>
+		<if test="PnRoot != null and PnRoot != ''">
 					AND ITMMASTER.ITMREF_0 = #{PnRoot}
-				</if>
+		</if>
 				AND SQUOTE.SALFCY_0 = #{Site}
 				AND SQUOTED.SALFCY_0 = #{Site}
 				AND (SQUOTE.QUODAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
@@ -102,12 +102,12 @@
 				LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
 					ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
 			WHERE SORDERP.NETPRI_0 > 0
-				<if test="CategoryCode != null and CategoryCode != ''">
+		<if test="CategoryCode != null and CategoryCode != ''">
 					AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-				</if>
-				<if test="PnRoot != null and PnRoot != ''">
+		</if>
+		<if test="PnRoot != null and PnRoot != ''">
 					AND ITMMASTER.ITMREF_0 = #{PnRoot}
-				</if>
+		</if>
 				AND SORDER.SALFCY_0 = #{Site}
 				AND SORDERQ.SALFCY_0 = #{Site}
 				AND SORDERP.SALFCY_0 = #{Site}
@@ -140,12 +140,12 @@
 				LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
 					ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
 			WHERE SORDERP.NETPRI_0 > 0
-				<if test="CategoryCode != null and CategoryCode != ''">
+		<if test="CategoryCode != null and CategoryCode != ''">
 					AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-				</if>
-				<if test="PnRoot != null and PnRoot != ''">
+		</if>
+		<if test="PnRoot != null and PnRoot != ''">
 					AND ITMMASTER.ITMREF_0 = #{PnRoot}
-				</if>
+		</if>
 				AND SORDER.SALFCY_0 = #{Site}
 				AND SORDERQ.SALFCY_0 = #{Site}
 				AND SORDERP.SALFCY_0 = #{Site}
@@ -197,12 +197,12 @@
 					 LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
 						ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
 				WHERE 1=1
-					<if test="CategoryCode != null and CategoryCode != ''">
+		<if test="CategoryCode != null and CategoryCode != ''">
 						AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-					</if>
-					<if test="PnRoot != null and PnRoot != ''">
+		</if>
+		<if test="PnRoot != null and PnRoot != ''">
 						AND ITMMASTER.ITMREF_0 = #{PnRoot}
-					</if>
+		</if>
 					AND PORDER.POHFCY_0 = #{Site}
 					AND PORDERP.PRHFCY_0 = #{Site}
 					AND SORDERQ.SALFCY_0 = #{Site}
@@ -243,33 +243,41 @@
 		SELECT DISTINCT
 			PORDERP.PJT_0 AS ProjectNO,
 			PORDERQ.POHNUM_0 AS PurchaseNO,
-			-- Maybe Multi Purchase
-			SUM(PORDERP.NETPRI_0) OVER (PARTITION BY PORDERP.PJT_0,PORDERP.POHNUM_0)*Currency.Rate AS NetPrice,
-			PORDERQ.CREDAT_0 AS PurchaseDate
+			PORDERQ.NETCUR_0 AS Currency,
+            PORDERP.NETPRI_0,
+            PORDERQ.QTYPUU_0,
+            SORDERQ.QTY_0,
+			-- Maybe Multi Purchase, Multi Currency
+            (SUM(PORDERP.NETPRI_0 * PORDERQ.QTYPUU_0) OVER (PARTITION BY PORDERP.PJT_0,PORDERQ.NETCUR_0))/SORDERQ.QTY_0 AS NetPrice,
+			PORDERQ.CREDAT_0 AS PurchaseDate,
+			-- We just need the first line result
+			ROW_NUMBER() OVER (PARTITION BY PORDERQ.NETCUR_0 ORDER BY PORDERQ.CREDAT_0 DESC) AS ROWNUM
 		FROM EXPLOIT.PORDERQ PORDERQ
-				INNER JOIN EXPLOIT.PORDERP PORDERP
-					ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 
-						AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
-				INNER JOIN SORDERQ
-					ON SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0
-							OR SORDERQ.YSOQ_PJTORI_0 = PORDERP.PJT_0
-				INNER JOIN Currency
-					ON Currency.Sour =  PORDERQ.NETCUR_0
-						AND Currency.Dest= #{Currency}
-						AND PORDERQ.CREDAT_0 >= Currency.StartDate
-						AND Currency.EndDate > PORDERQ.CREDAT_0
+			INNER JOIN EXPLOIT.PORDERP PORDERP
+				ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 
+					AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+			INNER JOIN SORDERQ
+				ON SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0
+				   OR SORDERQ.YSOQ_PJTORI_0 = PORDERP.PJT_0
 		WHERE
 			PORDERQ.POHFCY_0 = #{Site}
 			AND PORDERP.PRHFCY_0 = #{Site}
+			AND SORDERQ.SALFCY_0 = #{Site}
 			AND SORDERQ.ITMREF_0 = #{PnRoot}
-				AND SORDERQ.SALFCY_0 = #{Site}
 		)
 
+        -- Only get the first line result of each currency
 		SELECT * FROM (
 			SELECT	DISTINCT
 				ProjectCost.ProjectNO,
 				ProjectCost.PurchaseNO,
-				SUM(ProjectCost.NetPrice) OVER (PARTITION BY ProjectCost.ProjectNO)	AS NetPrice,
+				SUM(
+					CASE WHEN ProjectCost.Currency = #{Currency} 
+					THEN 
+						IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice, 0) 
+					ELSE
+						IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice*Currency.Rate, 0)
+					END) OVER (PARTITION BY ProjectCost.ProjectNO)	AS NetPrice,
 				ProjectCost.PurchaseDate AS  PurchaseDate,
 				SORDERQ.CREDAT_0 AS ProjectDate,
 				DENSE_RANK() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, ProjectCost.ProjectNO DESC) AS ROWNUM
@@ -277,6 +285,11 @@
 			INNER JOIN ProjectCost
 					ON SORDERQ.YSOH_PJT_0 = ProjectCost.ProjectNO
 					OR SORDERQ.YSOQ_PJTORI_0 = ProjectCost.ProjectNO
+			LEFT JOIN Currency
+					ON Currency.Sour =  ProjectCost.Currency
+						AND Currency.Dest= 'USD'
+						AND ProjectCost.PurchaseDate >= Currency.StartDate
+						AND Currency.EndDate > ProjectCost.PurchaseDate
 			WHERE SORDERQ.ITMREF_0 = #{PnRoot}
 				AND SORDERQ.SALFCY_0 = #{Site}
 		) AS T1
@@ -302,13 +315,14 @@
 		SQUOTE.BPCNAM_0 AS CustomerName,
 		SQUOTED.QTY_0 AS QTY,
 		SQUOTED.NETPRI_0*Currency.Rate AS NetPrice,
+		IIF(SQUOTE.CUR_0 = #{Currency}, SQUOTED.NETPRI_0, SQUOTED.NETPRI_0*Currency.Rate) AS NetPrice,
 		SQUOTED.ORDFLG_0 AS OrderFlag,
 		SQUOTED.SOHNUM_0 AS OrderNO,
 		DENSE_RANK() OVER (ORDER BY SQUOTED.CREDAT_0 DESC, SQUOTED.SQHNUM_0 DESC) AS ROWNUM
 	FROM SQUOTE
 	LEFT JOIN SQUOTED
 		ON SQUOTED.SQHNUM_0=SQUOTE.SQHNUM_0
-	INNER JOIN Currency
+	LEFT JOIN Currency
 	ON Currency.Sour =  SQUOTE.CUR_0
 			AND Currency.Dest=#{Currency}
 			AND SQUOTED.CREDAT_0 >= Currency.StartDate
@@ -322,7 +336,7 @@
 	
 	SELECT * FROM Quote
 	WHERE Quote.ROWNUM = #{LastN}
-    </select>
+	</select>
 	<select id="analysesSales" resultType="com.da.sageassistantserver.model.AnalysesSales">
 	WITH
 	Currency AS (
@@ -342,15 +356,15 @@
 			SORDER.BPCORD_0 AS CustomerCode,
 			SORDER.BPCNAM_0 AS CustomerName,
 			SORDERQ.QTY_0 AS QTY,
-			SORDERP.NETPRI_0*Currency.Rate AS NetPrice,
+			IIF(SORDER.CUR_0 = #{Currency}, SORDERP.NETPRI_0, SORDERP.NETPRI_0*Currency.Rate) AS NetPrice,
 			DENSE_RANK() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, SORDERP.SOHNUM_0 DESC) AS ROWNUM
-	FROM SORDER
-		LEFT JOIN SORDERP
-			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+	FROM SORDERP
 		INNER JOIN SORDERQ
 			ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
 				AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
-		INNER JOIN Currency
+		LEFT JOIN SORDER
+			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+		LEFT JOIN Currency
 			ON Currency.Sour =  SORDER.CUR_0
 				AND Currency.Dest= #{Currency}
 				AND SORDERP.CREDAT_0 >= Currency.StartDate
@@ -364,5 +378,5 @@
 	
 	SELECT * FROM Sales
 	WHERE Sales.ROWNUM = #{LastN}
-   </select>
+	</select>
 </mapper>

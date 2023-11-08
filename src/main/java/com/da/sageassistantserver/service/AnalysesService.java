@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:00:08                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/service/AnalysesService.java                    *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/*****************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                    *
+ * @CreatedDate           : 2022-03-26 17:57:00                              *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                    *
+ * @LastEditDate          : 2023-11-08 19:16:45                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
+ ****************************************************************************/
 
 package com.da.sageassistantserver.service;
 
@@ -102,7 +101,7 @@ public class AnalysesService {
         @Param("LastN") String LastN
     ) {
         List<AnalysesPurchase> result = analysesMapper.analysesPurchase(Site, PnRoot, Currency, LastN);
-        List<String> rtn = new ArrayList<String>();
+        List<String> rtn = new ArrayList<String>(); // maybe more than one result
 
         for (AnalysesPurchase o : result) {
             switch (Target) {
@@ -137,7 +136,7 @@ public class AnalysesService {
         @Param("LastN") String LastN
     ) {
         List<AnalysesQuote> result = analysesMapper.analysesQuote(Site, PnRoot, Currency, LastN);
-        List<String> rtn = new ArrayList<String>();
+        List<String> rtn = new ArrayList<String>(); // maybe more than one result
 
         for (AnalysesQuote o : result) {
             switch (Target) {
@@ -181,7 +180,7 @@ public class AnalysesService {
         @Param("LastN") String LastN
     ) {
         List<AnalysesSales> result = analysesMapper.analysesSales(Site, PnRoot, Currency, LastN);
-        List<String> rtn = new ArrayList<String>();
+        List<String> rtn = new ArrayList<String>(); // maybe more than one result
 
         for (AnalysesSales o : result) {
             switch (Target) {
