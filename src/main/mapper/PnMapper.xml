@@ -118,6 +118,27 @@
 	<select id="findCostHistoryByPnRoot" resultType="com.da.sageassistantserver.model.CostHistory">
 	    SELECT DISTINCT
 			PORDERP.PRHFCY_0 AS PurchaseSite,
+			PORDERP.PJT_0 AS ProjectNO,
+			PORDERP.ITMREF_0 AS OrderPN,
+			PORDERP.CREDAT_0 AS OrderDate,
+			PORDERP.POHNUM_0 AS PurchaseNO,
+			PORDERP.POPLIN_0 As Line,
+			PORDER.BPSNUM_0 AS VendorCode,
+			PORDER.BPRNAM_0 AS VendorName,
+			PORDERP.ITMREF_0 AS PurchasePN,
+			PORDERP.ITMDES_0 AS Description,
+			PORDER.CUR_0 AS Currency,
+			PORDERP.NETPRI_0 AS NetPrice,
+			PORDERQ.QTYPUU_0 AS Qty
+			FROM PORDERP
+				INNER JOIN PORDERQ
+					  ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+				INNER JOIN PORDER
+					  ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+			WHERE PORDERP.ITMREF_0 = 'UT841' AND PORDERP.NETPRI_0 > 0
+		UNION
+	    SELECT DISTINCT
+			PORDERP.PRHFCY_0 AS PurchaseSite,
 			IIF(SORDERQ.YSOQ_PJTORI_0='', SORDERQ.YSOH_PJT_0, SORDERQ.YSOQ_PJTORI_0) AS ProjectNO,
 			SORDERQ.ITMREF_0 AS OrderPN,
 			SORDERQ.CREDAT_0 AS OrderDate,
@@ -138,7 +159,7 @@
 				INNER JOIN PORDER
 					  ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
 			WHERE SORDERQ.ITMREF_0 = #{PnRoot} AND PORDERP.NETPRI_0 > 0
-			ORDER BY OrderDate ASC
+		ORDER BY OrderDate ASC
      </select>
 	<select id="findDeliveryDurationByPnRoot" resultType="com.da.sageassistantserver.model.DeliveryDuration">
 		SELECT SORDERP.SALFCY_0 AS SalesSite,
