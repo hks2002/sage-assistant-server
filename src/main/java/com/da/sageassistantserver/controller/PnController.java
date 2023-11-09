@@ -27,9 +27,6 @@ import com.da.sageassistantserver.model.StockInfo;
 import com.da.sageassistantserver.service.PnService;
 import com.da.sageassistantserver.utils.Utils;
 
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @CrossOrigin
 @RestController
 public class PnController {
@@ -49,7 +46,7 @@ public class PnController {
     @GetMapping("/Data/MakeShortPn")
     public String makeShortPn(@RequestParam(value = "Pn", required = true) String PN) {
         return Utils.makeShortPn(PN);
-    }
+    } 
 
     @GetMapping("/Data/PNsInFamily")
     public List<PnDetails> getPNsInFamily(
