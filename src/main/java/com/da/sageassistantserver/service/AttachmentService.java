@@ -128,6 +128,12 @@ public class AttachmentService {
         if (pn.equals("NULL")) {
             return new ArrayList<>();
         }
+        if (pn.endsWith("-")) {
+            pn = pn.substring(0, pn.length() - 1);
+        }
+        if (pn.endsWith("_")) {
+            pn = pn.substring(0, pn.length() - 1);
+        }
 
         List<Attachment> listAttachment = attachmentMapper.getAttachment(pn);
         for (Attachment o : listAttachment) {
