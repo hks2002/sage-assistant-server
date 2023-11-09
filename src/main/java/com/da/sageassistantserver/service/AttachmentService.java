@@ -27,7 +27,6 @@ import com.alibaba.fastjson2.JSONObject;
 import com.da.sageassistantserver.dao.AttachmentMapper;
 import com.da.sageassistantserver.model.Attachment;
 import com.da.sageassistantserver.utils.Utils;
-import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 
@@ -48,34 +47,30 @@ public class AttachmentService {
     private String attachmentPathWindows;
 
     /**
-     * google guava cache
+     * cache
      */
-    public LoadingCache<String, JSONArray> cache = Caffeine
+    private LoadingCache<String, JSONArray> cache = Caffeine
             .newBuilder()
-            .initialCapacity(100)
             .maximumSize(1000)
             .expireAfterAccess(60, TimeUnit.MINUTES)
             .build(
-                    new CacheLoader<String, JSONArray>() {
-                        @Override
-                        public JSONArray load(String pn) {
-                            // change / \ * ? to -
-                            String pnShort = pn.replaceAll("(\\\\|\\*|\\/|\\?)", "-");
-                            pnShort = Utils.makeShortPn(pnShort);
+                    (String pn) -> {
+                        // change / \ * ? to -
+                        String pnShort = pn.replaceAll("(\\\\|\\*|\\/|\\?)", "-");
+                        pnShort = Utils.makeShortPn(pnShort);
 
-                            // Manual's folder without version end with '_', if pn with version,
-                            // ManualsShort is empty, only return Drawing.
-                            // And if Pn without version and Pn==PnRoot, both return Manual and Drawing
-                            JSONArray ManualsShort = makeJsonArray(pn, "Manual", pnShort);
-                            JSONArray DrawingShort = makeJsonArray(pn, "Drawing", pnShort);
+                        // Manual's folder without version end with '_', if pn with version,
+                        // ManualsShort is empty, only return Drawing.
+                        // And if Pn without version and Pn==PnRoot, both return Manual and Drawing
+                        JSONArray ManualsShort = makeJsonArray(pn, "Manual", pnShort);
+                        JSONArray DrawingShort = makeJsonArray(pn, "Drawing", pnShort);
 
-                            JSONArray all = new JSONArray();
+                        JSONArray all = new JSONArray();
 
-                            all.addAll(ManualsShort);
-                            all.addAll(DrawingShort);
+                        all.addAll(ManualsShort);
+                        all.addAll(DrawingShort);
 
-                            return all;
-                        }
+                        return all;
                     });
 
     public String handleFileUpload(
@@ -145,7 +140,7 @@ public class AttachmentService {
 
             // stand path is /File/docs_sagex3/*
             if (pathOri.startsWith("[DOCS_SAGEX3]")) {
-                pathOri = "/File/docs_sagex3/" + pathOri.substring(14);
+                pathOri = "file://srvdata01/DOCS_SAGEX3/" + pathOri.substring(14);
             } else {
                 // Here keep the path
             }
