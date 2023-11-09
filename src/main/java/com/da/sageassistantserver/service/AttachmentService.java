@@ -15,6 +15,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +27,9 @@ import com.alibaba.fastjson2.JSONObject;
 import com.da.sageassistantserver.dao.AttachmentMapper;
 import com.da.sageassistantserver.model.Attachment;
 import com.da.sageassistantserver.utils.Utils;
+import com.github.benmanes.caffeine.cache.CacheLoader;
+import com.github.benmanes.caffeine.cache.Caffeine;
+import com.github.benmanes.caffeine.cache.LoadingCache;
 
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
@@ -43,12 +47,42 @@ public class AttachmentService {
     @Value("${attachment.path.windows}")
     private String attachmentPathWindows;
 
+    /**
+     * google guava cache
+     */
+    public LoadingCache<String, JSONArray> cache = Caffeine
+            .newBuilder()
+            .initialCapacity(100)
+            .maximumSize(1000)
+            .expireAfterAccess(60, TimeUnit.MINUTES)
+            .build(
+                    new CacheLoader<String, JSONArray>() {
+                        @Override
+                        public JSONArray load(String pn) {
+                            // change / \ * ? to -
+                            String pnShort = pn.replaceAll("(\\\\|\\*|\\/|\\?)", "-");
+                            pnShort = Utils.makeShortPn(pnShort);
+
+                            // Manual's folder without version end with '_', if pn with version,
+                            // ManualsShort is empty, only return Drawing.
+                            // And if Pn without version and Pn==PnRoot, both return Manual and Drawing
+                            JSONArray ManualsShort = makeJsonArray(pn, "Manual", pnShort);
+                            JSONArray DrawingShort = makeJsonArray(pn, "Drawing", pnShort);
+
+                            JSONArray all = new JSONArray();
+
+                            all.addAll(ManualsShort);
+                            all.addAll(DrawingShort);
+
+                            return all;
+                        }
+                    });
+
     public String handleFileUpload(
-        String pn,
-        String cat,
-        final MultipartFile uploadFile,
-        HttpServletResponse response
-    ) {
+            String pn,
+            String cat,
+            final MultipartFile uploadFile,
+            HttpServletResponse response) {
         String attachmentPath = Utils.isWin() ? attachmentPathWindows : attachmentPathLinux;
 
         // change / \ * ? to -
@@ -121,28 +155,12 @@ public class AttachmentService {
         return listAttachment;
     }
 
-
     public JSONArray getAttachmentPathForChina(String pn) {
         if (pn.equals("NULL")) {
             return new JSONArray();
         }
 
-            // change / \ * ? to -
-            String pnShort = pn.replaceAll("(\\\\|\\*|\\/|\\?)", "-");
-            pnShort = Utils.makeShortPn(pnShort);
-
-            //Manual's folder without version end with '_', if pn with version, ManualsShort is empty, only return Drawing.
-            //And if Pn without version and Pn==PnRoot, both return Manual and Drawing
-            JSONArray ManualsShort = makeJsonArray(pn, "Manual", pnShort);
-            JSONArray DrawingShort = makeJsonArray(pn, "Drawing", pnShort);
-
-            JSONArray all = new JSONArray();
-
-            all.addAll(ManualsShort);
-            all.addAll(DrawingShort);
-
-            return all;
-       
+        return cache.get(pn);
     }
 
     private JSONArray makeJsonArray(String pn, String catStr, String folder) {
