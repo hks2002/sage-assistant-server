@@ -146,7 +146,7 @@ public class AttachmentService {
 
             // stand path is /File/docs_sagex3/*
             if (pathOri.startsWith("[DOCS_SAGEX3]")) {
-                pathOri = "file://srvdata01/DOCS_SAGEX3/" + pathOri.substring(14);
+                pathOri = "/File/srvdata01/DOCS_SAGEX3/" + pathOri.substring(14);
             } else {
                 // Here keep the path
             }
