@@ -28,7 +28,7 @@
 		AND PORDERP.PRHFCY_0 != #{Site} 
 		AND T1.SEQ !=1 
 
-	ORDER BY PurchaseProjectNO  ASC
+	ORDER BY ProjectNO  ASC
 	</select>
 	<select id="findDuplicatedOuterPOBySite" resultType="com.da.sageassistantserver.model.DirtyDataDuplicatedPO">
 	WITH T1 AS ( SELECT DISTINCT

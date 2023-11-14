@@ -1,11 +1,10 @@
-/**********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CreatedDate           : 2022-03-26 20:13:00                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2023-09-02 23:37:02                                                                       *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/StatusController.java                 *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
- *********************************************************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2022-03-26 20:13:00                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2023-11-14 17:32:37                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
@@ -25,30 +24,30 @@ import com.da.sageassistantserver.service.DirtyDataService;
 @RestController
 public class DirtyDataController {
 
-    @Autowired
-    private DirtyDataService dirtyDataService;
+        @Autowired
+        private DirtyDataService dirtyDataService;
 
-    @GetMapping("/Data/DuplicatedInterPO")
-    public List<DirtyDataDuplicatedPO> findDuplicatedInterPOBySite(
-            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site) {
-        return dirtyDataService.findDuplicatedInterPOBySite(
-                Site);
-    }
+        @GetMapping("/Data/DuplicatedInterPO")
+        public List<DirtyDataDuplicatedPO> findDuplicatedInterPOBySite(
+                        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site) {
+                return dirtyDataService.findDuplicatedInterPOBySite(
+                                Site);
+        }
 
-    @GetMapping("/Data/DuplicatedOuterPO")
-    public List<DirtyDataDuplicatedPO> findDuplicatedOuterPOBySite(
-            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
-            @RequestParam(value = "DateFrom", required = false, defaultValue = "1990-01-01") String DateFrom) {
-        return dirtyDataService.findDuplicatedOuterPOBySite(
-                Site, DateFrom);
-    }
+        @GetMapping("/Data/DuplicatedOuterPO")
+        public List<DirtyDataDuplicatedPO> findDuplicatedOuterPOBySite(
+                        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
+                        @RequestParam(value = "DateFrom", required = false, defaultValue = "2999-01-01") String DateFrom) {
+                return dirtyDataService.findDuplicatedOuterPOBySite(
+                                Site, DateFrom);
+        }
 
-    @GetMapping("/Data/DuplicatedRA")
-    public List<DirtyDataDuplicatedRA> findDuplicatedRABySite(
-            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
-            @RequestParam(value = "DateFrom", required = false, defaultValue = "1990-01-01") String DateFrom) {
-        return dirtyDataService.findDuplicatedRABySite(
-                Site, DateFrom);
-    }
+        @GetMapping("/Data/DuplicatedRA")
+        public List<DirtyDataDuplicatedRA> findDuplicatedRABySite(
+                        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
+                        @RequestParam(value = "DateFrom", required = false, defaultValue = "2999-01-01") String DateFrom) {
+                return dirtyDataService.findDuplicatedRABySite(
+                                Site, DateFrom);
+        }
 
 }
