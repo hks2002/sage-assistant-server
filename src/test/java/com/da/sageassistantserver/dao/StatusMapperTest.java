@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2023-03-12 22:01:15                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-04-06 14:43:53                                                                      *
- * @FilePath              : src/test/java/sageassistant/data/dao/StatusMapperTest.java                               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/*****************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                    *
+ * @CreatedDate           : 2023-03-12 22:01:15                              *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                    *
+ * @LastEditDate          : 2023-11-14 17:12:13                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
+ ****************************************************************************/
 
 package com.da.sageassistantserver.dao;
 
@@ -49,31 +48,32 @@ public class StatusMapperTest {
 
     @Test
     void testFindTobeTrackingBOMLineBySite() {
-        statusMapper.findTobeTrackingBOMLineBySite("ZHU", "NOR", "00870", "", "DaysLeft", "DESC", 0, 10);
+        statusMapper.findTobeTrackingBOMLineBySite("ZHU", "NOR", "00870", "", "", "DaysLeft", "DESC", 0,
+                10);
     }
 
     @Test
     void testFindTobeTrackingPurchaseOrderLineBySite() {
-        statusMapper.findTobeTrackingPurchaseOrderLineBySite("ZHU", "NOR", "00870", "", "DaysLeft", "DESC", 0, 10);
+        statusMapper.findTobeTrackingPurchaseOrderLineBySite("ZHU", "NOR", "00870", "", "", "DaysLeft", "DESC", 0, 10);
     }
 
     @Test
     void testFindTobeTrackingQALineBySite() {
-        statusMapper.findTobeTrackingQALineBySite("ZHU", "NOR", "00870", "", "DaysLeft", "DESC", 0, 10);
+        statusMapper.findTobeTrackingQALineBySite("ZHU", "NOR", "00870", "", "", "DaysLeft", "DESC", 0, 10);
     }
 
     @Test
     void testFindTobeTrackingReceiptLineBySite() {
-        statusMapper.findTobeTrackingReceiptLineBySite("ZHU", "NOR", "00870", "", "DaysLeft", "DESC", 0, 10);
+        statusMapper.findTobeTrackingReceiptLineBySite("ZHU", "NOR", "00870", "", "", "DaysLeft", "DESC", 0, 10);
     }
 
     @Test
     void testFindTobeTrackingSalesOrderLineBySite() {
-        statusMapper.findTobeTrackingSalesOrderLineBySite("ZHU", "NOR", "00870", "", "DaysLeft", "DESC", 0, 10);
+        statusMapper.findTobeTrackingSalesOrderLineBySite("ZHU", "NOR", "00870", "", "", "DaysLeft", "DESC", 0, 10);
     }
 
     @Test
     void testFindTobeTrackingSalesOrderLineCntBySite() {
-        statusMapper.findTobeTrackingSalesOrderLineCntBySite("ZHU", "NOR", "", "");
+        statusMapper.findTobeTrackingSalesOrderLineCntBySite("ZHU", "NOR", "", "", "");
     }
 }
