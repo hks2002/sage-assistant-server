@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:01:20                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/service/FinancialService.java                   *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/*****************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                    *
+ * @CreatedDate           : 2022-03-26 17:57:00                              *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                    *
+ * @LastEditDate          : 2023-11-17 10:23:42                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
+ ****************************************************************************/
 
 package com.da.sageassistantserver.service;
 
@@ -128,11 +127,10 @@ public class FinancialService {
     }
 
     public List<FinancialBalance> getAccountBalanceForAccountNOByCat(
-        String Site,
-        String Year,
-        String Cat,
-        String AccountNO
-    ) {
+            String Site,
+            String Year,
+            String Cat,
+            String AccountNO) {
         String[] AccountNOs = AccountNO.split(",");
         List<FinancialBalance> list = financialMapper.findAccountBalanceByAccountNO(Site, Year, AccountNOs);
         List<FinancialBalance> listBalance = new ArrayList<>();
@@ -225,16 +223,17 @@ public class FinancialService {
         return listBalance;
     }
 
-    public List<FinancialInvoicePay> getInvoicePay(String Site, String CustomerCode, String DateFrom, String DateTo) {
-        return financialMapper.findInvoicePay(Site, CustomerCode, DateFrom, DateTo);
+    public List<FinancialInvoicePay> getInvoicePay(String Site, String CustomerCode, String DateType, String DateFrom,
+            String DateTo) {
+        return financialMapper.findInvoicePay(Site, CustomerCode, DateType, DateFrom, DateTo);
     }
 
     public List<FinancialInvoicePayPro> getInvoicePayPro(
-        String Site,
-        String CustomerCode,
-        String DateFrom,
-        String DateTo
-    ) {
-        return financialMapper.findInvoicePayPro(Site, CustomerCode, DateFrom, DateTo);
+            String Site,
+            String CustomerCode,
+            String DateType,
+            String DateFrom,
+            String DateTo) {
+        return financialMapper.findInvoicePayPro(Site, CustomerCode, DateType, DateFrom, DateTo);
     }
 }
