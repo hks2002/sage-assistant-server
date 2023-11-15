@@ -1,11 +1,10 @@
-/**********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CreatedDate           : 2022-03-26 22:30:00                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2023-09-01 00:43:06                                                                       *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/FinancialController.java              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
- *********************************************************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2022-03-26 22:30:00                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2023-11-17 10:41:25                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
@@ -35,10 +34,9 @@ public class FinancialController {
 
     @GetMapping("/Data/FinancialBalance")
     public List<FinancialBalance> getFinancialBalance(
-        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
-        @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
-        @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO
-    ) {
+            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
+            @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
+            @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO) {
         if (AccountNO.equals("")) {
             return (financialService.getAccountBalanceForAll(Site, Year));
         } else {
@@ -48,37 +46,33 @@ public class FinancialController {
 
     @GetMapping("/Data/FinancialBalanceM")
     public List<FinancialBalance> getFinancialBalanceA(
-        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
-        @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
-        @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO
-    ) {
+            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
+            @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
+            @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO) {
         return getFinancialBalanceCDMB(Site, Year, AccountNO, "M");
     }
 
     @GetMapping("/Data/FinancialBalanceB")
     public List<FinancialBalance> getFinancialBalanceB(
-        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
-        @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
-        @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO
-    ) {
+            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
+            @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
+            @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO) {
         return getFinancialBalanceCDMB(Site, Year, AccountNO, "B");
     }
 
     @GetMapping("/Data/FinancialBalanceC")
     public List<FinancialBalance> getFinancialBalanceC(
-        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
-        @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
-        @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO
-    ) {
+            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
+            @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
+            @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO) {
         return getFinancialBalanceCDMB(Site, Year, AccountNO, "C");
     }
 
     @GetMapping("/Data/FinancialBalanceD")
     public List<FinancialBalance> getFinancialBalanceD(
-        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
-        @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
-        @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO
-    ) {
+            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
+            @RequestParam(value = "Year", required = false, defaultValue = "") String Year,
+            @RequestParam(value = "AccountNO", required = false, defaultValue = "") String AccountNO) {
         return getFinancialBalanceCDMB(Site, Year, AccountNO, "D");
     }
 
@@ -98,21 +92,21 @@ public class FinancialController {
 
     @GetMapping("/Data/FinancialInvoicePay")
     public List<FinancialInvoicePay> getFinancialInvoicePay(
-        @RequestParam(value = "Site", required = true, defaultValue = "ZHU") String Site,
-        @RequestParam(value = "CustomerCode", required = false, defaultValue = "") String CustomerCode,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
-        return (financialService.getInvoicePay(Site, CustomerCode, DateFrom, DateTo));
+            @RequestParam(value = "Site", required = true, defaultValue = "ZHU") String Site,
+            @RequestParam(value = "CustomerCode", required = false, defaultValue = "") String CustomerCode,
+            @RequestParam(value = "DateType", required = false, defaultValue = "invoiceDay") String DateType,
+            @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
+        return (financialService.getInvoicePay(Site, CustomerCode, DateType, DateFrom, DateTo));
     }
 
     @GetMapping("/Data/FinancialInvoicePayPro")
     public List<FinancialInvoicePayPro> getFinancialInvoicePayPro(
-        @RequestParam(value = "Site", required = true, defaultValue = "ZHU") String Site,
-        @RequestParam(value = "CustomerCode", required = false, defaultValue = "") String CustomerCode,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
-        return (financialService.getInvoicePayPro(Site, CustomerCode, DateFrom, DateTo));
+            @RequestParam(value = "Site", required = true, defaultValue = "ZHU") String Site,
+            @RequestParam(value = "CustomerCode", required = false, defaultValue = "") String CustomerCode,
+            @RequestParam(value = "DateType", required = false, defaultValue = "invoiceDay") String DateType,
+            @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
+        return (financialService.getInvoicePayPro(Site, CustomerCode, DateType, DateFrom, DateTo));
     }
 }
