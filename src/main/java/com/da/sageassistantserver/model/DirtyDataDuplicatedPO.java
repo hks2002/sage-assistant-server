@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-09-21 09:17:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2023-11-15 14:25:41                               *
+ * @LastEditDate          : 2023-11-15 18:55:30                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -20,5 +20,6 @@ public class DirtyDataDuplicatedPO {
     private Integer PurchaseQty;
     private Integer TotalPurchaseQty;
     private Integer TotalSalesQty;
-    private Integer Req;
+    private String Purchaser;
+    private Integer Seq;
 }

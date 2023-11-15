@@ -2,55 +2,16 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.da.sageassistantserver.dao.DirtyDataMapper">
-	<!--Open L2 Cache under Names pace: 10 Min-->
-	<cache eviction="LRU" flushInterval="600000" readOnly="true" size="512" />
-	<select id="findDuplicatedInterPOBySite" resultType="com.da.sageassistantserver.model.DirtyDataDuplicatedPO">
-WITH T1 AS ( SELECT DISTINCT
-            PORDERP.PJT_0,
-			PORDERP.ITMREF_0,
-            PORDERP.POHNUM_0,
-            PORDERP.POPLIN_0,
-            PORDERQ.QTYSTU_0,
-			DENSE_RANK() OVER (PARTITION BY PORDERP.ITMREF_0, PORDERP.PJT_0 ORDER BY PORDERP.ROWID ) AS SEQ,
-            SUM(PORDERQ.QTYSTU_0) OVER (PARTITION BY PORDERP.ITMREF_0, PORDERP.PJT_0 ) AS PQTY,
-            ISNULL(SORDERQ.QTYSTU_0,0) AS SQTY
-		FROM EXPLOIT.PORDERP AS PORDERP
-			INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
-				ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
-					AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
-            INNER JOIN EXPLOIT.SORDERQ SORDERQ
-			ON SORDERQ.YSOQ_PJTORI_0 = PORDERP.PJT_0  AND  SORDERQ.ITMREF_0 = PORDERP.ITMREF_0
-		WHERE RIGHT(PORDERP.PJT_0,4)!='0001' 
-            AND PORDERP.PJT_0 !='TQUALITE' 
-            AND PORDERP.PRHFCY_0 = #{Site}
-            AND PORDERP.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
-	)
-
-	SELECT  DISTINCT
-			T1.PJT_0 AS ProjectNO,
-			T1.ITMREF_0 AS PN,
-			T1.POHNUM_0 AS PurchaseNO, 
-			T1.POPLIN_0 AS PurchaseLine,
-            T1.QTYSTU_0 AS PurchaseQty,
-			T1.PQTY AS TotalPurchaseQty,
-            T1.SQTY AS TotalSaleseQty,
-            T1.SEQ AS Seq
-	FROM T1 
-			INNER JOIN T1 AS T2
-			ON T1.PJT_0 = T2.PJT_0
-                AND T1.ITMREF_0 = T2.ITMREF_0
-				AND T2.SEQ >1 AND T2.PQTY > T2.SQTY
-	ORDER BY T1.PJT_0 ASC, 
-			T1.ITMREF_0 ASC,
-			T1.POHNUM_0 ASC
-	</select>
-	<select id="findDuplicatedOuterPOBySite" resultType="com.da.sageassistantserver.model.DirtyDataDuplicatedPO">
+    <!--Open L2 Cache under Names pace: 10 Min-->
+    <cache eviction="LRU" flushInterval="600000" readOnly="true" size="512" />
+    <select id="findDuplicatedPOBySite" resultType="com.da.sageassistantserver.model.DirtyDataDuplicatedPO">
 		WITH T1 AS ( SELECT DISTINCT
 			PORDERP.PJT_0,
 			PORDERP.ITMREF_0,
             PORDERP.POHNUM_0,
             PORDERP.POPLIN_0,
             PORDERQ.QTYSTU_0,
+            PORDERP.CREUSR_0,
 			DENSE_RANK() OVER (PARTITION BY PORDERP.ITMREF_0, PORDERP.PJT_0 ORDER BY PORDERP.ROWID ) AS SEQ,
             SUM(PORDERQ.QTYSTU_0) OVER (PARTITION BY PORDERP.ITMREF_0, PORDERP.PJT_0 ) AS PQTY,
             ISNULL(SORDERQ.QTYSTU_0,0) AS SQTY
@@ -59,9 +20,11 @@ WITH T1 AS ( SELECT DISTINCT
 				ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
 					AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
             LEFT JOIN EXPLOIT.SORDERQ SORDERQ
-                ON  ( SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0) AND PORDERP.ITMREF_0 = SORDERQ.ITMREF_0
+                ON  ( SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = PORDERP.PJT_0)
+				    AND LEFT(SORDERQ.SALFCY_0,1) = LEFT(PORDERP.PJT_0,1)
 		WHERE RIGHT(PORDERP.PJT_0,4)!='0001' 
 			AND RIGHT(PORDERP.PJT_0,8) != 'ZLOGISTIC'
+			AND PORDERP.PJT_0 !='TQUALITE'
 			-- FACHDIV0001:   PURCHASE VARIOUS
 			---FACHTRADRTD:   INBOUND CUSTOM FEES
 			---FVENTRAAUT:    OUTBOUND SHIPMENT FEES
@@ -78,32 +41,52 @@ WITH T1 AS ( SELECT DISTINCT
 			T1.POPLIN_0 AS PurchaseLine,
             T1.QTYSTU_0 AS PurchaseQty,
 			T1.PQTY AS TotalPurchaseQty,
-            T1.SQTY AS TotalSaleseQty,
+            T1.SQTY AS TotalSalesQty,			
+		    T1.CREUSR_0 AS Purchaser,
             T1.SEQ AS Seq
 	FROM T1 
 			INNER JOIN T1 AS T2
 			ON T1.PJT_0 = T2.PJT_0
                 AND T1.ITMREF_0 = T2.ITMREF_0
 				AND T2.SEQ >1 AND T2.PQTY > T2.SQTY
+        <if test='OnlyForSales != null and OnlyForSales == "Y"'>
+                -- this filter no order qty line, order qty line is 0
+                AND T2.SQTY > 0
+        </if>
 	ORDER BY T1.PJT_0 ASC, 
 			T1.ITMREF_0 ASC,
-			T1.POHNUM_0 AS
-	</select>
-	<select id="findDuplicatedRABySite" resultType="com.da.sageassistantserver.model.DirtyDataDuplicatedRA">
-	WITH T1 AS (SELECT DISTINCT
+			T1.POHNUM_0 ASC
+    </select>
+    <select id="findDuplicatedRABySite" resultType="com.da.sageassistantserver.model.DirtyDataDuplicatedRA">
+WITH T1 AS (SELECT DISTINCT
             PRECEIPTD.PJT_0,
             PRECEIPTD.ITMREF_0, 
             PRECEIPTD.PTHNUM_0,
             PRECEIPTD.PTDLIN_0,
             PRECEIPTD.POHNUM_0,
             PRECEIPTD.POPLIN_0,
+            PORDERP.CREUSR_0 AS Receiptor,
             PRECEIPTD.QTYSTU_0,
             PRECEIPTD.LINATIAMT_0, 
             PRECEIPTD.NETCUR_0,
-            DENSE_RANK() OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ORDER BY PRECEIPTD.ROWID ) AS SEQ
+            PORDERP.CREUSR_0 AS Purchaser,
+            DENSE_RANK() OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ORDER BY PRECEIPTD.ROWID ) AS SEQ,
+            SUM(PRECEIPTD.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0) AS RQTY,
+            ISNULL(SORDERQ.QTYSTU_0,0) AS SQTY
         FROM EXPLOIT.PRECEIPTD AS PRECEIPTD 
-        WHERE PRECEIPTD.PRHFCY_0 = #{Site} 
+             LEFT JOIN EXPLOIT.PORDERP AS PORDERP
+                   ON PRECEIPTD.POHNUM_0 = PORDERP.POHNUM_0 AND PRECEIPTD.POPLIN_0 = PORDERP.POPLIN_0
+            LEFT JOIN EXPLOIT.SORDERQ SORDERQ
+                ON  SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0 
+                    -- This line to fix the origin order site
+                    AND LEFT(SORDERQ.SALFCY_0,1) = LEFT(PORDERP.PJT_0,1)
+        WHERE PRECEIPTD.PRHFCY_0 = #{Site}
               AND RIGHT(PRECEIPTD.PJT_0,4)!='0001'
+              -- FACHDIV0001:   PURCHASE VARIOUS
+              ---FACHTRADRTD:   INBOUND CUSTOM FEES
+              ---FVENTRAAUT:    OUTBOUND SHIPMENT FEES
+              ---FACHTRAAUT:    INBOUND SHIPMENT FEES
+			AND PRECEIPTD.ITMREF_0 NOT IN ('FACHDIV0001', 'FACHTRADRTD','FVENTRAAUT' ,'FACHTRAAUT')
               AND PRECEIPTD.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
 )
 
@@ -112,19 +95,29 @@ SELECT DISTINCT
     T1.ITMREF_0 AS PN, 
     T1.PTHNUM_0 AS ReceiptNO,
     T1.PTDLIN_0 AS ReceiptLine,
+    T1.Receiptor,
     T1.POHNUM_0 AS PurchaseNO,
     T1.POPLIN_0 AS PurchaseLine,
+    T1.Purchaser,
     T1.QTYSTU_0 AS ReceiptQty,
     T1.LINATIAMT_0 AS ReceiptAmount, 
     T1.NETCUR_0 AS Currency,
+    T1.RQTY AS TotalReceiptQty,
+    T1.SQTY AS TotalSalesQty,
     T1.SEQ AS Seq
 FROM T1
 INNER JOIN T1 AS T2 
-     ON T1.PJT_0 = T2.PJT_0
-        WHERE T2.SEQ >1
+     ON T1.PJT_0 = T2.PJT_0  AND T1.ITMREF_0 = T2.ITMREF_0
+        WHERE T2.SEQ > 1   
+        AND T2.RQTY > T2.SQTY
+        <if test='OnlyForSales != null and OnlyForSales == "Y"'>
+        -- this filter no order qty line, order qty line is 0
+        AND T2.SQTY > 0
+        </if>
 
     ORDER BY 
     T1.PJT_0 ASC,
+    T1.ITMREF_0 ASC,
     T1.PTHNUM_0 ASC
-	</select>
+    </select>
 </mapper>
