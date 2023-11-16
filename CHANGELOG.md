@@ -1,5 +1,27 @@
 # Changelog
 
+## [3.2.0](https://github.com/hks2002/sage-assistant-server/compare/v3.1.1...v3.2.0) (2023-11-16)
+
+
+### Features
+
+* ✨add duplicated PO function ([275e4e5](https://github.com/hks2002/sage-assistant-server/commit/275e4e5edcf6e04d301755352f4c8c2c3baa2078))
+* ✨add duplicated PO function ([a169c96](https://github.com/hks2002/sage-assistant-server/commit/a169c965b5237e3d123de0530c49f774a574ac49))
+* ✨add duplicated PO RA fun ([f5db48e](https://github.com/hks2002/sage-assistant-server/commit/f5db48e7767dbd823ec6b729072d1c460b566832))
+* ✨add projectNO filter for tracking ([74c5a44](https://github.com/hks2002/sage-assistant-server/commit/74c5a447fb4f119e67d70ba765cf1d2e364202b0))
+* ✨attachment result cache ([f31139f](https://github.com/hks2002/sage-assistant-server/commit/f31139f24f99b3a4125bf6f4ccc5f0cbb1d3e387))
+* ✨attachment result cache ([38b3440](https://github.com/hks2002/sage-assistant-server/commit/38b34404c4862e3f65a7c2040a6648b2e376fa0e))
+
+
+### Bug Fixes
+
+* 🐛fix duplicated po ([0c7a1e0](https://github.com/hks2002/sage-assistant-server/commit/0c7a1e0443b0d2ba23edf0e88bc90b2728cc93ac))
+* 🐛fix duplicated po ([f3469ac](https://github.com/hks2002/sage-assistant-server/commit/f3469ac1367e6fb0bb604634a90bc3292afb5b1b))
+* 🐛fix srvdata url link ([26752f0](https://github.com/hks2002/sage-assistant-server/commit/26752f05b1d9d28a02c646f15acd69263dad398e))
+* 🐛fix string converter quotation bug ([5eec16a](https://github.com/hks2002/sage-assistant-server/commit/5eec16adbb779044a90bf72a7209931e42604401))
+* 🐛pn end with _- ([63acc65](https://github.com/hks2002/sage-assistant-server/commit/63acc65cd1b8f62afa6aadb09a6ca6200ee9fe44))
+* 🐛project ori field sql empty error ([313a1e1](https://github.com/hks2002/sage-assistant-server/commit/313a1e1eab856682fecce4fbada01a54a3388692))
+
 ## [3.1.1](https://github.com/hks2002/sage-assistant-server/compare/v3.1.0...v3.1.1) (2023-11-08)
 
 
