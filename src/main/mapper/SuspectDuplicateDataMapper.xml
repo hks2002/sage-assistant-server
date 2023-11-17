@@ -4,7 +4,7 @@
 <mapper namespace="com.da.sageassistantserver.dao.DirtyDataMapper">
     <!--Open L2 Cache under Names pace: 10 Min-->
     <cache eviction="LRU" flushInterval="600000" readOnly="true" size="512" />
-    <select id="findDuplicatedPOBySite" resultType="com.da.sageassistantserver.model.DirtyDataDuplicatedPO">
+    <select id="findDuplicatedPOBySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedPO">
 		WITH T1 AS ( SELECT DISTINCT
 			PORDERP.PJT_0,
 			PORDERP.ITMREF_0,
@@ -57,7 +57,7 @@
 			T1.ITMREF_0 ASC,
 			T1.POHNUM_0 ASC
     </select>
-    <select id="findDuplicatedRABySite" resultType="com.da.sageassistantserver.model.DirtyDataDuplicatedRA">
+    <select id="findDuplicatedRABySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedRA">
 WITH T1 AS (SELECT DISTINCT
             PRECEIPTD.PJT_0,
             PRECEIPTD.ITMREF_0, 
