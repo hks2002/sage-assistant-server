@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 20:13:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2023-11-17 13:10:20                               *
+ * @LastEditDate          : 2023-11-19 13:52:03                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -28,7 +28,7 @@ public class SuspectDuplicateDataController {
         private SuspectDuplicateDataService dirtyDataService;
 
         @GetMapping("/Data/DuplicatedPO")
-        public List<SuspectDuplicatedPO> findDuplicatedOuterPOBySite(
+        public List<SuspectDuplicatedPO> findDuplicatedPOBySite(
                         @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
                         @RequestParam(value = "DateFrom", required = false, defaultValue = "2999-01-01") String DateFrom,
                         @RequestParam(value = "OnlyForSales", required = false, defaultValue = "N") String OnlyForSales) {
