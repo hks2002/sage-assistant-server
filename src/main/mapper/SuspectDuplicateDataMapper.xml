@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.da.sageassistantserver.dao.DirtyDataMapper">
+<mapper namespace="com.da.sageassistantserver.dao.SuspectDuplicateDataMapper">
     <!--Open L2 Cache under Names pace: 10 Min-->
     <cache eviction="LRU" flushInterval="600000" readOnly="true" size="512" />
     <select id="findDuplicatedPOBySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedPO">
