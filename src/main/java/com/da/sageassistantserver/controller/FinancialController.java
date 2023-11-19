@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 22:30:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2023-11-17 10:41:25                               *
+ * @LastEditDate          : 2023-11-19 14:05:39                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -94,7 +94,7 @@ public class FinancialController {
     public List<FinancialInvoicePay> getFinancialInvoicePay(
             @RequestParam(value = "Site", required = true, defaultValue = "ZHU") String Site,
             @RequestParam(value = "CustomerCode", required = false, defaultValue = "") String CustomerCode,
-            @RequestParam(value = "DateType", required = false, defaultValue = "invoiceDay") String DateType,
+            @RequestParam(value = "DateType", required = false, defaultValue = "invoiceDate") String DateType,
             @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
         return (financialService.getInvoicePay(Site, CustomerCode, DateType, DateFrom, DateTo));
@@ -104,7 +104,7 @@ public class FinancialController {
     public List<FinancialInvoicePayPro> getFinancialInvoicePayPro(
             @RequestParam(value = "Site", required = true, defaultValue = "ZHU") String Site,
             @RequestParam(value = "CustomerCode", required = false, defaultValue = "") String CustomerCode,
-            @RequestParam(value = "DateType", required = false, defaultValue = "invoiceDay") String DateType,
+            @RequestParam(value = "DateType", required = false, defaultValue = "invoiceDate") String DateType,
             @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
         return (financialService.getInvoicePayPro(Site, CustomerCode, DateType, DateFrom, DateTo));
