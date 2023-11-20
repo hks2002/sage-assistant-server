@@ -258,7 +258,7 @@
 					AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
 			INNER JOIN SORDERQ
 				ON SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0
-				   OR SORDERQ.YSOQ_PJTORI_0 = PORDERP.PJT_0
+				   OR (SORDERQ.YSOQ_PJTORI_0 = PORDERP.PJT_0 AND SORDERQ.YSOQ_PJTORI_0 != '')
 		WHERE
 			PORDERQ.POHFCY_0 = #{Site}
 			AND PORDERP.PRHFCY_0 = #{Site}
@@ -273,21 +273,18 @@
 				ProjectCost.PurchaseNO,
 				SUM(
 					CASE WHEN ProjectCost.Currency = #{Currency} 
-					THEN 
-						IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice, 0) 
-					ELSE
-						IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice*Currency.Rate, 0)
+					THEN IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice, 0) ELSE IIF(ProjectCost.ROWNUM=1, ProjectCost.NetPrice*Currency.Rate, 0)
 					END) OVER (PARTITION BY ProjectCost.ProjectNO)	AS NetPrice,
 				ProjectCost.PurchaseDate AS  PurchaseDate,
 				SORDERQ.CREDAT_0 AS ProjectDate,
-				DENSE_RANK() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, ProjectCost.ProjectNO DESC) AS ROWNUM
+				ROW_NUMBER() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, ProjectCost.ProjectNO DESC) AS ROWNUM
 			FROM SORDERQ
 			INNER JOIN ProjectCost
 					ON SORDERQ.YSOH_PJT_0 = ProjectCost.ProjectNO
 					OR SORDERQ.YSOQ_PJTORI_0 = ProjectCost.ProjectNO
 			LEFT JOIN Currency
 					ON Currency.Sour =  ProjectCost.Currency
-						AND Currency.Dest= 'USD'
+						AND Currency.Dest= #{Currency}
 						AND ProjectCost.PurchaseDate >= Currency.StartDate
 						AND Currency.EndDate > ProjectCost.PurchaseDate
 			WHERE SORDERQ.ITMREF_0 = #{PnRoot}
@@ -314,11 +311,10 @@
 		SQUOTE.BPCORD_0 AS CustomerCode,
 		SQUOTE.BPCNAM_0 AS CustomerName,
 		SQUOTED.QTY_0 AS QTY,
-		SQUOTED.NETPRI_0*Currency.Rate AS NetPrice,
 		IIF(SQUOTE.CUR_0 = #{Currency}, SQUOTED.NETPRI_0, SQUOTED.NETPRI_0*Currency.Rate) AS NetPrice,
 		SQUOTED.ORDFLG_0 AS OrderFlag,
 		SQUOTED.SOHNUM_0 AS OrderNO,
-		DENSE_RANK() OVER (ORDER BY SQUOTED.CREDAT_0 DESC, SQUOTED.SQHNUM_0 DESC) AS ROWNUM
+		ROW_NUMBER() OVER (ORDER BY SQUOTED.CREDAT_0 DESC, SQUOTED.SQHNUM_0 DESC) AS ROWNUM
 	FROM SQUOTE
 	LEFT JOIN SQUOTED
 		ON SQUOTED.SQHNUM_0=SQUOTE.SQHNUM_0
@@ -332,6 +328,7 @@
 		AND SQUOTED.ITMREF_0 = #{PnRoot}
 		AND SQUOTED.SALFCY_0 = #{Site}
 		AND SQUOTE.SALFCY_0 = #{Site}
+	ORDER BY ROWNUM ASC
 	)
 	
 	SELECT * FROM Quote
@@ -357,7 +354,7 @@
 			SORDER.BPCNAM_0 AS CustomerName,
 			SORDERQ.QTY_0 AS QTY,
 			IIF(SORDER.CUR_0 = #{Currency}, SORDERP.NETPRI_0, SORDERP.NETPRI_0*Currency.Rate) AS NetPrice,
-			DENSE_RANK() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, SORDERP.SOHNUM_0 DESC) AS ROWNUM
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, SORDERP.SOHNUM_0 DESC) AS ROWNUM
 	FROM SORDERP
 		INNER JOIN SORDERQ
 			ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
@@ -373,7 +370,8 @@
 		SORDERP.NETPRI_0 > 0
 		AND SORDERP.ITMREF_0 = #{PnRoot}
 		AND SORDERP.SALFCY_0 = #{Site}
-		AND SORDERQ.SALFCY_0 = #{Site}
+		AND SORDERQ.SALFCY_0 = #{Site}		
+	ORDER BY ROWNUM ASC
 	)
 	
 	SELECT * FROM Sales
