@@ -14,13 +14,12 @@
 				<Pattern>${patternConsole}</Pattern>
 			</PatternLayout>
 		</Console>
-		<RollingFile name="RollingFile" fileName="${LOG_HOME}/sage-assistant-server.log"
-			filePattern="${LOG_HOME}/sage-assistant-server.%d{yyyy-MM-dd}.log" append="true">
+		<RollingFile name="RollingFile" fileName="${LOG_HOME}/sage-assistant-server.log" filePattern="${LOG_HOME}/sage-assistant-server.%d{yyyy-MM-dd}.log" append="true">
 			<ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
 			<PatternLayout>
 				<Pattern>${patternFile}</Pattern>
 			</PatternLayout>
-			
+
 			<Policies>
 				<!-- Apply policies every 1 day -->
 				<TimeBasedTriggeringPolicy modulate="true" interval="1" />

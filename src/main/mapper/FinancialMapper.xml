@@ -363,17 +363,28 @@
 		<if test = ' CustomerCode != null and CustomerCode != "" '>
 			AND GACCDUDATE.BPR_0 = #{CustomerCode}
 		</if>
-		<if test = ' DateType != null and DateType = "invoiceDate" '>
+		<if test = ' DateType != null and DateType == "invoiceDate" '>
 		-- CreateDate
 		AND (GACCDUDATE.CREDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
 		</if>
-		<if test = ' DateType != null and DateType = "dueDate" '>
+		<if test = ' DateType != null and DateType == "dueDate" '>
 		-- DueDate
 		AND (GACCDUDATE.DUDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
 		</if>
-		<if test = ' DateType != null and DateType = "paymentDate" '>
+		<if test = ' DateType != null and DateType == "payDate" '>
 		-- PayDate
 		AND (GACCDUDATE.PAYDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+		</if>
+	ORDER BY 
+	    InvoiceNO ASC		
+		<if test = ' DateType != null and DateType == "invoiceDate" '>
+		, CreateDate ASC
+		</if>
+		<if test = ' DateType != null and DateType == "dueDate" '>
+		, DueDate ASC
+		</if>
+		<if test = ' DateType != null and DateType == "payDate" '>
+		, PayDate ASC
 		</if>
 	</select>
 
@@ -419,15 +430,15 @@
 		<if test = ' CustomerCode != null and CustomerCode != "" '>
 				AND GACCDUDATE.BPR_0 = #{CustomerCode}
 		</if>
-		<if test = ' DateType != null and DateType = "CreateDate" '>
+		<if test = ' DateType != null and DateType == "invoiceDate" '>
 			-- CreateDate
 			AND (GACCDUDATE.CREDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
 		</if>
-		<if test = ' DateType != null and DateType = "DueDate" '>
+		<if test = ' DateType != null and DateType == "dueDate" '>
 			-- DueDate
 			AND (GACCDUDATE.DUDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
 		</if>
-		<if test = ' DateType != null and DateType = "PayDate" '>
+		<if test = ' DateType != null and DateType == "payDate" '>
 			-- PayDate
 			AND (GACCDUDATE.PAYDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
 		</if>
