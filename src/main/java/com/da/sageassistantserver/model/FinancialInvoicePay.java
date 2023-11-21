@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-27 16:43:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-23 22:05:19                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/model/FinancialInvoicePay.java                  *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2022-03-27 16:43:00                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2023-11-21 11:31:04                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.model;
 
@@ -14,10 +13,9 @@ import java.util.Date;
 
 import lombok.Data;
 
-
 @Data
 public class FinancialInvoicePay {
-
+    private String Id;
     private String Site;
     private String Currency;
     private String Customer;
