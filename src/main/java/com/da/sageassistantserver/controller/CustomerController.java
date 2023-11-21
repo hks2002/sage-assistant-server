@@ -1,11 +1,10 @@
-/**********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CreatedDate           : 2022-03-31 16:29:00                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2023-09-01 00:55:37                                                                       *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/CustomerController.java               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
- *********************************************************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2022-03-31 16:29:00                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2023-11-21 13:36:35                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
@@ -35,121 +34,112 @@ public class CustomerController {
 
     @GetMapping("/Data/CustomerHelper")
     public List<CustomerName> getCustomerName(
-        @RequestParam(value = "customerName", required = false, defaultValue = "%%") String CustomerCodeOrName,
-        @RequestParam(value = "count", required = false, defaultValue = "50") Integer count
-    ) {
+            @RequestParam(value = "customerName", required = false, defaultValue = "%%") String CustomerCodeOrName,
+            @RequestParam(value = "count", required = false, defaultValue = "50") Integer count) {
+        if (CustomerCodeOrName.equals("%%")) {
+            CustomerName name = new CustomerName();
+            name.setCustomerName("ALL");
+            name.setCustomerCode("%%");
+            return (List.of(name));
+        }
         return (CustomerService.getCustomerByCodeOrName(CustomerCodeOrName, count));
     }
 
     @GetMapping("/Data/CustomerDetails")
     public List<CustomerDetails> getCustomerDetails(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode) {
         return (CustomerService.getCustomerDetails(CustomerCode));
     }
 
     @GetMapping("/Data/CustomerTotalAmount")
     public List<CustomerSummaryAmount> getCustomerTotalAmount(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
-        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
+            @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
         return (CustomerService.getCustomerTotalAmount(CustomerCode, DateFrom, DateTo));
     }
 
     @GetMapping("/Data/CustomerTotalProjectQty")
     public List<CustomerSummaryQty> getCustomerTotalProjectQty(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
-        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
+            @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
         return (CustomerService.getCustomerTotalProjectQty(CustomerCode, DateFrom, DateTo));
     }
 
     @GetMapping("/Data/CustomerTotalItemQty")
     public List<CustomerSummaryQty> getCustomerTotalItemQty(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
-        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
+            @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
         return (CustomerService.getCustomerTotalItemQty(CustomerCode, DateFrom, DateTo));
     }
 
     @GetMapping("/Data/CustomerTotalQty")
     public List<CustomerSummaryQty> getCustomerTotalQty(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
-        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
+            @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
         return (CustomerService.getCustomerTotalQty(CustomerCode, DateFrom, DateTo));
     }
 
     @GetMapping("/Data/CustomerTotalProductQty")
     public List<CustomerSummaryQty> getCustomerTotalProductQty(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
-        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
+            @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
         return (CustomerService.getCustomerTotalProductQty(CustomerCode, DateFrom, DateTo));
     }
 
     @GetMapping("/Data/CustomerOpenAmount")
     public List<CustomerSummaryAmount> getCustomerOpenAmount(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode) {
         return (CustomerService.getCustomerOpenAmount(CustomerCode));
     }
 
     @GetMapping("/Data/CustomerOpenProjectQty")
     public List<CustomerSummaryQty> getCustomerOpenProjectQty(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode) {
         return (CustomerService.getCustomerOpenProjectQty(CustomerCode));
     }
 
     @GetMapping("/Data/CustomerOpenItemQty")
     public List<CustomerSummaryQty> getCustomerOpenItemQty(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode) {
         return (CustomerService.getCustomerOpenItemQty(CustomerCode));
     }
 
     @GetMapping("/Data/CustomerOpenQty")
     public List<CustomerSummaryQty> getCustomerOpenQty(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode) {
         return (CustomerService.getCustomerOpenQty(CustomerCode));
     }
 
     @GetMapping("/Data/CustomerOpenProductQty")
     public List<CustomerSummaryQty> getCustomerOpenProductQty(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode) {
         return (CustomerService.getCustomerOpenProductQty(CustomerCode));
     }
 
     @GetMapping("/Data/CustomerDeliveryHistory")
     public List<CustomerDeliveryHistory> getCustomerDeliveryHistory(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
-        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
+            @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
         return (CustomerService.getCustomerDeliveryHistory(CustomerCode, DateFrom, DateTo));
     }
 
     @GetMapping("/Data/CustomerDelayHistory")
     public List<CustomerDelayHistory> getCustomerDelayHistory(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
-        @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
+            @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
         return (CustomerService.getCustomerDelayHistory(CustomerCode, DateFrom, DateTo));
     }
 
     @GetMapping("/Data/CustomerOpenItems")
     public List<CustomerOpenItems> getCustomerOpenItems(
-        @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode
-    ) {
+            @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode) {
         return (CustomerService.getCustomerOpenItems(CustomerCode));
     }
 }
