@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-27 17:16:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2023-11-19 22:13:07                               *
+ * @LastEditDate          : 2023-11-21 11:31:13                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -15,7 +15,7 @@ import lombok.Data;
 
 @Data
 public class FinancialInvoicePayPro {
-
+    private String Id;
     private String Site;
     private String Currency;
     private String Customer;
