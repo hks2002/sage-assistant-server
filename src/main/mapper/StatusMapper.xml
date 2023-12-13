@@ -3,7 +3,7 @@
 
 <mapper namespace="com.da.sageassistantserver.dao.StatusMapper">
 	<!--Open L2 Cache under Names pace: 10 Min-->
-	<cache eviction="LRU" flushInterval="600000" readOnly="true" size="512" />
+	<cache eviction="LRU" flushInterval="600000" readOnly="true" size="1024" />
 	<select id="findTobeDeliveryBySite" resultType="com.da.sageassistantserver.model.TobeDelivery">
 		SELECT DISTINCT IIF(SORDERQ.YSOQ_PJTORI_0='',SORDERQ.YSOH_PJT_0,SORDERQ.YSOQ_PJTORI_0) AS ProjectNO,
 			SORDERQ.SOHNUM_0 AS OrderNO,
@@ -210,10 +210,10 @@
 	INNER JOIN EXPLOIT.SORDER SORDER
 		ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
 			AND SORDER.SALFCY_0 = #{Site}
-		<if test=" OrderType == 'NOR' ">
+		<if test=' OrderType == "NOR" '>
 			AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 != 7
 		</if>
-		<if test=" OrderType == 'OTHER' ">
+		<if test=' OrderType == "OTHER" '>
 			AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
 		</if>
 		<if test=" CustomerCode != '' ">
@@ -222,6 +222,7 @@
 		<if test=" VendorCode != '' ">
 	INNER JOIN EXPLOIT.PORDERP PORDERP
 		ON (PORDERP.PJT_0 = SORDERQ.YSOH_PJT_0 OR PORDERP.PJT_0 = SORDERQ.YSOQ_PJTORI_0 )
+		    -- this to avoid empty ProjectNO
 		    AND SORDERQ.YSOQ_PJTORI_0 != ''
 			AND PORDERP.PRHFCY_0 = #{Site}
 	INNER JOIN EXPLOIT.PORDER AS PORDER
@@ -236,17 +237,17 @@
 	<select id="findTobeTrackingSalesOrderLineBySite" resultType="com.da.sageassistantserver.model.TobeTrackingSalesOrderLine">
 		SELECT DISTINCT
 		<choose>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
 			<otherwise>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
@@ -277,7 +278,8 @@
 		SORDERQ.YWR_CBLOC_0 AS ProjectBlockReason,
 		RTRIM(LTRIM(SORDERQ.YWR_COM_0)) AS ProjectComment,
 		RTRIM(LTRIM(SORDERQ.YWR_ACT_0)) AS ProjectAction,
-		IIF(SORDERQ.ECCVALMAJ_0 !='', SORDERP.ITMREF_0 + '_' + SORDERQ.ECCVALMAJ_0, SORDERP.ITMREF_0) AS OrderPN,
+		SORDERP.ITMREF_0 AS OrderPN,		
+		SORDERQ.ECCVALMAJ_0 AS OrderPNVersion,
 		IIF(SORDERP.ITMDES2_0 !='', SORDERP.ITMDES_0 + ' ' + SORDERP.ITMDES2_0, SORDERP.ITMDES_0) AS OrderPNDesc,
 		SORDERQ.QTY_0 AS OrderQTY,
 		SORDERP.NETPRIATI_0 AS OrderPrice,
@@ -287,8 +289,8 @@
 		SORDER.ORDDAT_0 AS OrderDate,
 		SORDERQ.DEMDLVDAT_0 AS OrderRequestDate,
 		SORDERQ.YSOQ_DLIVP_0 AS OrderPlanedDate,
-		SORDERQ.YSOQ_ADV_0 AS OrderSADFlag,
-		SORDERQ.YSOQ_DADV_0 AS OrderSADDate,
+		SORDERQ.YSOQ_ADV_0 AS OrderSADFlag,		
+		IIF(SORDERQ.YSOQ_DADV_0 ='1753-01-01',NULL,SORDERQ.YSOQ_DADV_0) AS OrderSADDate,
 		SORDERQ.YSOQ_PRD_0 AS OrderProductFlag,
 		IIF(SORDERQ.YSOQ_DPRD_0 ='1753-01-01',NULL,SORDERQ.YSOQ_DPRD_0) AS OrderProductDate,
 		SORDERQ.YSOQ_VAL_0 AS OrderDeliveryFlag,
@@ -303,10 +305,10 @@
 	INNER JOIN EXPLOIT.SORDER SORDER
 		ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
 			AND SORDER.SALFCY_0 = #{Site}
-		<if test=" OrderType == 'NOR' ">
+		<if test=' OrderType == "NOR" '>
 			AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 !=7
 		</if>
-		<if test=" OrderType == 'OTHER' ">
+		<if test=' OrderType == "OTHER" '>
 			AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
 		</if>
 		<if test=" CustomerCode != '' ">
@@ -334,17 +336,17 @@
 	SELECT DISTINCT
 		-- Sales open items
 		<choose>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
 			<otherwise>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
@@ -369,10 +371,10 @@
 	INNER JOIN EXPLOIT.SORDER SORDER
 		ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
 			AND SORDER.SALFCY_0 = #{Site}
-		<if test=" OrderType == 'NOR' ">
+		<if test=' OrderType == "NOR"  '>
 			AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 !=7
 		</if>
-		<if test=" OrderType == 'OTHER' ">
+		<if test=' OrderType == "OTHER" '>
 			AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
 		</if>
 		<if test=" CustomerCode != '' ">
@@ -428,17 +430,17 @@
 	SELECT DISTINCT
 		-- Sales open items
 		<choose>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
 			<otherwise>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
@@ -463,10 +465,10 @@
 	INNER JOIN EXPLOIT.SORDER SORDER
 		ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
 			AND SORDER.SALFCY_0 = #{Site}
-		<if test=" OrderType == 'NOR' ">
-			AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 !=7
+		<if test=' OrderType == "NOR" '>
+			AND SORDER.SOHTYP_0 = 'NOR'  AND SORDERQ.YSOQ_STA_0 !=7
 		</if>
-		<if test=" OrderType == 'OTHER' ">
+		<if test=' OrderType == "OTHER" '>
 			AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
 		</if>
 		<if test=" CustomerCode != '' ">
@@ -495,6 +497,7 @@
 			PORDERP.POPLIN_0 AS PurchaseLine,
 			PORDERP.PJT_0 AS PurchaseProjectNO,
 			PORDERP.ITMREF_0 AS PurchasePN,
+			PORDERQ.ECCVALMAJ_0 AS PurchasePNVersion,
 			PORDERP.ITMDES_0 AS PurchasePNDesc,
 			PORDERQ.QTYPUU_0 AS PurchaseQTY,
 			PORDERQ.PUU_0 AS PurchaseUnit,
@@ -523,17 +526,17 @@
 	SELECT DISTINCT
 		-- Sales open items
 		<choose>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
 			<otherwise>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
@@ -558,10 +561,10 @@
 	INNER JOIN EXPLOIT.SORDER SORDER
 		ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
 			AND SORDER.SALFCY_0 = #{Site}
-		<if test=" OrderType == 'NOR' ">
+		<if test=' OrderType == "NOR" '>
 			AND SORDER.SOHTYP_0 = 'NOR'  AND SORDERQ.YSOQ_STA_0 !=7
 		</if>
-		<if test=" OrderType == 'OTHER' ">
+		<if test=' OrderType == "OTHER" '>
 			AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
 		</if>
 		<if test=" CustomerCode != '' ">
@@ -609,17 +612,17 @@
 	SELECT DISTINCT
 		-- Sales open items
 		<choose>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'DaysLeft'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "DaysLeft"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='ASC' ">
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="ASC" '>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
 			</when>
-			<when test=" OrderBy == 'OrderPlanedDate'  and  Descending =='DESC' ">
-			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID ASC) AS ItemNO,
+			<when test=' OrderBy == "OrderPlanedDate"  and  Descending =="DESC" '>
+			ROW_NUMBER() OVER (ORDER BY SORDERQ.YSOQ_DLIVP_0 DESC, SORDERQ.ROWID DESC) AS ItemNO,
 			</when>
 			<otherwise>
 			ROW_NUMBER() OVER (ORDER BY SORDERQ.DEMDLVDAT_0 ASC, SORDERQ.ROWID ASC) AS ItemNO,
@@ -644,10 +647,10 @@
 	INNER JOIN EXPLOIT.SORDER SORDER
 		ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
 			AND SORDER.SALFCY_0 = #{Site}
-		<if test=" OrderType == 'NOR' ">
+		<if test=' OrderType == "NOR" '>
 			AND SORDER.SOHTYP_0 = 'NOR'  AND SORDERQ.YSOQ_STA_0 !=7
 		</if>
-		<if test=" OrderType == 'OTHER' ">
+		<if test=' OrderType == "OTHER" '>
 			AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
 		</if>
 		<if test=" CustomerCode != '' ">
@@ -674,6 +677,7 @@
 	SELECT DISTINCT  
 		YORIPJT_0 AS ClaimProjectNO,
 		SRENUM_0 AS ClaimNO,
+		CREDAT_0 AS ClaimDate,
 		SREDES_0 AS ClaimNote,
 		YSRE_CRIT_0 ClaimNC0Cri,
 		YSRE_CATNC_0 ClaimNC0Type, IIF(YSRE_DATNC_0='1753-01-01',null,YSRE_DATNC_0) AS ClaimNC0Date,
@@ -717,5 +721,6 @@
 		    AND SERREQUEST.YORIPJT_0 != ''
 			AND LEN(T1.OriProjectNO) != 5
 			AND SERREQUEST.SALFCY_0 = #{Site}
+	ORDER BY ClaimDate ASC
 	</select>
 </mapper>

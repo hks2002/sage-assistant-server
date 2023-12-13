@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-11-10 14:40:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-03-12 13:22:59                                                                      *
- * @FilePath              : src/main/java/sageassistant/dataSrv/model/TobeTrackingQALine.java                        *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2022-11-10 14:40:00                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2023-12-07 11:22:53                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.model;
 
@@ -13,12 +12,12 @@ import java.util.Date;
 
 import lombok.Data;
 
-
 @Data
 public class TobeTrackingQALine {
 
     private String ClaimProjectNO;
     private String ClaimNO;
+    private Date ClaimDate;
     private String ClaimNote;
     private String ClaimNC0Cri;
     private String ClaimNC0Type;
