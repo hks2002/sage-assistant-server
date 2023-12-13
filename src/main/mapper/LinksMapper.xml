@@ -1,0 +1,633 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.da.sageassistantserver.dao.LinksMapper">
+    <!--Open L2 Cache under Names pace: 1 Hour -->
+    <cache eviction="FIFO" flushInterval="3600000" readOnly="true" size="1024" />
+    <select id="findLinksLineCntBySO" resultType="java.lang.Integer">
+        SELECT DISTINCT COUNT(1) AS CNT
+		FROM EXPLOIT.SORDERQ AS SORDERQ
+		INNER JOIN EXPLOIT.SORDERP AS SORDERP
+			ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+				AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+				AND SORDERQ.SALFCY_0 = #{Site}
+				AND SORDERP.SALFCY_0 =  #{Site}
+		INNER JOIN EXPLOIT.SORDER SORDER
+			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+			    AND SORDER.SALFCY_0 =  #{Site}
+                <if test="CustomerCode != null and CustomerCode !='' ">
+                    AND (SORDER.BPCORD_0 = #{CustomerCode} )
+                </if>
+                <if test="ProjectNO != null and ProjectNO !='' ">
+                    AND (SORDERQ.YSOH_PJT_0 = #{ProjectNO} OR SORDERQ.YSOQ_PJTORI_0 = #{ProjectNO})
+                </if>
+                <if test="DateFrom != null and DateTo != null">
+                    AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+                </if>
+    </select>
+    <select id="findLinksSalesLineBySO" resultType="com.da.sageassistantserver.model.LinksSalesLine">
+    SELECT DISTINCT 
+            SORDERQ.YSOH_PJT_0 AS OrderProjectNO, 
+            IIF(SORDERQ.YSOQ_PJTORI_0='',SORDERQ.YSOH_PJT_0,SORDERQ.YSOQ_PJTORI_0) AS OrderTrackingNO,
+			SORDERQ.SOHNUM_0 AS OrderNO,
+            SORDERQ.SOPLIN_0 AS OrderLine, 
+			SORDERP.ITMREF_0 AS OrderPN,
+			SORDERP.ITMDES_0 AS OrderPNDescription,
+			SORDERQ.QTY_0 AS OrderQty,
+			SORDERP.NETPRIATI_0 AS OrderAmount,
+			SORDER.CUR_0 AS OrderCurrency,
+			SORDER.BPCORD_0 AS OrderCustomerCode,
+			SORDER.BPCNAM_0 AS OrderCustomerName,
+			SORDER.ORDDAT_0 AS OrderDate,
+            SORDERQ.SOQSTA_0 AS OrderStatus
+		FROM EXPLOIT.SORDERQ AS SORDERQ
+		INNER JOIN EXPLOIT.SORDERP AS SORDERP
+			ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+				AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+				AND SORDERQ.SALFCY_0 = #{Site}
+				AND SORDERP.SALFCY_0 =  #{Site}
+		INNER JOIN EXPLOIT.SORDER SORDER
+			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+			    AND SORDER.SALFCY_0 =  #{Site}
+                <if test="CustomerCode != null and CustomerCode !='' ">
+                    AND (SORDER.BPCORD_0 = #{CustomerCode} )
+                </if>
+                <if test="ProjectNO != null and ProjectNO !='' ">
+                    AND (SORDERQ.YSOH_PJT_0 = #{ProjectNO} OR SORDERQ.YSOQ_PJTORI_0 = #{ProjectNO})
+                </if>
+                <if test="DateFrom != null and DateTo != null">
+                    AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+                </if>
+        ORDER BY 
+            SORDERQ.SOHNUM_0 ASC,
+            SORDERQ.SOPLIN_0 ASC
+        OFFSET #{Offset} ROWS
+	    FETCH NEXT #{Limit} ROWS ONLY
+    </select>
+    <select id="findLinksPurchaseLineBySO" resultType="com.da.sageassistantserver.model.LinksPurchaseLine">
+    WITH T1 AS (
+            SELECT DISTINCT 
+            SORDERQ.YSOH_PJT_0,
+            SORDERQ.YSOQ_PJTORI_0,
+            SORDERQ.SOHNUM_0,
+            SORDERQ.SOPLIN_0
+		FROM EXPLOIT.SORDERQ AS SORDERQ
+		INNER JOIN EXPLOIT.SORDERP AS SORDERP
+			ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+				AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+				AND SORDERQ.SALFCY_0 = #{Site}
+				AND SORDERP.SALFCY_0 =  #{Site}
+		INNER JOIN EXPLOIT.SORDER SORDER
+			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+			    AND SORDER.SALFCY_0 =  #{Site}
+                <if test="CustomerCode != null and CustomerCode !='' ">
+                    AND (SORDER.BPCORD_0 = #{CustomerCode} )
+                </if>
+                <if test="ProjectNO != null and ProjectNO !='' ">
+                    AND (SORDERQ.YSOH_PJT_0 = #{ProjectNO} OR SORDERQ.YSOQ_PJTORI_0 = #{ProjectNO})
+                </if>
+                <if test="DateFrom != null and DateTo != null">
+                    AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+                </if>
+        ORDER BY 
+            SORDERQ.SOHNUM_0 ASC,
+            SORDERQ.SOPLIN_0 ASC
+        OFFSET #{Offset} ROWS
+	    FETCH NEXT #{Limit} ROWS ONLY
+    )
+
+    SELECT DISTINCT        
+        PORDERP.PJT_0 AS PurchaseProjectNO,
+        PORDER.POHNUM_0 AS PurchaseNO,
+        PORDERP.POPLIN_0 AS PurchaseLine,
+        PORDER.ORDDAT_0 AS PurchaseDate,
+        PORDER.BPSNUM_0 AS PurchaseVendorCode,
+	    PORDER.BPRNAM_0 AS PurchaseVendorName,
+        PORDERP.ITMREF_0 AS PurchasePN,
+        PORDERP.ITMDES_0 AS PurchasePNDescription,
+        PORDERQ.LINATIAMT_0 AS PurchaseAmount,        
+        PORDER.CUR_0 AS PurchaseCurrency,
+        PORDERQ.QTYSTU_0 AS PurchaseQty,
+        PORDERQ.STU_0 AS PurchaseUnit
+    FROM T1
+    INNER JOIN
+        EXPLOIT.PORDERP PORDERP 
+            ON (PORDERP.PJT_0 = T1.YSOH_PJT_0 OR PORDERP.PJT_0 = T1.YSOQ_PJTORI_0)
+    LEFT JOIN 
+        EXPLOIT.PORDERQ PORDERQ 
+                ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
+                AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+    LEFT JOIN 	
+        EXPLOIT.PORDER PORDER
+                ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+    WHERE
+        PORDER.POHFCY_0 =  #{Site}
+        AND PORDERP.PRHFCY_0 =  #{Site}        
+        AND PORDERQ.POHFCY_0 =  #{Site}
+        <if test="VendorCode != null and VendorCode !='' ">
+        AND PORDER.BPSNUM_0 = #{VendorCode}
+        </if>
+        <if test="DateFrom != null ">
+        AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, '2999-01-01', 120))
+        </if>
+    ORDER BY
+        PurchaseNO ASC, PurchaseLine ASC                
+    </select>
+    <select id="findLinksReceiptLineBySO" resultType="com.da.sageassistantserver.model.LinksReceiptLine">
+    WITH T1 AS (
+            SELECT DISTINCT 
+            SORDERQ.YSOH_PJT_0,
+            SORDERQ.YSOQ_PJTORI_0,
+            SORDERQ.SOHNUM_0,
+            SORDERQ.SOPLIN_0
+		FROM EXPLOIT.SORDERQ AS SORDERQ
+		INNER JOIN EXPLOIT.SORDERP AS SORDERP
+			ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+				AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+				AND SORDERQ.SALFCY_0 = #{Site}
+				AND SORDERP.SALFCY_0 =  #{Site}
+		INNER JOIN EXPLOIT.SORDER SORDER
+			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+			    AND SORDER.SALFCY_0 =  #{Site}
+                <if test="CustomerCode != null and CustomerCode !='' ">
+                    AND (SORDER.BPCORD_0 = #{CustomerCode} )
+                </if>
+                <if test="ProjectNO != null and ProjectNO !='' ">
+                    AND (SORDERQ.YSOH_PJT_0 = #{ProjectNO} OR SORDERQ.YSOQ_PJTORI_0 = #{ProjectNO})
+                </if>
+                <if test="DateFrom != null and DateTo != null">
+                    AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+                </if>
+        ORDER BY 
+            SORDERQ.SOHNUM_0 ASC,
+            SORDERQ.SOPLIN_0 ASC
+        OFFSET #{Offset} ROWS
+	    FETCH NEXT #{Limit} ROWS ONLY
+    )
+    
+    SELECT DISTINCT
+        PRECEIPTD.PJT_0 AS ReceiptProjectNO,
+        PRECEIPTD.PTHNUM_0 AS ReceiptNO,
+        PRECEIPTD.PTDLIN_0 AS ReceiptLine,
+        PRECEIPTD.ITMREF_0 AS ReceiptPN,
+        PRECEIPTD.ITMDES_0 AS ReceiptPNDescription,
+        PRECEIPTD.QTYSTU_0 AS ReceiptQty,
+        PRECEIPTD.STU_0 AS ReceiptUnit,
+        PRECEIPTD.LINATIAMT_0 AS ReceiptAmount,
+        PRECEIPT.BPSNUM_0 AS ReceiptVendorCode,
+        PRECEIPT.BPONAM_0 AS ReceiptVendorName,
+        PRECEIPT.RCPDAT_0 AS ReceiptDate
+    FROM T1
+    INNER JOIN
+        EXPLOIT.PRECEIPTD PRECEIPTD
+            ON (PRECEIPTD.PJT_0 = T1.YSOH_PJT_0 OR PRECEIPTD.PJT_0 = T1.YSOQ_PJTORI_0)
+    LEFT JOIN EXPLOIT.PRECEIPT PRECEIPT
+        ON PRECEIPTD.PTHNUM_0 = PRECEIPT.PTHNUM_0
+    WHERE PRECEIPT.PRHFCY_0 = #{Site}
+        AND PRECEIPTD.PRHFCY_0 = #{Site}
+        <if test="VendorCode != null and VendorCode !='' ">
+        AND PRECEIPTD.BPSNUM_0 = #{VendorCode}
+        </if>
+        <if test="DateFrom != null " >
+           AND (PRECEIPTD.RCPDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, '2999-01-01', 120))
+        </if>
+
+    </select>
+    <select id="findLinksDeliveryLineBySO" resultType="com.da.sageassistantserver.model.LinksDeliveryLine">
+    WITH T1 AS (
+            SELECT DISTINCT 
+            SORDERQ.SOHNUM_0,
+            SORDERQ.SOPLIN_0
+		FROM EXPLOIT.SORDERQ AS SORDERQ
+		INNER JOIN EXPLOIT.SORDERP AS SORDERP
+			ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+				AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+				AND SORDERQ.SALFCY_0 = #{Site}
+				AND SORDERP.SALFCY_0 =  #{Site}
+		INNER JOIN EXPLOIT.SORDER SORDER
+			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+			    AND SORDER.SALFCY_0 =  #{Site}
+                <if test="CustomerCode != null and CustomerCode !='' ">
+                    AND (SORDER.BPCORD_0 = #{CustomerCode} )
+                </if>
+                <if test="ProjectNO != null and ProjectNO !='' ">
+                    AND (SORDERQ.YSOH_PJT_0 = #{ProjectNO} OR SORDERQ.YSOQ_PJTORI_0 = #{ProjectNO})
+                </if>
+                <if test="DateFrom != null and DateTo != null">
+                    AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+                </if>
+        ORDER BY 
+            SORDERQ.SOHNUM_0 ASC,
+            SORDERQ.SOPLIN_0 ASC
+        OFFSET #{Offset} ROWS
+	    FETCH NEXT #{Limit} ROWS ONLY
+    )
+
+    SELECT  DISTINCT
+            SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+            SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+            SDELIVERY.SHIDAT_0 AS DeliveryDate,
+            SDELIVERYD.ITMREF_0 AS DeliveryPN,
+            SDELIVERYD.YSOH_PJT_0 AS DeliveryProjectNO,
+            SDELIVERYD.ITMDES_0 AS DeliveryPNDescription,
+            SDELIVERYD.QTY_0 AS DeliveryQty,
+            SDELIVERYD.SAU_0 AS DeliveryUnit
+    FROM T1
+    INNER JOIN
+        EXPLOIT.SDELIVERYD SDELIVERYD
+            ON (SDELIVERYD.SOHNUM_0 = T1.SOHNUM_0 AND SDELIVERYD.SOPLIN_0 = T1.SOPLIN_0)
+    LEFT JOIN EXPLOIT.SDELIVERY SDELIVERY
+        ON SDELIVERY.SDHNUM_0 = SDELIVERYD.SDHNUM_0
+
+    WHERE  
+        SDELIVERY.SALFCY_0 = #{Site}
+        AND SDELIVERYD.STOFCY_0 = #{Site}
+    ORDER BY  
+        DeliveryNO ASC, DeliveryLine ASC
+    </select>
+    <select id="findLinksInvoiceLineBySO" resultType="com.da.sageassistantserver.model.LinksInvoiceLine">
+    WITH T1 AS (
+            SELECT DISTINCT 
+            SORDERQ.SOHNUM_0,
+            SORDERQ.SOPLIN_0
+		FROM EXPLOIT.SORDERQ AS SORDERQ
+		INNER JOIN EXPLOIT.SORDERP AS SORDERP
+			ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+				AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+				AND SORDERQ.SALFCY_0 = #{Site}
+				AND SORDERP.SALFCY_0 =  #{Site}
+		INNER JOIN EXPLOIT.SORDER SORDER
+			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+			    AND SORDER.SALFCY_0 =  #{Site}
+                <if test="CustomerCode != null and CustomerCode !='' ">
+                    AND (SORDER.BPCORD_0 = #{CustomerCode} )
+                </if>
+                <if test="ProjectNO != null and ProjectNO !='' ">
+                    AND (SORDERQ.YSOH_PJT_0 = #{ProjectNO} OR SORDERQ.YSOQ_PJTORI_0 = #{ProjectNO})
+                </if>
+                <if test="DateFrom != null and DateTo != null">
+                    AND (SORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+                </if>
+        ORDER BY 
+            SORDERQ.SOHNUM_0 ASC,
+            SORDERQ.SOPLIN_0 ASC
+        OFFSET #{Offset} ROWS
+	    FETCH NEXT #{Limit} ROWS ONLY
+    )
+    
+    SELECT DISTINCT
+        SINVOICED.YSOH_PJT_0 AS InvoiceProjectNO,
+        SINVOICED.NUM_0 AS InvoiceNO,
+        SINVOICED.SIDLIN_0 AS InvoiceLine,
+        SINVOICED.ITMREF_0 AS InvoicePN,
+        SINVOICED.ITMDES_0 AS InvoicePNDescription,
+        SINVOICED.QTY_0 AS InvoiceQty,
+        SINVOICED.SAU_0 AS InvoiceUnit,
+        SINVOICED.AMTATILIN_0 AS InvoiceAmount,
+        SINVOICE.BPR_0 AS InvoiceCustomerCode,
+        SINVOICE.BPYNAM_0 AS InvoiceCustomerName,
+        SINVOICE.ACCDAT_0 AS InvoiceDate,        
+        SINVOICE.CUR_0 AS InvoiceCurrency
+    FROM T1
+    INNER JOIN
+        EXPLOIT.SINVOICED SINVOICED
+            ON (SINVOICED.SOHNUM_0 = T1.SOHNUM_0 AND SINVOICED.SOPLIN_0 = T1.SOPLIN_0)
+    LEFT JOIN EXPLOIT.SINVOICE SINVOICE
+        ON SINVOICED.NUM_0 = SINVOICE.NUM_0
+    WHERE 
+        SINVOICE.FCY_0 = #{Site}
+        AND SINVOICED.STOFCY_0 = #{Site}
+    ORDER BY 
+        InvoiceNO ASC, InvoiceLine ASC
+    </select>
+    <select id="findLinksLineCntByPO" resultType="java.lang.Integer">
+    SELECT DISTINCT COUNT(1) AS CNT
+    FROM
+        EXPLOIT.PORDERP PORDERP 
+    LEFT JOIN 
+        EXPLOIT.PORDERQ PORDERQ 
+                ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
+                AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+    LEFT JOIN 	
+        EXPLOIT.PORDER PORDER
+                ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+    WHERE
+        PORDER.POHFCY_0 =  #{Site}
+        AND PORDERP.PRHFCY_0 =  #{Site}
+        AND PORDERQ.POHFCY_0 =  #{Site}
+        <if test="VendorCode != null and VendorCode !='' ">
+        AND PORDER.BPSNUM_0 = #{VendorCode}
+        </if>
+        <if test="ProjectNO != null and ProjectNO !='' ">
+        AND PORDERP.PJT_0 = #{ProjectNO}
+        </if>
+        <if test="DateFrom != null and DateTo != null">
+        AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+        </if> 
+    </select>
+    <select id="findLinksPurchaseLineByPO" resultType="com.da.sageassistantserver.model.LinksPurchaseLine">
+    SELECT DISTINCT        
+        PORDERP.PJT_0 AS PurchaseProjectNO,
+        PORDER.POHNUM_0 AS PurchaseNO,
+        PORDERP.POPLIN_0 AS PurchaseLine,
+        PORDER.ORDDAT_0 AS PurchaseDate,
+        PORDER.BPSNUM_0 AS PurchaseVendorCode,
+	    PORDER.BPRNAM_0 AS PurchaseVendorName,
+        PORDERP.ITMREF_0 AS PurchasePN,
+        PORDERP.ITMDES_0 AS PurchasePNDescription,
+        PORDERQ.LINATIAMT_0 AS PurchaseAmount,        
+        PORDER.CUR_0 AS PurchaseCurrency,
+        PORDERQ.QTYSTU_0 AS PurchaseQty,
+        PORDERQ.STU_0 AS PurchaseUnit
+    FROM
+        EXPLOIT.PORDERP PORDERP 
+    LEFT JOIN 
+        EXPLOIT.PORDERQ PORDERQ 
+                ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
+                AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+    LEFT JOIN 	
+        EXPLOIT.PORDER PORDER
+                ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+    WHERE
+        PORDER.POHFCY_0 =  #{Site}
+        AND PORDERP.PRHFCY_0 =  #{Site}
+        AND PORDERQ.POHFCY_0 =  #{Site}
+        <if test="VendorCode != null and VendorCode !='' ">
+        AND PORDER.BPSNUM_0 = #{VendorCode}
+        </if>
+        <if test="ProjectNO != null and ProjectNO !='' ">
+        AND PORDERP.PJT_0 = #{ProjectNO}
+        </if>
+        <if test="DateFrom != null and DateTo != null">
+        AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+        </if>
+    ORDER BY
+        PORDER.POHNUM_0 ASC,
+        PORDERP.POPLIN_0 ASC
+
+    OFFSET #{Offset} ROWS
+    FETCH NEXT #{Limit} ROWS ONLY                
+    </select>
+    <select id="findLinksSalesLineByPO" resultType="com.da.sageassistantserver.model.LinksSalesLine">
+    WITH T1 AS (
+    SELECT DISTINCT        
+        PORDERP.PJT_0,
+        PORDER.POHNUM_0,
+        PORDERP.POPLIN_0
+    FROM
+        EXPLOIT.PORDERP PORDERP 
+    LEFT JOIN 
+        EXPLOIT.PORDERQ PORDERQ 
+                ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
+                AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+    LEFT JOIN 	
+        EXPLOIT.PORDER PORDER
+                ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+    WHERE
+        PORDER.POHFCY_0 =  #{Site}
+        AND PORDERP.PRHFCY_0 =  #{Site}
+        AND PORDERQ.POHFCY_0 =  #{Site}
+        <if test="VendorCode != null and VendorCode !='' ">
+        AND PORDER.BPSNUM_0 = #{VendorCode}
+        </if>
+        <if test="ProjectNO != null and ProjectNO !='' ">
+        AND PORDERP.PJT_0 = #{ProjectNO}
+        </if>
+        <if test="DateFrom != null and DateTo != null">
+        AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+        </if>
+    ORDER BY
+        PORDER.POHNUM_0 ASC,
+        PORDERP.POPLIN_0 ASC
+
+    OFFSET #{Offset} ROWS
+    FETCH NEXT #{Limit} ROWS ONLY  
+    )
+
+    SELECT DISTINCT
+            SORDERQ.YSOH_PJT_0 AS OrderProjectNO, 
+            IIF(SORDERQ.YSOQ_PJTORI_0='',SORDERQ.YSOH_PJT_0,SORDERQ.YSOQ_PJTORI_0) AS OrderTrackingNO,
+			SORDERQ.SOHNUM_0 AS OrderNO,
+            SORDERQ.SOPLIN_0 AS OrderLine, 
+			SORDERP.ITMREF_0 AS OrderPN,
+			SORDERP.ITMDES_0 AS OrderPNDescription,
+			SORDERQ.QTY_0 AS OrderQty,
+			SORDERP.NETPRIATI_0 AS OrderAmount,
+			SORDER.CUR_0 AS OrderCurrency,
+			SORDER.BPCORD_0 AS OrderCustomerCode,
+			SORDER.BPCNAM_0 AS OrderCustomerName,
+			SORDER.ORDDAT_0 AS OrderDate,
+            SORDERQ.SOQSTA_0 AS OrderStatus
+		FROM T1
+        INNER JOIN EXPLOIT.SORDERQ AS SORDERQ 
+            ON (SORDERQ.YSOH_PJT_0 = T1.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = T1.PJT_0)
+		INNER JOIN EXPLOIT.SORDERP AS SORDERP
+			ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+				AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+				AND SORDERQ.SALFCY_0 = #{Site}
+				AND SORDERP.SALFCY_0 =  #{Site}
+		INNER JOIN EXPLOIT.SORDER SORDER
+			ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+			    AND SORDER.SALFCY_0 =  #{Site}
+                <if test="CustomerCode != null and CustomerCode !='' ">
+                    AND (SORDER.BPCORD_0 = #{CustomerCode} )
+                </if>
+        ORDER BY 
+            OrderNO ASC,
+            OrderLine ASC
+    </select>
+    <select id="findLinksReceiptLineByPO" resultType="com.da.sageassistantserver.model.LinksReceiptLine">
+    WITH T1 AS (
+        SELECT DISTINCT        
+        PORDERP.PJT_0 ,
+        PORDER.POHNUM_0,
+        PORDERP.POPLIN_0
+    FROM
+        EXPLOIT.PORDERP PORDERP 
+    LEFT JOIN 
+        EXPLOIT.PORDERQ PORDERQ 
+                ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
+                AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+    LEFT JOIN 	
+        EXPLOIT.PORDER PORDER
+                ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+    WHERE
+        PORDER.POHFCY_0 =  #{Site}
+        AND PORDERP.PRHFCY_0 =  #{Site}
+        AND PORDERQ.POHFCY_0 =  #{Site}
+        <if test="VendorCode != null and VendorCode !='' ">
+        AND PORDER.BPSNUM_0 = #{VendorCode}
+        </if>
+        <if test="ProjectNO != null and ProjectNO !='' ">
+        AND PORDERP.PJT_0 = #{ProjectNO}
+        </if>
+        <if test="DateFrom != null and DateTo != null">
+        AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+        </if>
+    ORDER BY
+        PORDER.POHNUM_0 ASC,
+        PORDERP.POPLIN_0 ASC
+
+    OFFSET #{Offset} ROWS
+    FETCH NEXT #{Limit} ROWS ONLY  
+    )
+    
+    SELECT DISTINCT
+        PRECEIPTD.PJT_0 AS ReceiptProjectNO,
+        PRECEIPTD.PTHNUM_0 AS ReceiptNO,
+        PRECEIPTD.PTDLIN_0 AS ReceiptLine,
+        PRECEIPTD.ITMREF_0 AS ReceiptPN,
+        PRECEIPTD.ITMDES_0 AS ReceiptPNDescription,
+        PRECEIPTD.QTYSTU_0 AS ReceiptQty,
+        PRECEIPTD.STU_0 AS ReceiptUnit,
+        PRECEIPTD.LINATIAMT_0 AS ReceiptAmount,
+        PRECEIPT.BPSNUM_0 AS ReceiptVendorCode,
+        PRECEIPT.BPONAM_0 AS ReceiptVendorName,
+        PRECEIPT.RCPDAT_0 AS ReceiptDate
+    FROM T1
+    INNER JOIN EXPLOIT.PRECEIPTD PRECEIPTD
+        ON PRECEIPTD.PJT_0 = T1.PJT_0
+    LEFT JOIN EXPLOIT.PRECEIPT PRECEIPT
+        ON PRECEIPTD.PTHNUM_0 = PRECEIPT.PTHNUM_0
+    WHERE PRECEIPT.PRHFCY_0 = #{Site}
+        AND PRECEIPTD.PRHFCY_0 = #{Site}
+        <if test="VendorCode != null and VendorCode !='' ">
+        AND PRECEIPTD.BPSNUM_0 = #{VendorCode}
+        </if>
+        <if test="DateFrom != null " >
+           AND (PRECEIPTD.RCPDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, '2999-01-01', 120))
+        </if>
+    ORDER BY
+        ReceiptNO ASC, ReceiptLine ASC
+    </select>
+    <select id="findLinksDeliveryLineByPO" resultType="com.da.sageassistantserver.model.LinksDeliveryLine">
+    WITH T1 AS (
+        SELECT DISTINCT        
+        PORDERP.PJT_0 ,
+        PORDER.POHNUM_0,
+        PORDERP.POPLIN_0
+    FROM
+        EXPLOIT.PORDERP PORDERP 
+    LEFT JOIN 
+        EXPLOIT.PORDERQ PORDERQ 
+                ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
+                AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+    LEFT JOIN 	
+        EXPLOIT.PORDER PORDER
+                ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+    WHERE
+        PORDER.POHFCY_0 =  #{Site}
+        AND PORDERP.PRHFCY_0 =  #{Site}
+        AND PORDERQ.POHFCY_0 =  #{Site}
+        <if test="VendorCode != null and VendorCode !='' ">
+        AND PORDER.BPSNUM_0 = #{VendorCode}
+        </if>
+        <if test="ProjectNO != null and ProjectNO !='' ">
+        AND PORDERP.PJT_0 = #{ProjectNO}
+        </if>
+        <if test="DateFrom != null and DateTo != null">
+        AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+        </if>
+    ORDER BY
+        PORDER.POHNUM_0 ASC,
+        PORDERP.POPLIN_0 ASC
+
+    OFFSET #{Offset} ROWS
+    FETCH NEXT #{Limit} ROWS ONLY  
+    )
+    
+    SELECT  DISTINCT
+            SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+            SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+            SDELIVERY.SHIDAT_0 AS DeliveryDate,
+            SDELIVERYD.ITMREF_0 AS DeliveryPN,
+            SDELIVERYD.YSOH_PJT_0 AS DeliveryProjectNO,
+            SDELIVERYD.ITMDES_0 AS DeliveryPNDescription,
+            SDELIVERYD.QTY_0 AS DeliveryQty,
+            SDELIVERYD.SAU_0 AS DeliveryUnit
+    FROM T1
+    INNER JOIN SORDERQ
+        ON (SORDERQ.YSOH_PJT_0 = T1.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = T1.PJT_0)
+    LEFT JOIN EXPLOIT.SDELIVERYD SDELIVERYD
+            ON (SDELIVERYD.SOHNUM_0 = SORDERQ.SOHNUM_0 AND SDELIVERYD.SOPLIN_0 = SORDERQ.SOPLIN_0)    
+    LEFT JOIN EXPLOIT.SDELIVERY SDELIVERY
+        ON SDELIVERY.SDHNUM_0 = SDELIVERYD.SDHNUM_0
+
+    WHERE  
+        SDELIVERY.SALFCY_0 = #{Site}
+        AND SDELIVERYD.STOFCY_0 = #{Site}
+        AND SORDERQ.SALFCY_0 = #{Site}
+          <if test="CustomerCode != null and CustomerCode !='' ">
+            AND SORDERQ.BPCORD_0 = #{CustomerCode}
+          </if>
+    ORDER BY  
+        DeliveryNO ASC, 
+        DeliveryLine ASC
+    </select>
+    <select id="findLinksInvoiceLineByPO" resultType="com.da.sageassistantserver.model.LinksInvoiceLine">
+    WITH T1 AS (
+        SELECT DISTINCT        
+        PORDERP.PJT_0 ,
+        PORDER.POHNUM_0,
+        PORDERP.POPLIN_0
+    FROM
+        EXPLOIT.PORDERP PORDERP 
+    LEFT JOIN 
+        EXPLOIT.PORDERQ PORDERQ 
+                ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
+                AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+    LEFT JOIN 	
+        EXPLOIT.PORDER PORDER
+                ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+    WHERE
+        PORDER.POHFCY_0 =  #{Site}
+        AND PORDERP.PRHFCY_0 =  #{Site}
+        AND PORDERQ.POHFCY_0 =  #{Site}
+        <if test="VendorCode != null and VendorCode !='' ">
+        AND PORDER.BPSNUM_0 = #{VendorCode}
+        </if>
+        <if test="ProjectNO != null and ProjectNO !='' ">
+        AND PORDERP.PJT_0 = #{ProjectNO}
+        </if>
+        <if test="DateFrom != null and DateTo != null">
+        AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo}, 120))
+        </if>
+    ORDER BY
+        PORDER.POHNUM_0 ASC,
+        PORDERP.POPLIN_0 ASC
+
+    OFFSET #{Offset} ROWS
+    FETCH NEXT #{Limit} ROWS ONLY  
+    )
+    
+    SELECT DISTINCT
+        SINVOICED.YSOH_PJT_0 AS InvoiceProjectNO,
+        SINVOICED.NUM_0 AS InvoiceNO,
+        SINVOICED.SIDLIN_0 AS InvoiceLine,
+        SINVOICED.ITMREF_0 AS InvoicePN,
+        SINVOICED.ITMDES_0 AS InvoicePNDescription,
+        SINVOICED.QTY_0 AS InvoiceQty,
+        SINVOICED.SAU_0 AS InvoiceUnit,
+        SINVOICED.AMTATILIN_0 AS InvoiceAmount,
+        SINVOICE.BPR_0 AS InvoiceCustomerCode,
+        SINVOICE.BPYNAM_0 AS InvoiceCustomerName,
+        SINVOICE.ACCDAT_0 AS InvoiceDate,        
+        SINVOICE.CUR_0 AS InvoiceCurrency
+    FROM T1
+    INNER JOIN EXPLOIT.SORDERQ AS SORDERQ 
+        ON (SORDERQ.YSOH_PJT_0 = T1.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = T1.PJT_0)
+    INNER JOIN EXPLOIT.SINVOICED SINVOICED
+        ON (SINVOICED.SOHNUM_0 = SORDERQ.SOHNUM_0 AND SINVOICED.SOPLIN_0 = SORDERQ.SOPLIN_0)
+    LEFT JOIN EXPLOIT.SINVOICE SINVOICE
+        ON SINVOICED.NUM_0 = SINVOICE.NUM_0
+    WHERE SINVOICE.FCY_0 = #{Site}
+          AND SINVOICED.STOFCY_0 = #{Site}
+          AND SORDERQ.SALFCY_0 = #{Site}
+          <if test="CustomerCode != null and CustomerCode !='' ">
+            AND SORDERQ.BPCORD_0 = #{CustomerCode}
+          </if>
+    ORDER BY 
+        InvoiceNO ASC,
+        InvoiceLine ASC
+    </select>
+</mapper>
