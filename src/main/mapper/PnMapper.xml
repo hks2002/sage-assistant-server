@@ -116,6 +116,7 @@
 		ORDER BY QuoteDate ASC
      </select>
 	<select id="findCostHistoryByPnRoot" resultType="com.da.sageassistantserver.model.CostHistory">
+	    -- 1. Purchase PN same to Order PN
 	    SELECT DISTINCT
 			PORDERP.PRHFCY_0 AS PurchaseSite,
 			PORDERP.PJT_0 AS ProjectNO,
@@ -137,6 +138,7 @@
 					  ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
 			WHERE PORDERP.ITMREF_0 = #{PnRoot} AND PORDERP.NETPRI_0 > 0
 		UNION
+		-- 2. Purchase PN different to PN
 	    SELECT DISTINCT
 			PORDERP.PRHFCY_0 AS PurchaseSite,
 			IIF(SORDERQ.YSOQ_PJTORI_0='', SORDERQ.YSOH_PJT_0, SORDERQ.YSOQ_PJTORI_0) AS ProjectNO,
@@ -158,7 +160,7 @@
 					  ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
 				INNER JOIN PORDER
 					  ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
-			WHERE SORDERQ.ITMREF_0 = #{PnRoot} AND PORDERP.NETPRI_0 > 0
+			WHERE SORDERQ.ITMREF_0 = #{PnRoot} AND PORDERP.NETPRI_0 > 0 AND PORDERP.ITMREF_0 != #{PnRoot}
 		ORDER BY OrderDate ASC
      </select>
 	<select id="findDeliveryDurationByPnRoot" resultType="com.da.sageassistantserver.model.DeliveryDuration">
