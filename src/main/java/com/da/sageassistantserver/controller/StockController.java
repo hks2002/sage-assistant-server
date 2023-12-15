@@ -1,11 +1,10 @@
-/**********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CreatedDate           : 2022-03-26 20:39:00                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2023-08-31 23:45:25                                                                       *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/StockController.java                  *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
- *********************************************************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2022-03-26 20:39:00                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2023-12-14 14:05:44                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
@@ -40,24 +39,23 @@ public class StockController {
 
     @GetMapping("/Data/StockQty")
     public String getStockQty(
-        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
-        @RequestParam(value = "PN", required = false, defaultValue = "--") String PN
-    ) {
+            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
+            @RequestParam(value = "PN", required = false, defaultValue = "--") String PN) {
         return stockService.getStockQty(Site, PN);
     }
 
     @GetMapping("/Data/StockSummary")
-    public List<StockSummary> getStockSummary(@RequestParam(value = "site", required = false, defaultValue = "ZHU") String Site) {
+    public List<StockSummary> getStockSummary(
+            @RequestParam(value = "site", required = false, defaultValue = "ZHU") String Site) {
         return (stockService.getStockSummary(Site));
     }
 
     @GetMapping("/Data/StockHistory")
     public List<StockHistory> getStockHistory(
-        @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
-        @RequestParam(value = "PnOrName", required = false, defaultValue = "%%") String PnOrName,
-        @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
-        @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo
-    ) {
-        return (stockService.getStockHistory(Site, PnOrName, DateFrom, DateTo));
+            @RequestParam(value = "Site", required = false, defaultValue = "ZHU") String Site,
+            @RequestParam(value = "PnOrName", required = false, defaultValue = "%%") String PnOrName,
+            @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
+            @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
+        return (stockService.getStockHistory(Site, PnOrName, DateFrom, DateTo + " 23:59:59.999"));
     }
 }

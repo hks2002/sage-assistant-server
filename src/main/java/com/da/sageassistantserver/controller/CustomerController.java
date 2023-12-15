@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-31 16:29:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2023-11-21 13:36:35                               *
+ * @LastEditDate          : 2023-12-14 14:03:17                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -56,7 +56,7 @@ public class CustomerController {
             @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
             @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
-        return (CustomerService.getCustomerTotalAmount(CustomerCode, DateFrom, DateTo));
+        return (CustomerService.getCustomerTotalAmount(CustomerCode, DateFrom, DateTo + " 23:59:59.999"));
     }
 
     @GetMapping("/Data/CustomerTotalProjectQty")
@@ -64,7 +64,7 @@ public class CustomerController {
             @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
             @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
-        return (CustomerService.getCustomerTotalProjectQty(CustomerCode, DateFrom, DateTo));
+        return (CustomerService.getCustomerTotalProjectQty(CustomerCode, DateFrom, DateTo + " 23:59:59.999"));
     }
 
     @GetMapping("/Data/CustomerTotalItemQty")
@@ -72,7 +72,7 @@ public class CustomerController {
             @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
             @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
-        return (CustomerService.getCustomerTotalItemQty(CustomerCode, DateFrom, DateTo));
+        return (CustomerService.getCustomerTotalItemQty(CustomerCode, DateFrom, DateTo + " 23:59:59.999"));
     }
 
     @GetMapping("/Data/CustomerTotalQty")
@@ -80,7 +80,7 @@ public class CustomerController {
             @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
             @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
-        return (CustomerService.getCustomerTotalQty(CustomerCode, DateFrom, DateTo));
+        return (CustomerService.getCustomerTotalQty(CustomerCode, DateFrom, DateTo + " 23:59:59.999"));
     }
 
     @GetMapping("/Data/CustomerTotalProductQty")
@@ -88,7 +88,7 @@ public class CustomerController {
             @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
             @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
-        return (CustomerService.getCustomerTotalProductQty(CustomerCode, DateFrom, DateTo));
+        return (CustomerService.getCustomerTotalProductQty(CustomerCode, DateFrom, DateTo + " 23:59:59.999"));
     }
 
     @GetMapping("/Data/CustomerOpenAmount")
@@ -126,7 +126,7 @@ public class CustomerController {
             @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
             @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
-        return (CustomerService.getCustomerDeliveryHistory(CustomerCode, DateFrom, DateTo));
+        return (CustomerService.getCustomerDeliveryHistory(CustomerCode, DateFrom, DateTo + " 23:59:59.999"));
     }
 
     @GetMapping("/Data/CustomerDelayHistory")
@@ -134,7 +134,7 @@ public class CustomerController {
             @RequestParam(value = "customerCode", required = false, defaultValue = "NULL") String CustomerCode,
             @RequestParam(value = "dateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "dateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
-        return (CustomerService.getCustomerDelayHistory(CustomerCode, DateFrom, DateTo));
+        return (CustomerService.getCustomerDelayHistory(CustomerCode, DateFrom, DateTo + " 23:59:59.999"));
     }
 
     @GetMapping("/Data/CustomerOpenItems")
