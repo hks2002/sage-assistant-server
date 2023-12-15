@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 22:30:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2023-11-19 14:05:39                               *
+ * @LastEditDate          : 2023-12-14 14:03:46                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -97,7 +97,7 @@ public class FinancialController {
             @RequestParam(value = "DateType", required = false, defaultValue = "invoiceDate") String DateType,
             @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
-        return (financialService.getInvoicePay(Site, CustomerCode, DateType, DateFrom, DateTo));
+        return (financialService.getInvoicePay(Site, CustomerCode, DateType, DateFrom, DateTo + " 23:59:59.999"));
     }
 
     @GetMapping("/Data/FinancialInvoicePayPro")
@@ -107,6 +107,6 @@ public class FinancialController {
             @RequestParam(value = "DateType", required = false, defaultValue = "invoiceDate") String DateType,
             @RequestParam(value = "DateFrom", required = false, defaultValue = "2000-01-01") String DateFrom,
             @RequestParam(value = "DateTo", required = false, defaultValue = "1999-12-31") String DateTo) {
-        return (financialService.getInvoicePayPro(Site, CustomerCode, DateType, DateFrom, DateTo));
+        return (financialService.getInvoicePayPro(Site, CustomerCode, DateType, DateFrom, DateTo + " 23:59:59.999"));
     }
 }

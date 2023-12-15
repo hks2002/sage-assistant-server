@@ -128,7 +128,19 @@
         AND PORDER.BPSNUM_0 = #{VendorCode}
         </if>
         <if test="DateFrom != null ">
-        AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, '2999-01-01', 120))
+        AND (  
+            (
+            LEN(PORDERP.PJT_0) = 5 
+            AND RIGHT(PORDERP.PJT_0, 4) = '0001' 
+            AND PORDER.ORDDAT_0 BETWEEN DATEADD(YEAR,-1,CONVERT(datetime, #{DateFrom},120)) 
+                                    AND DATEADD(YEAR,3,CONVERT(datetime, #{DateTo},120))
+            )
+            OR 
+            (
+            LEN(PORDERP.PJT_0) != 5
+            AND RIGHT(PORDERP.PJT_0, 4) != '0001'
+            )
+        )
         </if>
     ORDER BY
         PurchaseNO ASC, PurchaseLine ASC                
@@ -188,8 +200,20 @@
         <if test="VendorCode != null and VendorCode !='' ">
         AND PRECEIPTD.BPSNUM_0 = #{VendorCode}
         </if>
-        <if test="DateFrom != null " >
-           AND (PRECEIPTD.RCPDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, '2999-01-01', 120))
+        <if test="DateFrom != null and DateTo != null " >
+        AND (  
+            (
+            LEN(PRECEIPTD.PJT_0) = 5 
+            AND RIGHT(PRECEIPTD.PJT_0, 4) = '0001' 
+            AND PRECEIPTD.RCPDAT_0 BETWEEN DATEADD(YEAR,-1,CONVERT(datetime, #{DateFrom},120)) 
+                                    AND DATEADD(YEAR,3,CONVERT(datetime, #{DateTo},120))
+            )
+            OR 
+            (
+            LEN(PRECEIPTD.PJT_0) != 5
+            AND RIGHT(PRECEIPTD.PJT_0, 4) != '0001'
+            )
+        )
         </if>
 
     </select>
