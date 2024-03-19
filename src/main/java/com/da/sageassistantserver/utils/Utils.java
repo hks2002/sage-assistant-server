@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2023-03-10 15:42:04                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-09-08 17:30:09                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/utils/Utils.java                                *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/*****************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                    *
+ * @CreatedDate           : 2023-03-10 15:42:04                              *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                    *
+ * @LastEditDate          : 2024-03-19 09:53:17                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
+ ****************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
@@ -25,21 +24,21 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Utils {
-    
-    public static final String[] IP_HEADERS = {
-        "X-Forwarded-For",
-        "Proxy-Client-IP",
-        "WL-Proxy-Client-IP",
-        "HTTP_X_FORWARDED_FOR",
-        "HTTP_X_FORWARDED",
-        "HTTP_X_CLUSTER_CLIENT_IP",
-        "HTTP_CLIENT_IP",
-        "HTTP_FORWARDED_FOR",
-        "HTTP_FORWARDED",
-        "HTTP_VIA",
-        "REMOTE_ADDR"
 
-        // you can add more matching headers here ...
+    public static final String[] IP_HEADERS = {
+            "X-Forwarded-For",
+            "Proxy-Client-IP",
+            "WL-Proxy-Client-IP",
+            "HTTP_X_FORWARDED_FOR",
+            "HTTP_X_FORWARDED",
+            "HTTP_X_CLUSTER_CLIENT_IP",
+            "HTTP_CLIENT_IP",
+            "HTTP_FORWARDED_FOR",
+            "HTTP_FORWARDED",
+            "HTTP_VIA",
+            "REMOTE_ADDR"
+
+            // you can add more matching headers here ...
     };
 
     public static boolean isNullOrEmpty(String str) {
@@ -69,7 +68,7 @@ public class Utils {
     }
 
     public static Boolean isClientFromZhuhai(String ip) {
-        if (ip.startsWith("192.168.0.") || ip.startsWith("192.168.8.") || ip.startsWith("192.168.253.")) {
+        if (ip.startsWith("192.168.0.") || ip.startsWith("192.168.13.") || ip.startsWith("192.168.253.")) {
             return true;
         }
         return false;
@@ -102,9 +101,9 @@ public class Utils {
             for (int i = 0; i < filesPaths.length; i++) {
                 File file = new File(filesPaths[i]);
 
-                if (file.getName().startsWith("~")) {} else if (
-                    file.getName().toLowerCase().equals("thumbs.db")
-                ) {} else {
+                if (file.getName().startsWith("~")) {
+                } else if (file.getName().toLowerCase().equals("thumbs.db")) {
+                } else {
                     fileNames.add(file.getName());
                 }
             }
@@ -221,8 +220,8 @@ public class Utils {
 
         // 2C|7C|9C|9R|11C + 4 or 5 bit and 2 ?
         // remove -00, _P-00
-        newPn =
-            newPn.replaceAll("^(2C|7C|9C|9R|11C\\d{4,5})(-\\d{1,2})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$6");
+        newPn = newPn.replaceAll("^(2C|7C|9C|9R|11C\\d{4,5})(-\\d{1,2})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)",
+                "$1$6");
         log.debug("[makeShortPn11] " + newPn);
 
         newPn = newPn.replaceAll("^(RRT\\d{6})(-\\d{1,3})?((-[0-9|A-Z]{0,2})|(_P-\\d{1,3}))?(.*)", "$1$2$6");
