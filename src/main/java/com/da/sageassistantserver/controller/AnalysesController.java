@@ -1,8 +1,8 @@
 /******************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @Author                : <56649783@qq.com>                                 *
  * @CreatedDate           : 2022-03-26 21:46:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2023-12-14 14:01:34                               *
+ * @LastEditDate          : 2024-05-08 13:50:38                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -89,7 +89,7 @@ public class AnalysesController {
             @RequestParam(value = "LastN", required = false, defaultValue = "1") String LastN) {
         if (PnRoot.isEmpty()) {
             log.info("request url error");
-            return "https://sageassistant/Data/AnalysesPurchase?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,ProjectNO,PurchaseDate,PurchaseNO,PurchaseDate";
+            return "http://sageassistant/Data/AnalysesPurchase?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,ProjectNO,PurchaseDate,PurchaseNO,PurchaseDate";
         }
         return String.join(";", analysesService.analysesPurchase(Site, PnRoot, Currency, Target, LastN).stream()
                 .distinct().collect(Collectors.toList()));
@@ -104,7 +104,7 @@ public class AnalysesController {
             @RequestParam(value = "LastN", required = false, defaultValue = "1") String LastN) {
         if (PnRoot.isEmpty()) {
             log.info("request url error");
-            return "https://sageassistant/Data/AnalysesQuote?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,QuoteNO,QuoteDate,CustomerCode,CustomerName,OrderNO,OrderFlag,QTY";
+            return "http://sageassistant/Data/AnalysesQuote?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,QuoteNO,QuoteDate,CustomerCode,CustomerName,OrderNO,OrderFlag,QTY";
         }
         return String.join(";", analysesService.analysesQuote(Site, PnRoot, Currency, Target, LastN).stream().distinct()
                 .collect(Collectors.toList()));
@@ -119,7 +119,7 @@ public class AnalysesController {
             @RequestParam(value = "LastN", required = false, defaultValue = "1") String LastN) {
         if (PnRoot.isEmpty()) {
             log.info("request url error");
-            return "https://sageassistant/Data/AnalysesSales?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,OrderNO,OrderDate,CustomerCode,CustomerName,QTY";
+            return "http://sageassistant/Data/AnalysesSales?Site=SITE&PN=PN&Currency=USD&Target=NetPrice&LastN=1\nAvailable Target:NetPrice,OrderNO,OrderDate,CustomerCode,CustomerName,QTY";
         }
         return String.join(";", analysesService.analysesSales(Site, PnRoot, Currency, Target, LastN).stream().distinct()
                 .collect(Collectors.toList()));
