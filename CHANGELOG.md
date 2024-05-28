@@ -1,5 +1,64 @@
 # Changelog
 
+## 1.0.0 (2024-05-25)
+
+
+### ⚠ BREAKING CHANGES
+
+* 📦new project
+
+### Features
+
+* ✨add %% search for customer supplier ([af865e0](https://github.com/hks2002/sage-assistant-server/commit/af865e023b222c5d389df6b4f81e019720cf4051))
+* ✨add attachment for China server ([36da5b8](https://github.com/hks2002/sage-assistant-server/commit/36da5b89b3970d7963bd94ac20439fadf97eb465))
+* ✨add duplicated PO function ([fc5522d](https://github.com/hks2002/sage-assistant-server/commit/fc5522de14680a152202efd62da1169e2c1eeff0))
+* ✨add duplicated PO function ([4628872](https://github.com/hks2002/sage-assistant-server/commit/4628872533218e954b37c797560641c65fb4f3a3))
+* ✨add duplicated PO RA fun ([5d388b5](https://github.com/hks2002/sage-assistant-server/commit/5d388b5d353837c926aee15f609f634bb9ceb56a))
+* ✨add link items ([2ced9d3](https://github.com/hks2002/sage-assistant-server/commit/2ced9d36613fe437d5de86f3662f63be935e6829))
+* ✨add pn cost for purchase pn ([ed0c045](https://github.com/hks2002/sage-assistant-server/commit/ed0c045724324917c417eb5ca47eef598794d1a8))
+* ✨add projectNO filter for tracking ([0930212](https://github.com/hks2002/sage-assistant-server/commit/093021225406ea88a247575598091f1b421b7410))
+* ✨attachment result cache ([a7bdf0d](https://github.com/hks2002/sage-assistant-server/commit/a7bdf0d36ee1700eae2ad0406c45a48c7bbfa808))
+* ✨attachment result cache ([505ca31](https://github.com/hks2002/sage-assistant-server/commit/505ca3105623875e74181bd1f40bbba5e8642274))
+* ✨PNOGSEM Inventory Info ([2a82065](https://github.com/hks2002/sage-assistant-server/commit/2a82065c7dcb983edaa203902dea02e9216f51ed))
+* add h2 db support ([6f99fe5](https://github.com/hks2002/sage-assistant-server/commit/6f99fe5517fb1f0dabc276018cbf4dde5ae1631d))
+* add order type fileter ([a948779](https://github.com/hks2002/sage-assistant-server/commit/a948779f35330144c507bb639c639338e314cc03))
+* add status tracking ([4f7ac93](https://github.com/hks2002/sage-assistant-server/commit/4f7ac936307b5f460dbb08185e8d1477b0686abb))
+* change currency from web to sage ([d0858ee](https://github.com/hks2002/sage-assistant-server/commit/d0858ee1ac6b08f705ac493566439dffdff6b5e6))
+* change for new web project ([3e5f634](https://github.com/hks2002/sage-assistant-server/commit/3e5f6342296a8cd27c845160bdbb83d62ac3901d))
+* common update ([21cc42c](https://github.com/hks2002/sage-assistant-server/commit/21cc42ca6def4a71d2d5c390721a615a9e185394))
+* update fastjson to 1.2.83 ([735914b](https://github.com/hks2002/sage-assistant-server/commit/735914b2395ea011d827d5686edcd706fdcb78ba))
+* use data from sage for tracking ([5f413cb](https://github.com/hks2002/sage-assistant-server/commit/5f413cb42131877b1d6078754abd0b67d5da877a))
+
+
+### Bug Fixes
+
+* 🐛china ip range changed ([4173bb6](https://github.com/hks2002/sage-assistant-server/commit/4173bb6e6c90b9c12b6cdb18df9be2b57d9590e4))
+* 🐛DateTo add 23:59:59 ([e7709e3](https://github.com/hks2002/sage-assistant-server/commit/e7709e3f21bcfb0c629801324e2de35aa9e157e0))
+* 🐛field name ([bd387b8](https://github.com/hks2002/sage-assistant-server/commit/bd387b8fd1a345fe989dd2fc0f8d26325066ba3e))
+* 🐛fix analyses bugs ([4b6b8fe](https://github.com/hks2002/sage-assistant-server/commit/4b6b8febd8989a46fe2d052055eb40edf8171a7c))
+* 🐛fix analyses sql error ([e4937dc](https://github.com/hks2002/sage-assistant-server/commit/e4937dcf73ef10d72d912128d0f3a70f1cb29e7e))
+* 🐛fix cost bugs ([3528613](https://github.com/hks2002/sage-assistant-server/commit/3528613a811a3a66cc002f4bc4814b5359a0cc6a))
+* 🐛fix duplicated po ([a14f56d](https://github.com/hks2002/sage-assistant-server/commit/a14f56dd883297c408983662100b42e5323271f3))
+* 🐛fix duplicated po ([ed402bd](https://github.com/hks2002/sage-assistant-server/commit/ed402bd79d77e3aa1ef0d6abe72ca86c7650d38f))
+* 🐛fix duplicated po ([e2b3f70](https://github.com/hks2002/sage-assistant-server/commit/e2b3f70c84d576227b2703b2290344a7a8af2866))
+* 🐛fix empty ori project no link in purchase ([ea2db6e](https://github.com/hks2002/sage-assistant-server/commit/ea2db6e823cca9eae2415730107b631bdee8959c))
+* 🐛fix invoice pay ([f2e6a6c](https://github.com/hks2002/sage-assistant-server/commit/f2e6a6c02a93f31916eda82947aafc26e0f93ebe))
+* 🐛fix invoice pay mapper error ([e7a5b90](https://github.com/hks2002/sage-assistant-server/commit/e7a5b902792b133571d244dc4586cb64b9a6c56e))
+* 🐛fix invoice pay sql bugs ([638ceae](https://github.com/hks2002/sage-assistant-server/commit/638ceaecfcd83037a62c7e4352687ffaefafa66d))
+* 🐛fix open sales items bug ([297b678](https://github.com/hks2002/sage-assistant-server/commit/297b678ac9bfdcf5be5556051d9d30c7c81cc124))
+* 🐛fix pn cost sql text error ([fade4d1](https://github.com/hks2002/sage-assistant-server/commit/fade4d136b4924ae1bb8cf16ae0a7854ec8d74d9))
+* 🐛fix srvdata url link ([91ea9ea](https://github.com/hks2002/sage-assistant-server/commit/91ea9ea611e4c194d0bd064dca031628e12d5e07))
+* 🐛fix string converter quotation bug ([a92f711](https://github.com/hks2002/sage-assistant-server/commit/a92f711e124b538e9df8397b5320c13a89bd002c))
+* 🐛fix version error ([ba99c4a](https://github.com/hks2002/sage-assistant-server/commit/ba99c4aad4db6d8e4c7c9d60461e21baa40a49fb))
+* 🐛pn end with _- ([fff06be](https://github.com/hks2002/sage-assistant-server/commit/fff06beacf9f906684deb0d29b522eecee16c7c9))
+* 🐛project ori field sql empty error ([4266107](https://github.com/hks2002/sage-assistant-server/commit/4266107680938605cce94696d190faa022cef776))
+* 🐛rename dir dirty data function name ([96c75c6](https://github.com/hks2002/sage-assistant-server/commit/96c75c6a6fafdc2290e0cbea88ffe6461a010778))
+
+
+### Code Refactoring
+
+* 📦new project ([57fed8f](https://github.com/hks2002/sage-assistant-server/commit/57fed8f087f0686ee9e6d1d7a70108a0c1ce595f))
+
 ## [4.0.0](https://github.com/hks2002/sage-assistant-server/compare/v3.2.0...v4.0.0) (2023-12-13)
 
 
