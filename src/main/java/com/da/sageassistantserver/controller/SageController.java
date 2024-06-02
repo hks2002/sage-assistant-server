@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-25 15:19:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-09-01 00:09:30                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/controller/SageController.java                  *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/*****************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                    *
+ * @CreatedDate           : 2022-03-25 15:19:00                              *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                    *
+ * @LastEditDate          : 2024-06-02 13:02:10                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
+ ****************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
@@ -29,11 +28,11 @@ import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 @CrossOrigin
 @RestController
 public class SageController {
-   
 
     public JSONObject missingAuth() {
         return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Authorization is required.");
@@ -44,9 +43,17 @@ public class SageController {
     }
 
     @PostMapping("/Data/Login")
-    public JSONObject doLogin(@RequestHeader(value = "authorization", required = false) String Auth) {
+    public JSONObject doLogin(@RequestHeader(value = "authorization", required = false) String Auth,
+            HttpServletRequest request) {
         if (Auth == null) {
             return missingAuth();
+        }
+
+        JSONObject rst = SageService.doLogin(Auth);
+
+        if (rst.getBoolean("success")) {
+            HttpSession session = request.getSession(true);
+            session.setAttribute("authorization", rst.getString(Auth));
         }
 
         return SageService.doLogin(Auth);
@@ -72,11 +79,10 @@ public class SageController {
 
     @PostMapping("/Data/PrintUUID")
     public JSONObject getPrintUUID(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "Report", required = false) String Report,
-        @RequestParam(value = "ReportNO", required = false) String ReportNO,
-        @RequestParam(value = "Opt", required = false, defaultValue = "") String Opt
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "Report", required = false) String Report,
+            @RequestParam(value = "ReportNO", required = false) String ReportNO,
+            @RequestParam(value = "Opt", required = false, defaultValue = "") String Opt) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -94,9 +100,8 @@ public class SageController {
 
     @PostMapping("/Data/ReportUUID")
     public JSONObject getReportUUID(
-        @RequestHeader(value = "authorization", required = true) String Auth,
-        @RequestParam(value = "PrintUUID", required = true) String PrintUUID
-    ) {
+            @RequestHeader(value = "authorization", required = true) String Auth,
+            @RequestParam(value = "PrintUUID", required = true) String PrintUUID) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -136,18 +141,18 @@ public class SageController {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             try {
                 response.getWriter().write("<H1>Handle report error!</H1>");
-            } catch (IOException e1) {}
+            } catch (IOException e1) {
+            }
         }
         return null;
     }
 
     @PutMapping("/Data/SageSADReady")
     public JSONObject updateSageSADReady(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "Ready", required = false) String Ready
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "Ready", required = false) String Ready) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -166,11 +171,10 @@ public class SageController {
 
     @PutMapping("/Data/SageDeliveryReady")
     public JSONObject updateSageDeliveryReady(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "Ready", required = false) String Ready
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "Ready", required = false) String Ready) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -188,11 +192,10 @@ public class SageController {
 
     @PutMapping("/Data/SageProductReady")
     public JSONObject updateSageProductReady(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "Flag", required = false) String Flag
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "Flag", required = false) String Flag) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -210,11 +213,10 @@ public class SageController {
 
     @PutMapping("/Data/SageProjectStatus")
     public JSONObject updateSageProjectStatus(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "Status", required = false) String Status
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "Status", required = false) String Status) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -229,11 +231,10 @@ public class SageController {
 
     @PutMapping("/Data/SageProjectBlockReason")
     public JSONObject updateSageProjectBlockReason(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "Reason", required = false) String Reason
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "Reason", required = false) String Reason) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -248,11 +249,10 @@ public class SageController {
 
     @PutMapping("/Data/SageProjectComment")
     public JSONObject updateSageProjectComment(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "Comment", required = false) String Comment
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "Comment", required = false) String Comment) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -267,11 +267,10 @@ public class SageController {
 
     @PutMapping("/Data/SageProjectAction")
     public JSONObject updateSageProjectAction(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "Action", required = false) String Action
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "Action", required = false) String Action) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -286,11 +285,10 @@ public class SageController {
 
     @PutMapping("/Data/SageDeliveryPlanDate")
     public JSONObject updateSageDeliveryPlanDate(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "PlanDate", required = false) String PlanDate
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "PlanDate", required = false) String PlanDate) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -305,11 +303,10 @@ public class SageController {
 
     @PutMapping("/Data/SagePurchaseAckDate")
     public JSONObject updateSagePurchaseAckDate(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "AckDate", required = false) String AckDate
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "AckDate", required = false) String AckDate) {
         if (Auth == null) {
             return missingAuth();
         }
@@ -324,11 +321,10 @@ public class SageController {
 
     @PutMapping("/Data/SagePurchaseComment")
     public JSONObject updateSagePurchaseComment(
-        @RequestHeader(value = "authorization", required = false) String Auth,
-        @RequestParam(value = "OrderNO", required = false) String OrderNO,
-        @RequestParam(value = "Line", required = false) Integer Line,
-        @RequestParam(value = "Comment", required = false) String Comment
-    ) {
+            @RequestHeader(value = "authorization", required = false) String Auth,
+            @RequestParam(value = "OrderNO", required = false) String OrderNO,
+            @RequestParam(value = "Line", required = false) Integer Line,
+            @RequestParam(value = "Comment", required = false) String Comment) {
         if (Auth == null) {
             return missingAuth();
         }

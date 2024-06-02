@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2023-11-09 18:52:05                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2023-11-09 18:52:05                              *
+ * @LastEditDate          : 2024-06-02 13:54:21                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -23,6 +23,7 @@ import com.alibaba.fastjson2.support.spring6.http.converter.FastJsonHttpMessageC
 @Configuration
 public class JSONWebMvcConfigurer implements WebMvcConfigurer {
 
+    @SuppressWarnings("null")
     @Override
     public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
 
