@@ -1,12 +1,11 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2023-03-15 23:49:52                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:06:20                                                                      *
- * @FilePath              : src/test/java/com/da/sageassistantserver/controller/CommonControllerTest.java            *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
- 
+/*****************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                    *
+ * @CreatedDate           : 2023-03-15 23:49:52                              *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                    *
+ * @LastEditDate          : 2024-06-03 16:54:30                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
+ ****************************************************************************/
+
 package com.da.sageassistantserver.controller;
 
 import java.util.ArrayList;
@@ -35,8 +34,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @SpringBootTest
 @AutoConfigureMockMvc
-public class CommonControllerTest {
-
+public class ControllerTest {
 
     @Autowired
     private WebApplicationContext applicationContext;
@@ -64,7 +62,8 @@ public class CommonControllerTest {
             String funName = method.getMethod().getName();
 
             // path[] method[]
-            for (int i = 0; methodAnnotation !=null && i < methodAnnotation.path().length && i < methodAnnotation.method().length; i++) {
+            for (int i = 0; methodAnnotation != null && i < methodAnnotation.path().length
+                    && i < methodAnnotation.method().length; i++) {
                 RequestMethod requestMethod = methodAnnotation.method()[0];
                 String requestPath = methodAnnotation.path()[0];
                 log.info(requestMethod + ":" + requestPath);
@@ -153,8 +152,8 @@ public class CommonControllerTest {
                         if (!testMethodsSkip.contains(funName)) {
                             try {
                                 mockMvc
-                                    .perform(MockMvcRequestBuilders.get(requestPath + reqParamsStr))
-                                    .andExpect(MockMvcResultMatchers.status().isOk());
+                                        .perform(MockMvcRequestBuilders.get(requestPath + reqParamsStr))
+                                        .andExpect(MockMvcResultMatchers.status().isOk());
                             } catch (Exception e) {
                                 log.error(e.getMessage());
                             }
