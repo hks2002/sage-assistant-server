@@ -1,10 +1,10 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2023-03-10 15:42:04                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-03-19 09:53:17                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2023-03-10 15:42:04                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2024-06-07 14:10:52                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
@@ -20,6 +20,9 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
+import com.alibaba.fastjson2.JSONArray;
+
+import jakarta.servlet.http.HttpSession;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -47,6 +50,43 @@ public class Utils {
         } else {
             return false;
         }
+    }
+
+    /**
+     * Retrieves the authorization string from the given session if the provided
+     * authorization string is null or empty.
+     *
+     * @param auth    the authorization string to check
+     * @param session the HTTP session to retrieve the authorization string from
+     * @return the authorization string from the session if it exists, otherwise
+     *         null
+     */
+    public static String getAuth(String auth, HttpSession session) {
+        if (isNullOrEmpty(auth)) {
+            if (session != null && session.getAttribute("authorization") != null) {
+                return (String) session.getAttribute("authorization");
+            } else {
+                return null;
+            }
+        } else {
+            return auth;
+        }
+    }
+
+    public static String ListToString(List<String> list) {
+        StringBuilder sb = new StringBuilder();
+        for (String s : list) {
+            sb.append(s).append(";");
+        }
+        return sb.toString();
+    }
+
+    public static String JSONArrayToString(JSONArray array) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < array.size(); i++) {
+            sb.append(array.getString(i)).append(";");
+        }
+        return sb.toString();
     }
 
     public static boolean isWin() {
