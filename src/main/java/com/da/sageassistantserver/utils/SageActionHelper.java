@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2023-02-19 20:31:38                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:04:40                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/utils/SageActionHelper.java                     *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2023-02-19 20:31:38                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2024-06-07 16:41:27                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
@@ -18,7 +17,6 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SageActionHelper {
-
 
     public enum MsgTyp {
         RESULT(0),
@@ -75,13 +73,14 @@ public class SageActionHelper {
     /**
      * Only for act, such as click some button
      * If want to change/select before this action, consider use `sel`/`set`
+     * 
      * @param act
      * @return
      */
     public static String act(SageActionHelper.Action act) {
         return String.format("""
-                {"act":%d,"tech":{}}
-            """, act.value);
+                    {"act":%d,"tech":{}}
+                """, act.value);
     }
 
     /**
@@ -89,23 +88,22 @@ public class SageActionHelper {
      */
     public static String set(String win, String xid, Integer nl, String val) {
         return String.format(
-            """
-            {
-                "act":%d,
-                "fld":{
-                        "st":{"win":"%s","xid":"%s","nl":%d},
-                        "fmtKind":"EDIT","ctx":{},
-                        "notModified":false,"v":"%s"
-                },
-                "tech":{}
-            }
-            """,
-            Action.INPUT_TAB.value,
-            win,
-            xid,
-            nl,
-            val
-        );
+                """
+                        {
+                            "act":%d,
+                            "fld":{
+                                    "st":{"win":"%s","xid":"%s","nl":%d},
+                                    "fmtKind":"EDIT","ctx":{},
+                                    "notModified":false,"v":"%s"
+                            },
+                            "tech":{}
+                        }
+                        """,
+                Action.INPUT_TAB.value,
+                win,
+                xid,
+                nl,
+                val);
     }
 
     /**
@@ -113,23 +111,22 @@ public class SageActionHelper {
      */
     public static String set(String win, String xid, Integer nl, Integer val) {
         return String.format(
-            """
-            {
-                "act":%d,
-                "fld":{
-                        "st":{"win":"%s","xid":"%s","nl":%d},
-                        "fmtKind":"EDIT","ctx":{},
-                        "notModified":false,"v":%d
-                },
-                "tech":{}
-            }
-            """,
-            Action.INPUT_TAB.value,
-            win,
-            xid,
-            nl,
-            val
-        );
+                """
+                        {
+                            "act":%d,
+                            "fld":{
+                                    "st":{"win":"%s","xid":"%s","nl":%d},
+                                    "fmtKind":"EDIT","ctx":{},
+                                    "notModified":false,"v":%d
+                            },
+                            "tech":{}
+                        }
+                        """,
+                Action.INPUT_TAB.value,
+                win,
+                xid,
+                nl,
+                val);
     }
 
     /**
@@ -137,23 +134,22 @@ public class SageActionHelper {
      */
     public static String save(String win, String xid, Integer nl, String val) {
         return String.format(
-            """
-            {
-                "act":%d,
-                "fld":{
-                        "st":{"win":"%s","xid":"%s","nl":%d},
-                        "fmtKind":"EDIT","ctx":{},
-                        "notModified":false,"v":"%s"
-                },
-                "tech":{}
-            }
-            """,
-            Action.SAVE.value,
-            win,
-            xid,
-            nl,
-            val
-        );
+                """
+                        {
+                            "act":%d,
+                            "fld":{
+                                    "st":{"win":"%s","xid":"%s","nl":%d},
+                                    "fmtKind":"EDIT","ctx":{},
+                                    "notModified":false,"v":"%s"
+                            },
+                            "tech":{}
+                        }
+                        """,
+                Action.SAVE.value,
+                win,
+                xid,
+                nl,
+                val);
     }
 
     /**
@@ -161,23 +157,22 @@ public class SageActionHelper {
      */
     public static String save(String win, String xid, Integer nl, Integer val) {
         return String.format(
-            """
-            {
-                "act":%d,
-                "fld":{
-                        "st":{"win":"%s","xid":"%s","nl":%d},
-                        "fmtKind":"EDIT","ctx":{},
-                        "notModified":false,"v":%d
-                },
-                "tech":{}
-            }
-            """,
-            Action.SAVE.value,
-            win,
-            xid,
-            nl,
-            val
-        );
+                """
+                        {
+                            "act":%d,
+                            "fld":{
+                                    "st":{"win":"%s","xid":"%s","nl":%d},
+                                    "fmtKind":"EDIT","ctx":{},
+                                    "notModified":false,"v":%d
+                            },
+                            "tech":{}
+                        }
+                        """,
+                Action.SAVE.value,
+                win,
+                xid,
+                nl,
+                val);
     }
 
     /**
@@ -186,17 +181,16 @@ public class SageActionHelper {
     public static String popSel(String win, String xid, Integer nl, String val) {
         // ACT.SELECT_LIST 1052, std: ["2~2"] without input
         // ACT.SEARCH 782, sudo: [["v1","v2"],null]
-        String s =
-            """
-            {
-                "act":%d,
-                "param":{
-                    "target":{"win":"%s","xid":"%s","nl":%d},
-                    "std":["%s"]
-                },
-                "tech":{}
-            }
-            """;
+        String s = """
+                {
+                    "act":%d,
+                    "param":{
+                        "target":{"win":"%s","xid":"%s","nl":%d},
+                        "std":["%s"]
+                    },
+                    "tech":{}
+                }
+                """;
 
         return String.format(s, Action.SELECT_LIST.value, win, xid, nl, val);
     }
@@ -207,57 +201,53 @@ public class SageActionHelper {
     public static String searchSel(String win, String xid, Integer nl, String val) {
         // ACT.SELECT_LIST 1052, std: ["2~2"] without input
         // ACT.SEARCH 782, sudo: [["v1","v2"],null]
-        String s =
-            """
-            {
-                "act":%d,
-                "param":{
-                    "target":{"win":"%s","xid":"%s","nl":%d},
-                    "sudo":[["%s"],null]
-                },
-                "tech":{}
-            }
-            """;
+        String s = """
+                {
+                    "act":%d,
+                    "param":{
+                        "target":{"win":"%s","xid":"%s","nl":%d},
+                        "sudo":[["%s"],null]
+                    },
+                    "tech":{}
+                }
+                """;
 
         return String.format(s, Action.SEARCH.value, win, xid, nl, val);
     }
 
     public static String goTo(String win, String xid, Integer nl) {
-        String s =
-            """
-            {
-                "act":%d,
-                "fld":{"ist":null,"fmtKind":"ROUGH","notModified":false,"v":4},
-                "param":{"target":{"win":"%s","xid":"%s","nl":%d}},
-                "tech":{}
-                }
-            """;
+        String s = """
+                {
+                    "act":%d,
+                    "fld":{"ist":null,"fmtKind":"ROUGH","notModified":false,"v":4},
+                    "param":{"target":{"win":"%s","xid":"%s","nl":%d}},
+                    "tech":{}
+                    }
+                """;
         return String.format(s, Action.JUMP_TO.value, win, xid, nl);
     }
 
     public static String noRevise() {
-        String s =
-            """
-            {
-                "act":%d,
-                "fld":{"ist":null,"fmtKind":"SHOW","notModified":false,"v":3},
-                "param":{},
-                "tech":{}
-                }
-            """;
+        String s = """
+                {
+                    "act":%d,
+                    "fld":{"ist":null,"fmtKind":"SHOW","notModified":false,"v":3},
+                    "param":{},
+                    "tech":{}
+                    }
+                """;
         return String.format(s, Action.INPUT_TAB.value);
     }
 
     public static String warnOK() {
-        String s =
-            """
-            {
-                "act":%d,
-                "fld":{"ist":null,"fmtKind":"SHOW","notModified":false,"v":5},
-                "param":{},
-                "tech":{}
-                }
-            """;
+        String s = """
+                {
+                    "act":%d,
+                    "fld":{"ist":null,"fmtKind":"SHOW","notModified":false,"v":5},
+                    "param":{},
+                    "tech":{}
+                    }
+                """;
         return String.format(s, Action.INPUT_TAB.value);
     }
 
@@ -282,8 +272,8 @@ public class SageActionHelper {
         Pattern reg2 = Pattern.compile("[A-Z]CG.*");
         Pattern reg3 = Pattern.compile("[A-Z]CT.*");
         return reg1.matcher(purchaseNO).find()
-            ? "2~1"
-            : reg2.matcher(purchaseNO).find() ? "2~2" : reg3.matcher(purchaseNO).find() ? "2~3" : "2~1";
+                ? "2~1"
+                : reg2.matcher(purchaseNO).find() ? "2~2" : reg3.matcher(purchaseNO).find() ? "2~3" : "2~1";
     }
 
     public static JSONObject rtnObj(Boolean success, MsgTyp msgTyp, String msg) {
@@ -307,5 +297,13 @@ public class SageActionHelper {
         rtn.put("msgTyp", msgTyp);
         rtn.put("msg", msg);
         return rtn;
+    }
+
+    public static JSONObject missingAuth() {
+        return rtnObj(false, MsgTyp.ERROR, "Authorization is required.");
+    }
+
+    public static JSONObject paraRequired(String name) {
+        return rtnObj(false, MsgTyp.ERROR, name + " is required.");
     }
 }

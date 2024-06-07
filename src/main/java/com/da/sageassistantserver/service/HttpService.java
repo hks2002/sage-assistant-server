@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 17:57:07                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:02:35                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/service/HttpService.java                        *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/*****************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                    *
+ * @CreatedDate           : 2022-03-26 17:57:07                              *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                    *
+ * @LastEditDate          : 2024-06-05 18:19:28                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
+ ****************************************************************************/
 
 package com.da.sageassistantserver.service;
 
@@ -34,6 +33,7 @@ import javax.net.ssl.X509TrustManager;
 
 import org.springframework.stereotype.Service;
 
+import com.da.sageassistantserver.utils.Utils;
 import com.github.benmanes.caffeine.cache.Cache;
 import com.github.benmanes.caffeine.cache.Caffeine;
 
@@ -47,28 +47,32 @@ public class HttpService {
      * Caffeine cache
      */
     private static Cache<String, String> cache = Caffeine
-        .newBuilder()
-        .expireAfterAccess(5, TimeUnit.MINUTES)
-        .maximumSize(10000)
-        .build();
+            .newBuilder()
+            .expireAfterAccess(5, TimeUnit.MINUTES)
+            .maximumSize(10000)
+            .build();
 
     private static HttpClient client = null;
 
     private static SSLContext getSSLContext() {
         try {
             TrustManager[] trustAllCertificates = new TrustManager[] {
-                new X509TrustManager() {
-                    @Override
-                    public X509Certificate[] getAcceptedIssuers() {
-                        return null;
+                    new X509TrustManager() {
+                        @Override
+                        public X509Certificate[] getAcceptedIssuers() {
+                            return null;
+                        }
+
+                        @Override
+                        public void checkClientTrusted(X509Certificate[] arg0, String arg1)
+                                throws CertificateException {
+                        }
+
+                        @Override
+                        public void checkServerTrusted(X509Certificate[] arg0, String arg1)
+                                throws CertificateException {
+                        }
                     }
-
-                    @Override
-                    public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {}
-
-                    @Override
-                    public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {}
-                }
             };
 
             SSLContext sc = SSLContext.getInstance("TLS");
@@ -103,12 +107,12 @@ public class HttpService {
             }
 
             Builder reqBuilder = HttpRequest
-                .newBuilder()
-                .uri(URI.create(url))
-                .setHeader("Content-Type", "application/json")
-                .setHeader("Accept", "application/json");
+                    .newBuilder()
+                    .uri(URI.create(url))
+                    .setHeader("Content-Type", "application/json")
+                    .setHeader("Accept", "application/json");
 
-            if (auth != null && !auth.isBlank()) {
+            if (!Utils.isNullOrEmpty(auth)) {
                 reqBuilder.header("authorization", auth);
             }
             // Cookie
@@ -160,7 +164,7 @@ public class HttpService {
                 cache.put("LastCookie", cookieStr);
             }
 
-            log.debug("{}",response.statusCode());
+            log.debug("{}", response.statusCode());
             log.debug(response.body());
 
             return response;
