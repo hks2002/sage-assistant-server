@@ -2,18 +2,17 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2024-06-02 21:40:29                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-06-07 19:07:45                               *
+ * @LastEditDate          : 2024-06-24 23:27:20                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
 package com.da.sageassistantserver.dao;
 
+import com.da.sageassistantserver.model.User;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-
-import com.da.sageassistantserver.model.User;
 
 /**
  * This test class is used to test the UserMapper interface.
@@ -22,19 +21,17 @@ import com.da.sageassistantserver.model.User;
  */
 @SpringBootTest
 public class UserTest {
-    @Autowired
-    UserMapper userMapper;
+  @Autowired UserMapper userMapper;
 
-    @Test
-    void testCreateUser() {
-        User user = new User();
-        user.setSage_id("sage_id");
-        user.setFirst_name("first_name");
-        user.setLast_name("last_name");
-        user.setLogin_name("login_name");
-        user.setAuth("auth");
-        user.setEmail("email");
-        user.setLanguage("En-US");
-        Assertions.assertEquals(1, userMapper.insert(user));
-    }
+  @Test
+  void testCreateUser() {
+    User user = new User();
+    user.setSage_id("sage_id");
+    user.setFirst_name("first_name");
+    user.setLast_name("last_name");
+    user.setLogin_name("login_name");
+    user.setEmail("email");
+    user.setLanguage("En-US");
+    Assertions.assertEquals(1, userMapper.insert(user));
+  }
 }

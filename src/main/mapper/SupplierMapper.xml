@@ -18,7 +18,15 @@
 		ORDER BY BPRNUM_0 ASC
 		OFFSET 0 ROWS
 		FETCH NEXT #{Count} ROWS ONLY
-    </select>
+	</select>
+	<select id="findBusinessPartnerByCode" resultType="com.da.sageassistantserver.model.BusinessPartnerName">
+	    SELECT 
+	        BPARTNER.BPRNUM_0 AS BPCode,
+	        BPARTNER.BPRNAM_0+BPARTNER.BPRNAM_1 AS BPName
+	    FROM EXPLOIT.BPARTNER AS BPARTNER
+		WHERE 
+			BPARTNER.BPRNUM_0 = #{BPCode}
+	</select>
 	<select id="findSupplierDetailsByCode" resultType="com.da.sageassistantserver.model.SupplierDetails">
 	    SELECT 
 		    BPARTNER.BPRNUM_0 AS SupplierCode,
@@ -47,7 +55,7 @@
 		   LEFT JOIN EXPLOIT.BPADDRESS AS BPADDRESS
 		     ON BPARTNER.BPRNUM_0 = BPADDRESS.BPANUM_0
 		WHERE BPARTNER.BPRNUM_0 = #{SupplierCode}
-    </select>
+	</select>
 	<select id="findSupplierTotalAmount" resultType="com.da.sageassistantserver.model.SupplierSummaryAmount">
         SELECT DISTINCT
 			POHFCY_0 AS Site,
@@ -57,7 +65,7 @@
 		FROM EXPLOIT.PORDER AS PORDER
 		WHERE BPSNUM_0=#{SupplierCode}
 		      AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-    </select>
+	</select>
 	<select id="findSupplierTotalProjectQty" resultType="com.da.sageassistantserver.model.SupplierSummaryQty">
         SELECT DISTINCT
 			PORDER.POHFCY_0 AS Site,
@@ -69,7 +77,7 @@
 			    ON PORDER.POHNUM_0=PORDERP.POHNUM_0
 		WHERE PORDER.BPSNUM_0=#{SupplierCode}
 		      AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-    </select>
+	</select>
 	<select id="findSupplierTotalItemQty" resultType="com.da.sageassistantserver.model.SupplierSummaryQty">
         SELECT DISTINCT
 			PORDER.POHFCY_0 AS Site,
@@ -79,7 +87,7 @@
 		FROM EXPLOIT.PORDER AS PORDER
 		WHERE PORDER.BPSNUM_0=#{SupplierCode}
 		      AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-    </select>
+	</select>
 	<select id="findSupplierTotalProductQty" resultType="com.da.sageassistantserver.model.SupplierSummaryQty">
         SELECT DISTINCT
 			PORDER.POHFCY_0 AS Site,
@@ -89,7 +97,7 @@
 		FROM EXPLOIT.PORDER AS PORDER
 		WHERE BPSNUM_0=#{SupplierCode}
 		      AND (PORDER.ORDDAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
-    </select>
+	</select>
 	<select id="findSupplierOpenAmount" resultType="com.da.sageassistantserver.model.SupplierSummaryAmount">
         SELECT DISTINCT 
             PORDER.POHFCY_0 AS Site,
@@ -152,8 +160,7 @@
 	        PORDERP.POHNUM_0 AS PurchaseNO,
 	        PORDERP.PJT_0 AS ProjectNO,
 	        PORDERP.ITMREF_0 AS PN,
-	        PORDERP.ITMDES_0 AS Description,
-	        IIF(PORDERQ.LINOCNDAT_0='1753-01-01',null,PORDERQ.LINOCNDAT_0) AS AckDate,
+	        PORDERP.ITMDES_0 AS Description, IIF(PORDERQ.LINOCNDAT_0='1753-01-01',null,PORDERQ.LINOCNDAT_0) AS AckDate,
 	        PORDERQ.EXTRCPDAT_0 AS ExpectDate,
 	        PORDER.ORDDAT_0 AS OrderDate,
 			PORDERQ.PTHNUM_0 AS ReceiptNO,
@@ -179,8 +186,7 @@
 	        PORDERP.POHNUM_0 AS PurchaseNO,
 	        PORDERP.PJT_0 AS ProjectNO,
 	        PORDERP.ITMREF_0 AS PN,
-	        PORDERP.ITMDES_0 AS Description,
-	        IIF(PORDERQ.LINOCNDAT_0='1753-01-01',null,PORDERQ.LINOCNDAT_0) AS AckDate,
+	        PORDERP.ITMDES_0 AS Description, IIF(PORDERQ.LINOCNDAT_0='1753-01-01',null,PORDERQ.LINOCNDAT_0) AS AckDate,
 	        PORDERQ.EXTRCPDAT_0 AS ExpectDate,
 	        PORDER.ORDDAT_0 AS OrderDate,
 			PORDERQ.PTHNUM_0 AS ReceiptNO,
@@ -208,8 +214,7 @@
 	        PORDERP.POHNUM_0 AS PurchaseNO,
 	        PORDERP.PJT_0 AS ProjectNO,
 	        PORDERP.ITMREF_0 AS PN,
-	        PORDERP.ITMDES_0 AS Description,
-	        IIF(PORDERQ.LINOCNDAT_0='1753-01-01',null,PORDERQ.LINOCNDAT_0) AS AckDate,
+	        PORDERP.ITMDES_0 AS Description, IIF(PORDERQ.LINOCNDAT_0='1753-01-01',null,PORDERQ.LINOCNDAT_0) AS AckDate,
 	        PORDERQ.EXTRCPDAT_0 AS ExpectDate,
 	        PORDER.ORDDAT_0 AS OrderDate,
 			IIF(PORDERQ.PTHNUM_0 = '' AND getDate()>PORDERQ.EXTRCPDAT_0,
