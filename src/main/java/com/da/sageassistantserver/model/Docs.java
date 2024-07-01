@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-30 00:19:48                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-30 00:19:48                              *
+ * @LastEditDate          : 2024-07-01 12:09:28                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -25,9 +25,9 @@ public class Docs {
     private Long id;
     private String file_name;
     private String location;
-    private Integer size;
-    private Timestamp doc_create_date;
-    private Timestamp doc_modified_date;
+    private Long size;
+    private Timestamp doc_create_at;
+    private Timestamp doc_modified_at;
     private String md5;
     private Timestamp create_at;
     private Long create_by;

@@ -2,11 +2,16 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2024-06-02 21:34:24                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-06-27 18:52:44                               *
+ * @LastEditDate          : 2024-07-01 10:04:03                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
 package com.da.sageassistantserver.service;
+
+import java.sql.Timestamp;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -15,13 +20,11 @@ import com.da.sageassistantserver.dao.UserMapper;
 import com.da.sageassistantserver.model.User;
 import com.da.sageassistantserver.utils.SageActionHelper;
 import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;
-import java.sql.Timestamp;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
-  @Autowired UserMapper userMapper;
+  @Autowired
+  UserMapper userMapper;
 
   /**
    * Creates a new user in the database and returns a JSONObject indicating the
@@ -39,7 +42,7 @@ public class UserService {
     user.setUpdate_by(0L);
 
     return userMapper.insert(user) == 0 ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User create failed.")
-                                        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   /**
@@ -55,7 +58,7 @@ public class UserService {
    * @return a JSON object representing the result of creating the user
    */
   public JSONObject createUser(String sage_id, String login_name, String first_name, String last_name, String email,
-                               String language) {
+      String language) {
     User user = new User();
     user.setSage_id(sage_id);
     user.setLogin_name(login_name);
@@ -75,7 +78,7 @@ public class UserService {
    */
   public JSONObject deleteUserById(Long uid) {
     return userMapper.deleteById(uid) == 0 ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User delete failed.")
-                                           : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   /**
@@ -90,7 +93,7 @@ public class UserService {
     queryWrapper.eq(User::getSage_id, sid);
 
     return userMapper.delete(queryWrapper) == 0 ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User delete failed.")
-                                                : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+        : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   public User getUserBySid(String sid) {
@@ -105,16 +108,16 @@ public class UserService {
     return userMapper.selectOne(queryWrapper);
   }
 
-  public JSONObject updateUserByWrapper(User updateUser, LambdaUpdateWrapper<User> updateWrapper) {
-    updateUser.setUpdate_at(new Timestamp(System.currentTimeMillis()));
-    updateUser.setUpdate_by(0L);
-    return userMapper.update(updateUser, updateWrapper) <= 0
+  public JSONObject updateUserByWrapper(User user, LambdaUpdateWrapper<User> wrapper) {
+    user.setUpdate_at(new Timestamp(System.currentTimeMillis()));
+    user.setUpdate_by(0L);
+    return userMapper.update(user, wrapper) <= 0
         ? SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User update failed.")
         : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
   public JSONObject updateUserBySid(String sage_id, String login_name, String first_name, String last_name,
-                                    String email, String language) {
+      String email, String language) {
 
     LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
     updateWrapper.eq(User::getSage_id, sage_id);
@@ -129,7 +132,7 @@ public class UserService {
   }
 
   public JSONObject updateUserByLoginName(String login_name, String sage_id, String first_name, String last_name,
-                                          String email, String language) {
+      String email, String language) {
 
     LambdaUpdateWrapper<User> updateWrapper = new LambdaUpdateWrapper<>();
     updateWrapper.eq(User::getLogin_name, login_name);
