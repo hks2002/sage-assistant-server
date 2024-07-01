@@ -2,11 +2,18 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2024-06-02 21:34:24                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-06-27 18:53:11                               *
+ * @LastEditDate          : 2024-07-01 16:49:41                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
 package com.da.sageassistantserver.service;
+
+import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -18,17 +25,14 @@ import com.da.sageassistantserver.model.UserFunc;
 import com.da.sageassistantserver.utils.SageActionHelper;
 import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;
 import com.da.sageassistantserver.utils.Utils;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Service
 public class UserFuncService {
-  @Autowired UserFuncMapper userFuncMapper;
+  @Autowired
+  UserFuncMapper userFuncMapper;
 
-  @Autowired UserMapper userMapper;
+  @Autowired
+  UserMapper userMapper;
 
   /**
    * Adds a new user function to the database and returns a JSONObject indicating
@@ -67,7 +71,7 @@ public class UserFuncService {
    * @return a JSONObject indicating the success or failure of the operation
    */
   public JSONObject addUserFuncBySid(String sage_id, String func_system, String func_code, String func_name,
-                                     String func_details, Boolean enable) {
+      String func_details, Boolean enable) {
     LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
     queryWrapper.eq(User::getSage_id, sage_id);
     User user = userMapper.selectOne(queryWrapper);
@@ -100,7 +104,7 @@ public class UserFuncService {
    * @return a JSON object indicating the success or failure of the operation
    */
   public JSONObject addUserFuncByUid(Long id, String func_system, String func_code, String func_name,
-                                     String func_details, Boolean enable) {
+      String func_details, Boolean enable) {
     LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
     queryWrapper.eq(User::getId, id);
     User user = userMapper.selectOne(queryWrapper);
@@ -229,6 +233,7 @@ public class UserFuncService {
 
     LambdaQueryWrapper<UserFunc> queryWrapper2 = new LambdaQueryWrapper<>();
     queryWrapper2.eq(UserFunc::getFunc_system, "WEBDAV");
+    queryWrapper2.eq(UserFunc::getUser_id, user.getId());
     List<UserFunc> userFuncs = userFuncMapper.selectList(queryWrapper2);
     if (userFuncs.size() > 0) {
       return true;
