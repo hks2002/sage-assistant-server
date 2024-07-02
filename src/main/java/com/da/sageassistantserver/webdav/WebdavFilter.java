@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-16 23:24:10                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-01 15:23:39                              *
+ * @LastEditDate          : 2024-07-02 14:30:31                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -58,6 +58,7 @@ public class WebdavFilter implements Filter {
   final List<String> waterMakerFileTypes = Arrays.asList("PDF", "JPG", "JPEG", "PNG", "TIF", "TIFF", "BMP");
 
   private String loginUser = null;
+  private String bpCode = null;
   private String businessPartner = null;
 
   @Override
@@ -81,15 +82,19 @@ public class WebdavFilter implements Filter {
       throws IOException, ServletException {
     HttpServletRequest httpReq = (HttpServletRequest) request;
     HttpServletResponse httpRes = (HttpServletResponse) response;
+
+    String userAgent = httpReq.getHeader("User-Agent");
     String pathInfo = httpReq.getPathInfo();
     String fileName = "";
     String fileExt = "";
-    String userAgent = httpReq.getHeader("User-Agent");
+    String fileNameNoExt = "";
 
     if (pathInfo != null) {
       File file = new File(pathInfo);
       fileName = file.getName();
       fileExt = Utils.getFileExt(fileName);
+      fileNameNoExt = fileExt.length() > 0 ? fileName.substring(0, fileName.length() - fileExt.length() - 1) : fileName;
+      bpCode = httpReq.getParameter("bpCode");
 
       // skip some files, these files request will happen when User-Agent is
       // Microsoft-WebDAV-MiniRedir
@@ -129,14 +134,6 @@ public class WebdavFilter implements Filter {
         RequestWrapper reqWrapper = new RequestWrapper(httpReq);
         ResponseWrapper resWrapper = new ResponseWrapper(httpRes);
 
-        resWrapper.addHeader("Cache-Control", "no-store");
-        resWrapper.addHeader("Content-Disposition", "inline;");
-
-        chain.doFilter(reqWrapper, resWrapper);
-
-        byte[] data = resWrapper.getBytes();
-        ByteArrayOutputStream bosForWaterMark = new ByteArrayOutputStream();
-
         String text = "DEDIENNE";
         if (loginUser != null) {
           text += " " + loginUser;
@@ -145,6 +142,15 @@ public class WebdavFilter implements Filter {
           text += " " + businessPartner;
         }
         text += " " + Utils.now();
+
+        resWrapper.addHeader("Cache-Control", "no-store");
+        resWrapper.addHeader("Content-Disposition",
+            "inline; filename=\"" + fileNameNoExt + ' ' + text + '.' + fileExt + "\"");
+
+        chain.doFilter(reqWrapper, resWrapper);
+
+        byte[] data = resWrapper.getBytes();
+        ByteArrayOutputStream bosForWaterMark = new ByteArrayOutputStream();
 
         if (fileExt.equals("PDF")) {
           ITextTools.addTextFull(data, bosForWaterMark, text, 0.5f, 30);
@@ -208,33 +214,20 @@ public class WebdavFilter implements Filter {
     String authorization = httpReq.getHeader("Authorization");
     if (authorization != null) {
       String array[] = Utils.decodeBasicAuth(authorization).split(":");
-      String loginName1 = array[0].toLowerCase();
-      String loginName2 = null;
-
-      // for supplier or customer, loginName is maybe business partner code
-      List<BusinessPartnerName> bps = supplierService.getBusinessPartnerByCode(loginName1);
-      if (bps.size() > 0) {
-        businessPartner = bps.get(0).getBPName();
-        String array2[] = array[1].split(" ");
-        loginName2 = array2[0].toLowerCase();
-        authorization = Utils.encodeBasicAuth(array2[0], array2[1]);
-      } else {
-        businessPartner = null;
-      }
+      String loginName = array[0].toLowerCase();
 
       // auth by Sage User
       JSONObject loginResult = SageLoginService.doLogin(authorization);
       if (loginResult.getBoolean("success")) {
-        String finalLoginName = loginName2 != null ? loginName2 : loginName1;
         // ignore cache login log, message is "Cache login success"
         if (loginResult.getString("msg").equals("Login success")) {
           CompletableFuture.supplyAsync(() -> {
-            logService.addLog("LOGIN_SUCCESS", finalLoginName);
+            logService.addLog("LOGIN_SUCCESS", loginName);
             return null;
           });
         }
 
-        User user = userService.getUserByLoginName(finalLoginName);
+        User user = userService.getUserByLoginName(loginName);
         if (user == null) {
           JSONObject profileResult = SageLoginService.getProfile(authorization);
           if (profileResult.getBoolean("success")) {
@@ -242,7 +235,7 @@ public class WebdavFilter implements Filter {
             loginUser = profile.getString("userName");
 
             userService.createUser(
-                profile.getString("userId"), finalLoginName,
+                profile.getString("userId"), loginName,
                 profile.getString("firstName"), profile.getString("lastName"),
                 profile.getString("email"), profile.getString("language"));
           }
@@ -250,15 +243,25 @@ public class WebdavFilter implements Filter {
           loginUser = user.getFirst_name() + " " + user.getLast_name();
         }
 
-        return authByPath(httpRes, method, path, finalLoginName);
+        if (null != bpCode) {
+          // for supplier or customer, loginName is maybe business partner code
+          List<BusinessPartnerName> bps = supplierService.getBusinessPartnerByCode(bpCode);
+          if (bps.size() > 0) {
+            businessPartner = bps.get(0).getBPName();
+          } else {
+            businessPartner = null;
+          }
+        }
+
+        return authByPath(httpRes, method, path, loginName);
       }
 
       // Finally login fail
       CompletableFuture.supplyAsync(() -> {
-        logService.addLog("LOGIN_FAILED", loginName1);
+        logService.addLog("LOGIN_FAILED", loginName);
         return null;
       });
-      return unauthorized(httpRes, loginName1, path);
+      return unauthorized(httpRes, loginName, path);
 
     } else { // no authorization
       return unauthorized(httpRes, "unknown", path);

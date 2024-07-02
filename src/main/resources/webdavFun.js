@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-01 17:46:12                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-02 11:05:24                              *
+ * @LastEditDate          : 2024-07-02 14:57:05                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -64,7 +64,9 @@ function updateDocumentList(data) {
         html += "<tr>";
       }
       shade = !shade;
-      html += `<td align='left'>&nbsp;&nbsp;<a href='/docs/${data[i].location}/${encodeURIComponent(data[i].file_name)}'><tt>${data[i].file_name}</tt></a></td>`;
+      html += `<td align='left'>&nbsp;&nbsp;<a href='javascript:void(0)' onclick="sendRequest('/docs/${data[i].location}/${encodeURIComponent(data[i].file_name)}')"><tt>${
+        data[i].file_name
+      }</tt></a></td>`;
       html += `<td align='right'>${renderFileSize(data[i].size)}</td>`;
       html += `<td align='right'><tt>${data[i].doc_modified_at}</tt></td>`;
       html += "</tr>";
@@ -88,3 +90,62 @@ document.getElementById("search").addEventListener(
       });
   }, 1000)
 );
+
+document.getElementById("bpCode").addEventListener(
+  "input",
+  debounce(function (e) {
+    if (e.target.value.length !== 5) {
+      return;
+    } else {
+      setCookie("bpCode", e.target.value, 60 * 60 * 24);
+    }
+  }, 1000)
+);
+
+function setCookie(name, value, seconds) {
+  seconds = seconds || 0;
+  var expires = "";
+  if (seconds != 0) {
+    var date = new Date();
+    date.setTime(date.getTime() + seconds * 1000);
+    expires = "; expires=" + date.toGMTString();
+  }
+  document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+function getCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(";");
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == " ") {
+      c = c.substring(1, c.length);
+    }
+    if (c.indexOf(nameEQ) == 0) {
+      return c.substring(nameEQ.length, c.length);
+    }
+  }
+  return false;
+}
+
+function clearCookie(name) {
+  setCookie(name, "", -1);
+}
+
+function sendRequest(url) {
+  var bp = document.getElementById("bpCode").value;
+  if (bp !== "") {
+    url = url + "?bpCode=" + bp;
+    setCookie("bpCode", bp, 60 * 60 * 24);
+  } else {
+    clearCookie("bpCode");
+  }
+  window.location = url;
+}
+
+window.onload = function () {
+  var bp = getCookie("bpCode");
+  if (bp !== false) {
+    document.getElementById("bpCode").value = bp;
+  }
+};

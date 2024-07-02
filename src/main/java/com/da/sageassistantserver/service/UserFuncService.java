@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2024-06-02 21:34:24                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-01 16:49:41                               *
+ * @LastEditDate          : 2024-07-02 15:01:11                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -253,7 +253,7 @@ public class UserFuncService {
       userFunc.setFunc_system("WEBDAV");
       userFunc.setFunc_code("READ");
       userFunc.setFunc_name("read webdav");
-      userFunc.setEnable(false);
+      userFunc.setEnable(true);
       userFuncMapper.insert(userFunc);
 
       userFuncs = userFuncMapper.selectList(queryWrapper2);

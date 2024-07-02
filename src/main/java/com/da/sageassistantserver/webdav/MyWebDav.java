@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-01 00:04:54                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-02 11:21:47                              *
+ * @LastEditDate          : 2024-07-02 14:30:49                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -213,7 +213,10 @@ public class MyWebDav extends WebdavServlet {
         sb.append("</a>");
         // end of Render the link to root
 
-        sb.append("<input type=\"search\" placeholder=\"Search\" id=\"search\" style=\"margin-left:20px;\">");
+        sb.append(
+                "<input type=\"search\" placeholder=\"Search\" id=\"search\" style=\"margin-left:20px;margin-bottom:5px;\">");
+        sb.append(
+                "<input type=\"search\" placeholder=\"Code For Vendor or Customer\" id=\"bpCode\" style=\"width:200px; margin-left:20px;margin-bottom:5px;\">");
         sb.append("<script>\r\n");
         sb.append(
                 Utils.readFileContent("webdavFun.js"));
@@ -263,13 +266,13 @@ public class MyWebDav extends WebdavServlet {
             shade = !shade;
 
             sb.append("<td align=\"left\">&nbsp;&nbsp;\r\n");
-            sb.append("<a href=\"");
+            sb.append("<a href=\"javascript:void(0)\" onclick=\"sendRequest('");
             sb.append(rewrittenContextPath);
             sb.append(rewriteUrl(childResource.getWebappPath()));
             if (childResource.isDirectory()) {
                 sb.append('/');
             }
-            sb.append("\"><tt>");
+            sb.append("') \"><tt>");
             sb.append(Escape.htmlElementContent(filename));
             if (childResource.isDirectory()) {
                 sb.append('/');
