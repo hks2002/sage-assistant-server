@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-01 17:46:12                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-02 11:05:24                              *
+ * @LastEditDate          : 2024-07-02 13:04:39                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -88,3 +88,51 @@ document.getElementById("search").addEventListener(
       });
   }, 1000)
 );
+
+function setCookie(name, value, seconds) {
+  seconds = seconds || 0;
+  var expires = "";
+  if (seconds != 0) {
+    var date = new Date();
+    date.setTime(date.getTime() + seconds * 1000);
+    expires = "; expires=" + date.toGMTString();
+  }
+  document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+function getCookie(name) {
+  var nameEQ = name + "=";
+  var ca = document.cookie.split(";");
+  for (var i = 0; i < ca.length; i++) {
+    var c = ca[i];
+    while (c.charAt(0) == " ") {
+      c = c.substring(1, c.length);
+    }
+    if (c.indexOf(nameEQ) == 0) {
+      return c.substring(nameEQ.length, c.length);
+    }
+  }
+  return false;
+}
+
+function clearCookie(name) {
+  setCookie(name, "", -1);
+}
+
+function sendRequest(url) {
+  var bp = document.getElementById("pbCode").value;
+  if (bp !== "") {
+    url = url + "?pbCode=" + bp;
+    setCookie("pbCode", bp, 60 * 60 * 24);
+  } else {
+    clearCookie("pbCode");
+  }
+  window.location = url;
+}
+
+window.onload = function () {
+  var bp = getCookie("pbCode");
+  if (bp !== false) {
+    document.getElementById("pbCode").value = bp;
+  }
+};
