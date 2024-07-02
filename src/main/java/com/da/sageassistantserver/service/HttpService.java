@@ -2,13 +2,12 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2022-03-26 17:57:07                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-05 18:19:28                              *
+ * @LastEditDate          : 2024-07-02 20:59:31                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
 package com.da.sageassistantserver.service;
 
-import java.io.InputStream;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -116,8 +115,10 @@ public class HttpService {
                 reqBuilder.header("authorization", auth);
             }
             // Cookie
-            if (cache.getIfPresent(auth) != null) {
-                reqBuilder.header("Cookie", cache.getIfPresent(auth));
+            if (!Utils.isNullOrEmpty(auth)) {
+                if (cache.getIfPresent(auth) != null) {
+                    reqBuilder.header("Cookie", cache.getIfPresent(auth));
+                }
             }
 
             switch (method) {
@@ -155,7 +156,7 @@ public class HttpService {
             for (String cookie : cookieResponse) {
                 cookieCache.add(cookie.split(";")[0]);
             }
-            if (auth != null && !auth.isBlank()) {
+            if (!Utils.isNullOrEmpty(auth)) {
                 String cookieStr = String.join(";", cookieCache);
                 cache.put(auth, cookieStr);
                 log.debug(cookieStr);
@@ -178,7 +179,7 @@ public class HttpService {
     /**
      * need "LastCookie" for any login
      */
-    public static HttpResponse<InputStream> getFile(String url) {
+    public static byte[] getFile(String url) {
         try {
             // Disable host name verification Globally
             Properties props = System.getProperties();
@@ -198,11 +199,11 @@ public class HttpService {
             reqBuilder.GET();
 
             HttpRequest request = reqBuilder.build();
-            HttpResponse<InputStream> response = null;
+            HttpResponse<byte[]> response = null;
 
-            response = client.send(request, BodyHandlers.ofInputStream());
+            response = client.send(request, BodyHandlers.ofByteArray());
 
-            return response;
+            return response.body();
         } catch (Exception e) {
             e.getStackTrace();
             log.error(e.getLocalizedMessage());

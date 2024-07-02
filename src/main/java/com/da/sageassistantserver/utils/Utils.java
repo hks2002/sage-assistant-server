@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-10 15:42:04                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-01 21:00:22                               *
+ * @LastEditDate          : 2024-07-02 22:24:21                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -11,6 +11,7 @@ package com.da.sageassistantserver.utils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -200,6 +201,21 @@ public class Utils {
     }
   }
 
+  public static void saveFileContent(String filename, byte[] content) {
+    File file = new File(filename);
+    try {
+      if (!file.getParentFile().exists()) {
+        file.getParentFile().mkdirs();
+      }
+      FileOutputStream out = new FileOutputStream(file);
+      out.write(content);
+      out.flush();
+      out.close();
+    } catch (IOException e) {
+      log.error("IOException: " + e.getMessage());
+    }
+  }
+
   public static String computerMd5(File file) {
     if (file.isFile()) {
       try {
@@ -298,6 +314,7 @@ public class Utils {
    * 
    * @Note Top level is always ne character[0-9A-Z]
    *       and remove "TDS", "OMSD", "GIM" ... from file name
+   * @Note this method does not update database
    */
   public static void moveFiles(File from, File to, int toSubFolderDeep, int toSubFolderLen) {
     if (!from.isDirectory()) {
@@ -368,6 +385,8 @@ public class Utils {
    * ❗️❗️❗️It will remove hidden files，and original files, before run it, please
    * do a backup of your files❗️❗️❗️
    * <p>
+   * 
+   * @Note this method does not update database
    */
   public static void tidyFiles(File target, int toSubFolderDeep, int toSubFolderLen) {
     if (!target.isDirectory()) {

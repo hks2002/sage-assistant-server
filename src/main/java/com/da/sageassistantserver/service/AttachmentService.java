@@ -1,11 +1,10 @@
-/**********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CreatedDate           : 2022-03-26 17:57:07                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2023-09-07 01:02:28                                                                       *
- * @FilePath              : src/main/java/com/da/sageassistantserver/service/AttachmentService.java                   *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
- *********************************************************************************************************************/
+/******************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                     *
+ * @CreatedDate           : 2022-03-26 17:57:07                               *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                     *
+ * @LastEditDate          : 2024-07-02 22:46:13                               *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
+ *****************************************************************************/
 
 package com.da.sageassistantserver.service;
 
@@ -49,6 +48,7 @@ public class AttachmentService {
     /**
      * cache
      */
+    @Deprecated
     private LoadingCache<String, JSONArray> cache = Caffeine
             .newBuilder()
             .maximumSize(1000)
@@ -156,6 +156,7 @@ public class AttachmentService {
         return listAttachment;
     }
 
+    @Deprecated
     public JSONArray getAttachmentPathForChina(String pn) {
         if (pn.equals("NULL")) {
             return new JSONArray();
@@ -164,6 +165,7 @@ public class AttachmentService {
         return cache.get(pn);
     }
 
+    @Deprecated
     private JSONArray makeJsonArray(String pn, String catStr, String folder) {
         JSONArray arr = new JSONArray();
 

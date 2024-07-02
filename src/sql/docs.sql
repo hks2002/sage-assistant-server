@@ -1,5 +1,6 @@
 CREATE TABLE `docs` (
 	`id` INT(10) NOT NULL AUTO_INCREMENT,
+	'sage_id' VARCHAR(10) NULL DEFAULT NULL,
 	`file_name` VARCHAR(100) NOT NULL COLLATE 'utf8mb4_0900_ai_ci',
     `location` VARCHAR(100) NOT NULL COLLATE 'utf8mb4_0900_ai_ci',
 	`size` INT(10) NULL DEFAULT NULL,

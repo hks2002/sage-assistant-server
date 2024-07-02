@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 17:57:07                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-02 11:17:54                               *
+ * @LastEditDate          : 2024-07-03 02:26:49                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -13,7 +13,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +27,7 @@ import com.da.sageassistantserver.dao.DocsMapper;
 import com.da.sageassistantserver.model.Docs;
 import com.da.sageassistantserver.utils.Utils;
 
+import jakarta.servlet.ServletContext;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -33,10 +36,19 @@ public class DocsService {
 
     @Autowired
     private DocsMapper docsMapper;
+    @Value("${attachment.path.linux}")
+    private String linuxPath;
+    @Value("${attachment.path.windows}")
+    private String windowsPath;
     @Value("${attachment.path.folder.deep}")
     private int subFolderDeep;
     @Value("${attachment.path.folder.len}")
     private int subFolderLen;
+
+    @Autowired
+    private ServletContext servletContext;
+    @Autowired
+    private LogService logService;
 
     public Long createDocs(Docs docs) {
         docs.setCreate_at(new Timestamp(System.currentTimeMillis()));
@@ -47,10 +59,12 @@ public class DocsService {
         return docs.getId();
     }
 
-    public Long createDocs(String fileName, String location, Long size, Timestamp createAt, Timestamp lastModifiedAt,
+    public Long createDocs(String fileName, String sageId, String location, Long size, Timestamp createAt,
+            Timestamp lastModifiedAt,
             String md5) {
         Docs docs = new Docs();
         docs.setFile_name(fileName);
+        docs.setSage_id(sageId);
         docs.setLocation(location);
         docs.setSize(size);
         docs.setDoc_create_at(createAt);
@@ -63,12 +77,57 @@ public class DocsService {
         return docsMapper.selectById(id);
     }
 
-    public List<Docs> getDocsByFileName(String fileName) {
+    public List<Docs> getDocsByPN(String Pn, String auth) {
         LambdaQueryWrapper<Docs> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.like(Docs::getFile_name, Utils.makeShortPn(fileName));
+        queryWrapper.like(Docs::getFile_name, Utils.makeShortPn(Pn));
         queryWrapper.orderBy(true, false, Docs::getDoc_modified_at);
         queryWrapper.last("limit 100");
-        return docsMapper.selectList(queryWrapper);
+
+        List<Docs> docs = docsMapper.selectList(queryWrapper);
+
+        // background search document in Sage Dms server , length >= 5 means more
+        // precise target
+        if (Pn.length() >= 5 && auth != null) {
+            CompletableFuture.supplyAsync(() -> {
+                log.debug("Background searching document in Sage Dms server");
+                List<Docs> docsInDms = DmsService.getDocuments(auth, Pn);
+                List<Docs> docsNew = new ArrayList<>();
+
+                // if docsInDms's doc not in docs, add it
+                for (Docs docInDms : docsInDms) {
+                    boolean found = false;
+                    for (Docs doc : docs) {
+                        if (docInDms.getFile_name().equals(doc.getFile_name())) {
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) {
+                        docsNew.add(docInDms);
+                    }
+                }
+
+                for (Docs doc : docsNew) {
+                    // save document to local
+                    byte[] content = DmsService.getDocumentContent(doc.getSage_id());
+                    String docBasePath = servletContext.getRealPath("/");
+                    Utils.saveFileContent(docBasePath + doc.getFile_name(), content);
+
+                    log.info("Auto download {} from Dms server to {}", doc.getFile_name(), docBasePath);
+                    logService.addLog("DOC_AUTO_DOWNLOAD", doc.getFile_name(), docBasePath);
+                    // update document info
+                    updateDocInfo(new File(docBasePath + doc.getFile_name()));
+
+                    // move document to final path
+                    String finalPath = Utils.isWin() ? windowsPath : linuxPath;
+                    Utils.moveFiles(new File(docBasePath), new File(finalPath), subFolderDeep,
+                            subFolderLen);
+                }
+                return null;
+            });
+
+        }
+        return docs;
     }
 
     public List<Docs> getDocsByMd5(String md5) {
@@ -83,11 +142,12 @@ public class DocsService {
         return docsMapper.update(docs, wrapper);
     }
 
-    public int updateDocsByFileName(String fileName, String location, Long size, Timestamp createAt,
+    public int updateDocsByFileName(String fileName, String sageId, String location, Long size, Timestamp createAt,
             Timestamp lastModifiedAt,
             String md5) {
         Docs docs = new Docs();
         docs.setFile_name(fileName);
+        docs.setSage_id(sageId);
         docs.setLocation(location);
         docs.setSize(size);
         docs.setDoc_create_at(createAt);
@@ -114,6 +174,14 @@ public class DocsService {
         return docsMapper.deleteById(id);
     }
 
+    /**
+     * Updates the information of a file or recursively updates the information of
+     * all files in a directory.
+     *
+     * @param file the file or directory whose information is to be updated
+     * 
+     * @Note this method update database
+     */
     public void updateDocInfo(File file) {
         if (file.isFile()) {
             log.info("[Webdav] Update doc info: {}", file.getAbsolutePath());
@@ -141,7 +209,7 @@ public class DocsService {
                 docs.setLocation(Utils.getPathByFileName(fileNameNoExt, subFolderDeep, subFolderLen));
                 docs.setMd5(Utils.computerMd5(file));
 
-                if (getDocsByFileName(fileName).size() == 0) {
+                if (getDocsByPN(fileName, null).size() == 0) {
                     createDocs(docs);
                 } else {
                     LambdaUpdateWrapper<Docs> updateWrapper = new LambdaUpdateWrapper<>();

@@ -2,14 +2,13 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-25 15:19:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-06-08 03:06:31                               *
+ * @LastEditDate          : 2024-07-02 21:09:43                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
 
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -69,15 +68,14 @@ public class SagePrintController {
     }
 
     @GetMapping("/Data/ReportFile")
-    public String getReportFile(HttpServletRequest request, HttpServletResponse response) {
+    public void getReportFile(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String ReportUUID = request.getParameter("ReportUUID");
+        String ReportNO = request.getParameter("ReportNO");
+
+        OutputStream os = response.getOutputStream();
         try {
-            String ReportUUID = request.getParameter("ReportUUID");
-            String ReportNO = request.getParameter("ReportNO");
-
-            OutputStream out = response.getOutputStream();
-
             if (ReportUUID == null) {
-                out.write(SageActionHelper.paraRequired("ReportUUID").toJSONBBytes());
+                os.write(SageActionHelper.paraRequired("ReportUUID").toJSONBBytes());
             }
             if (ReportNO == null) {
                 ReportNO = "Untitled-Report";
@@ -85,21 +83,24 @@ public class SagePrintController {
             response.setContentType("application/pdf");
             response.setHeader("Content-Disposition", "inline; filename=\"" + ReportNO + ".pdf\"");
 
-            InputStream in = HttpService.getFile("https://192.168.10.62/print/$report('" + ReportUUID + "')").body();
+            byte[] data = HttpService.getFile("https://192.168.10.62/print/$report('" + ReportUUID + "')");
 
-            int len = 0;
-            byte[] b = new byte[1024];
-            while ((len = in.read(b)) != -1) {
-                out.write(b, 0, len);
-            }
+            response.setContentLength(data.length);
+            os.write(data);
         } catch (IOException e) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             try {
-                response.getWriter().write("<H1>Handle report error!</H1>");
+                os.write("<H1>Handle report error!</H1>".getBytes());
             } catch (IOException e1) {
             }
+        } finally {
+            try {
+                os.flush();
+                os.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
-        return null;
     }
 
 }
