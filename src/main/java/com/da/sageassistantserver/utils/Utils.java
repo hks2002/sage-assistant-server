@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-10 15:42:04                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-01 13:44:22                               *
+ * @LastEditDate          : 2024-07-01 21:00:22                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -319,7 +319,7 @@ public class Utils {
 
         String fileName = file.getName();
         int dotIndex = fileName.lastIndexOf(".");
-        String fileNameNoExt = dotIndex >= -1 ? fileName.substring(0, fileName.lastIndexOf(".")) : fileName;
+        String fileNameNoExt = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
 
         // skip hidden files
         if (fileName.startsWith("~") || fileName.startsWith("$") ||
@@ -384,7 +384,7 @@ public class Utils {
       if (file.isFile()) { // file
         String fileName = file.getName();
         int dotIndex = fileName.lastIndexOf(".");
-        String fileNameNoExt = dotIndex >= -1 ? fileName.substring(0, fileName.lastIndexOf(".")) : fileName;
+        String fileNameNoExt = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
 
         // skip hidden files
         if (fileName.startsWith("~") || fileName.startsWith("$") ||

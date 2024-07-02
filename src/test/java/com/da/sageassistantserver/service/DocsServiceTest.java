@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2023-03-11 16:26:53                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-01 12:04:00                              *
+ * @LastEditDate          : 2024-07-01 18:56:49                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -34,6 +34,6 @@ class DocsServiceTest {
 
   @Test
   public void addFileInfo() {
-    docsService.updateDocInfo(new File("Y:\\Drawing\\0\\0FA\\BSO\\0FABSOU0025-[A].tif"));
+    docsService.updateDocInfo(new File("Y:\\Drawing"));
   }
 }

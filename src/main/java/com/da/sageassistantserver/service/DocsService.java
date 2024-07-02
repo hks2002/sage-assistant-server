@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 17:57:07                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-01 12:56:24                               *
+ * @LastEditDate          : 2024-07-02 11:17:54                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -65,7 +65,9 @@ public class DocsService {
 
     public List<Docs> getDocsByFileName(String fileName) {
         LambdaQueryWrapper<Docs> queryWrapper = new LambdaQueryWrapper<>();
-        queryWrapper.like(Docs::getFile_name, fileName);
+        queryWrapper.like(Docs::getFile_name, Utils.makeShortPn(fileName));
+        queryWrapper.orderBy(true, false, Docs::getDoc_modified_at);
+        queryWrapper.last("limit 100");
         return docsMapper.selectList(queryWrapper);
     }
 
@@ -114,10 +116,10 @@ public class DocsService {
 
     public void updateDocInfo(File file) {
         if (file.isFile()) {
-
+            log.info("[Webdav] Update doc info: {}", file.getAbsolutePath());
             String fileName = file.getName();
             int dotIndex = fileName.lastIndexOf(".");
-            String fileNameNoExt = dotIndex >= -1 ? fileName.substring(0, fileName.lastIndexOf(".")) : fileName;
+            String fileNameNoExt = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
             // skip hidden files
             if (fileName.startsWith("~") || fileName.startsWith("$") ||
                     fileName.toLowerCase().equals("thumbs.db")) {
@@ -144,7 +146,7 @@ public class DocsService {
                 } else {
                     LambdaUpdateWrapper<Docs> updateWrapper = new LambdaUpdateWrapper<>();
                     updateWrapper.eq(Docs::getFile_name, docs.getFile_name());
-                    docsMapper.update(docs, updateWrapper);
+                    updateDocsByWrapper(docs, updateWrapper);
                 }
 
             } catch (IOException e) {
