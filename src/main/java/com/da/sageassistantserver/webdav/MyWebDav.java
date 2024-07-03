@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-01 00:04:54                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-02 14:30:49                              *
+ * @LastEditDate          : 2024-07-03 15:58:10                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -61,7 +61,7 @@ public class MyWebDav extends WebdavServlet {
     private int subFolderDeep = 2;
     private int subFolderLen = 3;
     private int updateDocInfoDelay = 60000;
-    private int updateDocInfoRepeat = 600000;
+    private int updateDocInfoRepeat = 60000;
 
     private DocsService docsService;
 
@@ -109,10 +109,10 @@ public class MyWebDav extends WebdavServlet {
                     : Integer.parseInt(prop.getProperty("attachment.path.folder.deep"));
             subFolderLen = null == prop.getProperty("attachment.path.folder.len") ? 3
                     : Integer.parseInt(prop.getProperty("attachment.path.folder.len"));
-            updateDocInfoDelay = null == prop.getProperty("update.doc.info.delay") ? 60000
-                    : Integer.parseInt(prop.getProperty("update.doc.info.delay"));
-            updateDocInfoRepeat = null == prop.getProperty("update.doc.info.repeat") ? 300000
-                    : Integer.parseInt(prop.getProperty("update.doc.info.repeat"));
+            updateDocInfoDelay = null == prop.getProperty("attachment.info.build.delay") ? 60000
+                    : Integer.parseInt(prop.getProperty("attachment.info.build.delay"));
+            updateDocInfoRepeat = null == prop.getProperty("attachment.info.build.repeat") ? 300000
+                    : Integer.parseInt(prop.getProperty("attachment.info.build.repeat"));
 
             Timer timer = new Timer();
             timer.scheduleAtFixedRate(new TimerTask() {
@@ -130,9 +130,9 @@ public class MyWebDav extends WebdavServlet {
 
     protected void updateDocInfo() {
         try {
-            // log.info("[Webdav] Start to update doc info, {} {} {} {}", docBase,
-            // attachmentPath, subFolderDeep,
-            // subFolderLen);
+            log.info("[Webdav] Start to update doc info from [{}] to [{}], deep {}, len {}, delay {}, repeat {}",
+                    docBase,
+                    attachmentPath, subFolderDeep, subFolderLen, updateDocInfoDelay, updateDocInfoRepeat);
             // update doc info first, this amount of files, would be less
             docsService.updateDocInfo(new File(docBase));
             Utils.moveFiles(new File(docBase), new File(attachmentPath), subFolderDeep, subFolderLen);
