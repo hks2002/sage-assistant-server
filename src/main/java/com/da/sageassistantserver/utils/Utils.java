@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-10 15:42:04                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-02 22:24:21                               *
+ * @LastEditDate          : 2024-07-03 13:15:10                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -346,7 +346,7 @@ public class Utils {
         }
 
         File toFolder = new File(
-            to.getAbsolutePath() + getPathByFileName(fileNameNoExt, toSubFolderDeep, toSubFolderLen));
+            to.getAbsolutePath() + '/' + getPathByFileName(fileNameNoExt, toSubFolderDeep, toSubFolderLen));
         if (!toFolder.exists()) {
           toFolder.mkdirs();
         }
