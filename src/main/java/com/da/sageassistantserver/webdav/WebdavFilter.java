@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-16 23:24:10                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-02 14:30:31                              *
+ * @LastEditDate          : 2024-07-03 15:33:21                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -13,7 +13,6 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
@@ -221,10 +220,7 @@ public class WebdavFilter implements Filter {
       if (loginResult.getBoolean("success")) {
         // ignore cache login log, message is "Cache login success"
         if (loginResult.getString("msg").equals("Login success")) {
-          CompletableFuture.supplyAsync(() -> {
-            logService.addLog("LOGIN_SUCCESS", loginName);
-            return null;
-          });
+          logService.addLog("LOGIN_SUCCESS", loginName);
         }
 
         User user = userService.getUserByLoginName(loginName);
@@ -257,10 +253,8 @@ public class WebdavFilter implements Filter {
       }
 
       // Finally login fail
-      CompletableFuture.supplyAsync(() -> {
-        logService.addLog("LOGIN_FAILED", loginName);
-        return null;
-      });
+      logService.addLog("LOGIN_FAILED", loginName);
+
       return unauthorized(httpRes, loginName, path);
 
     } else { // no authorization
@@ -272,14 +266,12 @@ public class WebdavFilter implements Filter {
     List<UserFunc> userFuncs = userFuncService.getWebDavAccess(loginName);
     if (userFuncs.size() == 0) {
       boolean result = userFuncService.initWebDavAccessByLoginName(loginName);
-      CompletableFuture.supplyAsync(() -> {
-        if (result) {
-          logService.addLog("DOC_ACCESS_INIT_SUCCESS", loginName);
-        } else {
-          logService.addLog("DOC_ACCESS_INIT_FAILED", loginName);
-        }
-        return null;
-      });
+
+      if (result) {
+        logService.addLog("DOC_ACCESS_INIT_SUCCESS", loginName);
+      } else {
+        logService.addLog("DOC_ACCESS_INIT_FAILED", loginName);
+      }
       return forbidden(httpRes, loginName, path);
 
     } else {
@@ -312,10 +304,7 @@ public class WebdavFilter implements Filter {
   }
 
   private boolean unauthorized(HttpServletResponse res, String user, String path) {
-    CompletableFuture.supplyAsync(() -> {
-      logService.addLog("DOC_ACCESS_FAILED", user, path);
-      return null;
-    });
+    logService.addLog("DOC_ACCESS_FAILED", user, path);
 
     res.setStatus(401);
     res.setHeader("WWW-Authenticate", "Basic realm=\"DAV\"");
@@ -323,20 +312,14 @@ public class WebdavFilter implements Filter {
   }
 
   private boolean forbidden(HttpServletResponse res, String user, String path) {
-    CompletableFuture.supplyAsync(() -> {
-      logService.addLog("DOC_ACCESS_FAILED", user, path);
-      return null;
-    });
+    logService.addLog("DOC_ACCESS_FAILED", user, path);
 
     res.setStatus(403);
     return false;
   }
 
   private boolean allow(HttpServletResponse res, String user, String path) {
-    CompletableFuture.supplyAsync(() -> {
-      logService.addLog("DOC_ACCESS_SUCCESS", user, path);
-      return null;
-    });
+    logService.addLog("DOC_ACCESS_SUCCESS", user, path);
 
     res.setStatus(200);
     return true;
