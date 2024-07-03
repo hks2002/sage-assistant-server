@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2022-03-26 22:53:00                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-02 22:49:52                              *
+ * @LastEditDate          : 2024-07-03 11:11:53                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -38,6 +38,7 @@ public class DocsController {
     public List<Docs> getAttachmentPath(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String auth = request.getHeader("authorization");
         String Pn = request.getParameter("Pn");
+        log.debug(auth);
         return docsService.getDocsByPN(Pn, auth);
     }
 

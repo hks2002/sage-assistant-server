@@ -1,5 +1,6 @@
 ADFGKSLV
 AEDUSD
+Audros
 AUDUSD
 BONCDE
 BONLIV
@@ -26,6 +27,7 @@ HKDUSD
 httpclient
 JPYUSD
 MKCOL
+modificationdate
 MSGTYP
 MXNUSD
 Mybatis

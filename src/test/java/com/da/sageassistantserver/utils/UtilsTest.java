@@ -2,16 +2,18 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-11 15:45:58                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-01 12:00:40                               *
+ * @LastEditDate          : 2024-07-03 13:37:31                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
 package com.da.sageassistantserver.utils;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -133,12 +135,41 @@ public class UtilsTest {
 
   @Test
   void testMoveFile() {
-    Utils.moveFiles(new File("Y:\\Manual"), new File("Y:\\New"), 2, 3);
+    Utils.moveFiles(new File("C:/var"), new File("C:/var2"), 2, 3);
   }
 
   @Test
   void testComputeMd5() {
     String md5 = Utils.computerMd5(new File("Y:\\Drawing\\0\\0FA\\BSO\\0FABSOU0025-[A].tif"));
     log.info(md5);
+  }
+
+  @Test
+  void testParserDateString() {
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aa", Locale.ENGLISH);
+    Date date;
+    try {
+      date = dateFormat.parse("11/28/2022 12:00:00 AM");
+    } catch (ParseException e) {
+      log.error(e.getMessage());
+      date = new Date();
+    }
+    log.info(date.toString());
+  }
+
+  @Test
+  void testChangeFileTime() throws IOException {
+    SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aa", Locale.ENGLISH);
+    Date date;
+    try {
+      date = dateFormat.parse("11/28/2022 12:00:00 AM");
+    } catch (ParseException e) {
+      log.error(e.getMessage());
+      date = new Date();
+    }
+
+    File file = new File("C:/var/HU80001-1_B.pdf");
+    file.setLastModified(date.getTime());
+
   }
 }

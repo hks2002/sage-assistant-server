@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-30 00:19:48                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-03 02:50:10                              *
+ * @LastEditDate          : 2024-07-03 12:55:45                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -24,7 +24,6 @@ public class Docs {
 
     @TableId(type = IdType.AUTO)
     private Long id;
-    private String sage_id;
     private String file_name;
     private String location;
     private Long size;

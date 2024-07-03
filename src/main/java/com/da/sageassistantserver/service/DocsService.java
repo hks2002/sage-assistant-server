@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 17:57:07                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-03 02:26:49                               *
+ * @LastEditDate          : 2024-07-03 15:35:12                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -59,12 +59,10 @@ public class DocsService {
         return docs.getId();
     }
 
-    public Long createDocs(String fileName, String sageId, String location, Long size, Timestamp createAt,
-            Timestamp lastModifiedAt,
-            String md5) {
+    public Long createDocs(String fileName, String location, Long size, Timestamp createAt,
+            Timestamp lastModifiedAt, String md5) {
         Docs docs = new Docs();
         docs.setFile_name(fileName);
-        docs.setSage_id(sageId);
         docs.setLocation(location);
         docs.setSize(size);
         docs.setDoc_create_at(createAt);
@@ -88,7 +86,7 @@ public class DocsService {
         // background search document in Sage Dms server , length >= 5 means more
         // precise target
         if (Pn.length() >= 5 && auth != null) {
-            CompletableFuture.supplyAsync(() -> {
+            CompletableFuture.runAsync(() -> {
                 log.debug("Background searching document in Sage Dms server");
                 List<Docs> docsInDms = DmsService.getDocuments(auth, Pn);
                 List<Docs> docsNew = new ArrayList<>();
@@ -107,27 +105,39 @@ public class DocsService {
                     }
                 }
 
-                for (Docs doc : docsNew) {
-                    // save document to local
-                    byte[] content = DmsService.getDocumentContent(doc.getSage_id());
-                    String docBasePath = servletContext.getRealPath("/");
-                    Utils.saveFileContent(docBasePath + doc.getFile_name(), content);
-
-                    log.info("Auto download {} from Dms server to {}", doc.getFile_name(), docBasePath);
-                    logService.addLog("DOC_AUTO_DOWNLOAD", doc.getFile_name(), docBasePath);
-                    // update document info
-                    updateDocInfo(new File(docBasePath + doc.getFile_name()));
-
-                    // move document to final path
-                    String finalPath = Utils.isWin() ? windowsPath : linuxPath;
-                    Utils.moveFiles(new File(docBasePath), new File(finalPath), subFolderDeep,
-                            subFolderLen);
-                }
-                return null;
+                downloadDmsDocs(docsNew);
             });
 
         }
         return docs;
+    }
+
+    public void downloadDmsDocs(List<Docs> docs) {
+        for (Docs doc : docs) {
+            String docBasePath = servletContext.getRealPath("/");
+            String file = docBasePath + doc.getFile_name();
+
+            // log
+            log.debug("Auto download {} from Dms server to {} start ...", doc.getFile_name(), docBasePath);
+
+            // save document to local
+            byte[] content = DmsService.getDocumentContent(doc.getLocation()); // using location as id
+            Utils.saveFileContent(file, content);
+
+            if ((new File(file)).exists()) {
+                log.info("Auto download {} from Dms server to {}", doc.getFile_name(), file);
+                logService.addLog("DOC_AUTO_DOWNLOAD", doc.getFile_name(), file);
+            } else {
+                log.error("Auto download {} from Dms server to {} error", doc.getFile_name(), file);
+                return;
+            }
+
+            // set file time
+            File f = new File(file);
+            f.setLastModified(doc.getDoc_modified_at().getTime());
+            return;
+
+        }
     }
 
     public List<Docs> getDocsByMd5(String md5) {
@@ -142,12 +152,11 @@ public class DocsService {
         return docsMapper.update(docs, wrapper);
     }
 
-    public int updateDocsByFileName(String fileName, String sageId, String location, Long size, Timestamp createAt,
+    public int updateDocsByFileName(String fileName, String location, Long size, Timestamp createAt,
             Timestamp lastModifiedAt,
             String md5) {
         Docs docs = new Docs();
         docs.setFile_name(fileName);
-        docs.setSage_id(sageId);
         docs.setLocation(location);
         docs.setSize(size);
         docs.setDoc_create_at(createAt);

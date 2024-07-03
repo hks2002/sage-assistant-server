@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-02 15:44:21                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-03 01:32:03                              *
+ * @LastEditDate          : 2024-07-03 12:59:17                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -10,9 +10,14 @@ package com.da.sageassistantserver.service;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -48,13 +53,14 @@ public class DmsService {
                 /*
                  * Dms will expired created session automatically, we exit page to avoid this
                  */
-                log.debug("Dms SessionId {} is removed, cause is {}", value, cause);
-                logout(value);
+                log.info("[Dms] SessionId cache {} is removed, cause is {}", value, cause);
+                doLogout(value);
             })
             .build(new CacheLoader<String, String>() {
                 @Override
-                public String load(String key) {
-                    return login();
+                public String load(String Auth) {
+                    log.info("[Dms] session cache login with Auth: {}", Auth);
+                    return doLogin(Auth);
                 }
             });
 
@@ -75,7 +81,22 @@ public class DmsService {
         while (matcher.find()) {
             liValues.add(matcher.group(1));
         }
+
+        log.debug("liValues: {}", liValues);
         return liValues;
+    }
+
+    private static String extractModifiedDate(String htmlContent) {
+        String date = "";
+        Pattern pattern = Pattern.compile("<td data-name-attr=\"obj_modificationdate\" nowrap=\"1\">(.*?)</td>");
+        Matcher matcher = pattern.matcher(htmlContent);
+
+        while (matcher.find()) {
+            date = matcher.group(1);
+        }
+
+        log.debug("date: {}", date);
+        return date;
     }
 
     private static String extractSessionId(String htmlContent) {
@@ -86,6 +107,8 @@ public class DmsService {
         while (matcher.find()) {
             id = matcher.group(1);
         }
+
+        log.debug("id: {}", id);
         return id;
     }
 
@@ -99,14 +122,15 @@ public class DmsService {
         return id;
     }
 
-    private static String login() {
+    private static String doLogin(String Auth) {
+        SageLoginService.doLogin(Auth);
         String html = HttpService.request(
                 "http://192.168.10.64:4040/cocoon/View/LoginCAD/fr/AW_AutoLogin.html?userName=TEMP&dsn=dmsDS&Client_Type=25&computerName=AWS&LDAPControl=true",
                 "GET", null, null).body();
         return extractSessionId(html);
     }
 
-    private static void logout(String sessionId) {
+    private static void doLogout(String sessionId) {
         HttpService.request(
                 "http://192.168.10.64:4040/cocoon/View/LogoutXML/fr/AW_Logout7.html?userName=TEMP&dsn=dmsDS&Client_Type=25&AUSessionID="
                         + sessionId,
@@ -115,8 +139,7 @@ public class DmsService {
 
     private static List<String> getAttachmentNames(String Auth, String Pn) {
         List<String> attachments = new ArrayList<>();
-
-        String sessionId = dmsSessionCache.getIfPresent(Auth);
+        String sessionId = dmsSessionCache.get(Auth);
         String text = encode(Pn);
         String xml = HttpService.request(
                 "http://192.168.10.64:4040/cocoon/View/ExecuteService/fr/AW_AuplResult3.html?ServiceName=aws.au&ServiceParameters=GET_AUTOCOMPLETION@"
@@ -141,7 +164,8 @@ public class DmsService {
         String html = HttpService.request(
                 "http://192.168.10.64:4040/cocoon/View/ExecuteService/fr/AW_QuickSearchView7.post?ServiceName=aws.au&ServiceParameters=GET_OBJECTS_LIST@SEARCH@"
                         + text
-                        + "@@@0@9999@0@&ServiceSubPackage=aws&AUSessionID=" + sessionId,
+                        + "@@@0@9999@0@&ServiceSubPackage=aws&URL_Encoding=UTF-8&date_format=enDateHour&AUSessionID="
+                        + sessionId,
                 "GET", null, null).body();
         return html;
     }
@@ -153,10 +177,21 @@ public class DmsService {
         for (int i = 0; i < attachments.size(); i++) {
             String html = getFileInfo(Auth, attachments.get(i));
             String id = extractFileId(html);
+            String dateString = extractModifiedDate(html);
+            SimpleDateFormat dateFormat = new SimpleDateFormat("MM/dd/yyyy hh:mm:ss aa", Locale.ENGLISH);
+            Date date;
+            try {
+                date = dateFormat.parse(dateString);
+            } catch (ParseException e) {
+                log.error(e.getMessage());
+                date = new Date();
+            }
+            Timestamp modifiedAt = new Timestamp(date.getTime());
 
             Docs doc = new Docs();
             doc.setFile_name(attachments.get(i));
-            doc.setSage_id(id);
+            doc.setDoc_modified_at(modifiedAt);
+            doc.setLocation(id); // using file id as location
             if (id != null) {
                 docs.add(doc);
             }
