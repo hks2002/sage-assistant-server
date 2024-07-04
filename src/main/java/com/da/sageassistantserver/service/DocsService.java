@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 17:57:07                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-03 15:35:12                               *
+ * @LastEditDate          : 2024-07-04 17:44:01                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -19,6 +19,7 @@ import java.util.concurrent.CompletableFuture;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -193,7 +194,7 @@ public class DocsService {
      */
     public void updateDocInfo(File file) {
         if (file.isFile()) {
-            log.info("[Webdav] Update doc info: {}", file.getAbsolutePath());
+            log.info("[Docs] Update doc info: {}", file.getAbsolutePath());
             String fileName = file.getName();
             int dotIndex = fileName.lastIndexOf(".");
             String fileNameNoExt = dotIndex > 0 ? fileName.substring(0, dotIndex) : fileName;
@@ -244,5 +245,17 @@ public class DocsService {
             }
         }
 
+    }
+
+    @Scheduled(fixedRate = 1000 * 60 * 5)
+    public void cronTask() {
+        String docBasePath = servletContext.getRealPath("/");
+        String attachmentPath = Utils.isWin() ? windowsPath : linuxPath;
+
+        log.info("Start to update doc info from [{}] to [{}], deep {}, len {}",
+                docBasePath, attachmentPath, subFolderDeep, subFolderLen);
+        // update doc info first, this amount of files, would be less
+        updateDocInfo(new File(docBasePath));
+        Utils.moveFiles(new File(docBasePath), new File(attachmentPath), subFolderDeep, subFolderLen);
     }
 }

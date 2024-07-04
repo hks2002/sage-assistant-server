@@ -2,11 +2,22 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-11-23 20:45:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-06-27 19:07:38                               *
+ * @LastEditDate          : 2024-07-03 17:35:35                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
 package com.da.sageassistantserver.service;
+
+import java.net.http.HttpResponse;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.da.sageassistantserver.utils.SageActionHelper;
@@ -16,22 +27,15 @@ import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.github.benmanes.caffeine.cache.RemovalListener;
-import java.net.http.HttpResponse;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class SageLoginService {
 
-  @Autowired LogService logService;
+  @Autowired
+  LogService logService;
   /**
    * Caffeine cache
    * Key is Object {auth: "xxx", function: "xxxx", trans: "xxxxx"}
@@ -39,54 +43,53 @@ public class SageLoginService {
    * msgTyp: "info", msg: "Login"}
    *
    */
-  private static LoadingCache<JSONObject, JSONObject> sageSessionCache =
-      Caffeine.newBuilder()
-          .maximumSize(10000 * 3)
-          .expireAfterAccess(5, TimeUnit.MINUTES)
-          .removalListener((RemovalListener<JSONObject, JSONObject>)(key, value, cause) -> {
-            /*
-             * Sage will expired created session automatically, we exit page to avoid this
-             */
-            String auth = key.getString("auth");
-            String sessionId = value.getString("SessionId");
+  private static LoadingCache<JSONObject, JSONObject> sageSessionCache = Caffeine.newBuilder()
+      .maximumSize(10000 * 3)
+      .expireAfterAccess(5, TimeUnit.MINUTES)
+      .removalListener((RemovalListener<JSONObject, JSONObject>) (key, value, cause) -> {
+        /*
+         * Sage will expired created session automatically, we exit page to avoid this
+         */
+        String auth = key.getString("auth");
+        String sessionId = value.getString("SessionId");
 
-            log.debug("Sage SessionId {} is removed, cause is {}", sessionId, cause);
+        log.debug("Sage SessionId {} is removed, cause is {}", sessionId, cause);
 
-            endSession(auth, sessionId);
-          })
-          .build(new CacheLoader<JSONObject, JSONObject>() {
-            @Override
-            public JSONObject load(JSONObject key) {
-              log.debug("load key: {}", key);
+        endSession(auth, sessionId);
+      })
+      .build(new CacheLoader<JSONObject, JSONObject>() {
+        @Override
+        public JSONObject load(JSONObject key) {
+          log.debug("load key: {}", key);
 
-              String auth = key.getString("auth");
-              String function = key.getString("function");
-              String trans = key.getString("trans");
+          String auth = key.getString("auth");
+          String function = key.getString("function");
+          String trans = key.getString("trans");
 
-              return getSageSession(auth, function, trans);
-            }
-          });
+          return getSageSession(auth, function, trans);
+        }
+      });
 
   /**
    * Cache auth, do login will be called with high frequency, so cache the auth
    */
-  public static Cache<String, Boolean> authCache =
-      Caffeine.newBuilder().initialCapacity(100).maximumSize(1000).expireAfterAccess(30, TimeUnit.MINUTES).build();
+  public static Cache<String, Boolean> authCache = Caffeine.newBuilder().initialCapacity(100).maximumSize(1000)
+      .expireAfterAccess(30, TimeUnit.MINUTES).build();
 
   public static JSONObject endSession(String auth, String sessionId) {
     String html = HttpService
-                      .request(String.format("https://192.168.10.62/trans/x3/erp/EXPLOIT/$sessions('%s')", sessionId),
-                               "DELETE", null, auth)
-                      .body();
+        .request(String.format("https://192.168.10.62/trans/x3/erp/EXPLOIT/$sessions('%s')", sessionId),
+            "DELETE", null, auth)
+        .body();
 
     JSONObject json = JSONObject.parseObject(html).getJSONArray("$diagnoses").getJSONObject(0);
 
     String severity = json.getString("$severity");
     switch (severity) {
-    case "info":
-      return SageActionHelper.rtnObj(true, MsgTyp.INFO, json.getString("$message"));
-    default:
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "End session failed");
+      case "info":
+        return SageActionHelper.rtnObj(true, MsgTyp.INFO, json.getString("$message"));
+      default:
+        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "End session failed");
     }
   }
 
@@ -95,10 +98,10 @@ public class SageLoginService {
    * from cache
    */
   public static JSONObject getSageSession(String auth, String function, String trans) {
-    HttpResponse<String> response =
-        HttpService.request(String.format("https://192.168.10.62/trans/x3/erp/EXPLOIT/$sessions?f=%s/2//M&trackngId=%s",
-                                          function, UUID.randomUUID().toString()),
-                            "POST", "{\"settings\":{}}", auth);
+    HttpResponse<String> response = HttpService.request(
+        String.format("https://192.168.10.62/trans/x3/erp/EXPLOIT/$sessions?f=%s/2//M&trackngId=%s",
+            function, UUID.randomUUID().toString()),
+        "POST", "{\"settings\":{}}", auth);
     String html = response.body();
     JSONObject json = JSONObject.parseObject(html);
 
@@ -111,8 +114,8 @@ public class SageLoginService {
 
     JSONObject rtn = new JSONObject();
     if (json.containsKey("srvop") && json.getJSONObject("srvop").containsKey("sessionInfo")) {
-      String sessionId =
-          json.getJSONObject("srvop").getJSONObject("sessionInfo").getJSONObject("node").getString("sid");
+      String sessionId = json.getJSONObject("srvop").getJSONObject("sessionInfo").getJSONObject("node")
+          .getString("sid");
 
       rtn = SageActionHelper.rtnObj(true, MsgTyp.RESULT, "Session Success");
       rtn.put("SessionId", sessionId);
@@ -126,11 +129,11 @@ public class SageLoginService {
         // recorder
         try {
           String rcdNO = json.getJSONObject("sap")
-                             .getJSONObject("wins")
-                             .getJSONObject("B")
-                             .getJSONObject("entities")
-                             .getJSONObject(xid)
-                             .getString("v");
+              .getJSONObject("wins")
+              .getJSONObject("B")
+              .getJSONObject("entities")
+              .getJSONObject(xid)
+              .getString("v");
 
           rtn.put("xid", xid);
           rtn.put("rcdNO", rcdNO);
@@ -157,11 +160,11 @@ public class SageLoginService {
           // recorder
           try {
             String rcdNO = json2.getJSONObject("sap")
-                               .getJSONObject("wins")
-                               .getJSONObject("B")
-                               .getJSONObject("entities")
-                               .getJSONObject(xid)
-                               .getString("v");
+                .getJSONObject("wins")
+                .getJSONObject("B")
+                .getJSONObject("entities")
+                .getJSONObject(xid)
+                .getString("v");
 
             rtn.put("xid", xid);
             rtn.put("rcdNO", rcdNO);
@@ -202,13 +205,13 @@ public class SageLoginService {
 
       String severity = json.getString("$severity");
       switch (severity) {
-      case "info":
-        authCache.put(auth, true); // add or update the auth cache
-        return SageActionHelper.rtnObj(true, MsgTyp.INFO, "Login success");
-      case "error":
-        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, json.getString("$message"));
-      default:
-        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Login failed");
+        case "info":
+          authCache.put(auth, true); // add or update the auth cache
+          return SageActionHelper.rtnObj(true, MsgTyp.RESULT, "Login success");
+        case "error":
+          return SageActionHelper.rtnObj(false, MsgTyp.ERROR, json.getString("$message"));
+        default:
+          return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Login failed");
       }
     } catch (Exception e) {
       log.error("Login Exception: {}", e.getMessage());
@@ -237,12 +240,12 @@ public class SageLoginService {
 
       String severity = json.getString("$severity");
       switch (severity) {
-      case "success":
-        return SageActionHelper.rtnObj(true, MsgTyp.INFO, "Logout success");
-      case "error":
-        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, json.getString("$message"));
-      default:
-        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Logout failed");
+        case "success":
+          return SageActionHelper.rtnObj(true, MsgTyp.RESULT, "Logout success");
+        case "error":
+          return SageActionHelper.rtnObj(false, MsgTyp.ERROR, json.getString("$message"));
+        default:
+          return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Logout failed");
       }
     } catch (Exception e) {
       log.error("Logout Exception: {}", e.getMessage());
@@ -252,12 +255,11 @@ public class SageLoginService {
 
   public static JSONObject getProfile(String auth) {
     try {
-      String html =
-          HttpService
-              .request(
-                  "https://192.168.10.62/sdata/syracuse/collaboration/syracuse/userProfiles/$template/$workingCopies",
-                  "POST", "{\"representation\": \"userProfile.$edit\"}", auth)
-              .body();
+      String html = HttpService
+          .request(
+              "https://192.168.10.62/sdata/syracuse/collaboration/syracuse/userProfiles/$template/$workingCopies",
+              "POST", "{\"representation\": \"userProfile.$edit\"}", auth)
+          .body();
 
       JSONObject user = JSONObject.parseObject(html).getJSONObject("user");
       JSONObject selectedLocale = JSONObject.parseObject(html).getJSONObject("selectedLocale");
@@ -282,12 +284,11 @@ public class SageLoginService {
 
   public static JSONObject getFunction(String auth) {
     try {
-      String html =
-          HttpService
-              .request(
-                  "https://192.168.10.62/sdata/syracuse/collaboration/syracuse/pages('x3.erp.EXPLOIT.home.$navigation,$page,')",
-                  "GET", null, auth)
-              .body();
+      String html = HttpService
+          .request(
+              "https://192.168.10.62/sdata/syracuse/collaboration/syracuse/pages('x3.erp.EXPLOIT.home.$navigation,$page,')",
+              "GET", null, auth)
+          .body();
       // regex style: "convergenceFunction":"GESSOH"
       Pattern pattern = Pattern.compile("(?:\"convergenceFunction\":\")(.*?)(?:\")");
       Matcher m = pattern.matcher(html);

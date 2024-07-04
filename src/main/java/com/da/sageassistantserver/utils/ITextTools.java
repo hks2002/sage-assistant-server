@@ -2,11 +2,17 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-18 17:36:09                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-27 17:47:53                              *
+ * @LastEditDate          : 2024-07-04 13:11:34                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
 package com.da.sageassistantserver.utils;
+
+import java.awt.FontMetrics;
+import java.io.OutputStream;
+import java.util.HashMap;
+
+import javax.swing.JLabel;
 
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
@@ -22,12 +28,8 @@ import com.itextpdf.text.pdf.PdfStamper;
 import com.itextpdf.text.pdf.PdfWriter;
 import com.itextpdf.text.pdf.RandomAccessFileOrArray;
 import com.itextpdf.text.pdf.codec.TiffImage;
-import java.awt.FontMetrics;
-import java.io.OutputStream;
-import java.util.HashMap;
-import javax.swing.JLabel;
-import lombok.extern.slf4j.Slf4j;
 
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class ITextTools {
@@ -49,10 +51,11 @@ public class ITextTools {
    *         false if fail
    */
   public static boolean addTextOne(byte[] pdfIn, OutputStream os, String wmText, int fontSize, float opacity, int angle,
-                                   float positionX, float positionY) {
+      float positionX, float positionY) {
     PdfReader reader = null;
     PdfStamper stamper = null;
     try {
+      reader.unethicalreading = true;
       reader = new PdfReader(pdfIn);
       stamper = new PdfStamper(reader, os);
 
@@ -150,19 +153,20 @@ public class ITextTools {
   /**
    * pdf watermark
    *
-   * @param pdfIn      origin pdf file
-   * @param os         output stream for new pdf,
-   *                   ByteArrayOutputStream bos = new ByteArrayOutputStream();
-   *                   OutputStream os = new FileOutputStream("C:\\temp.pdf");
-   * @param wmText     the added watermark
-   * @param opacity    fill opacity (0-1)
-   * @param angle      angle (0-360)
+   * @param pdfIn   origin pdf file
+   * @param os      output stream for new pdf,
+   *                ByteArrayOutputStream bos = new ByteArrayOutputStream();
+   *                OutputStream os = new FileOutputStream("C:\\temp.pdf");
+   * @param wmText  the added watermark
+   * @param opacity fill opacity (0-1)
+   * @param angle   angle (0-360)
    * @return
    */
   public static boolean addTextFull(byte pdfIn[], OutputStream os, String wmText, float opacity, int angle) {
     PdfReader reader = null;
     PdfStamper stamper = null;
     try {
+      reader.unethicalreading = true;
       reader = new PdfReader(pdfIn);
       stamper = new PdfStamper(reader, os);
 
@@ -250,8 +254,8 @@ public class ITextTools {
       document.open();
 
       if (type.equals("TIF") || type.equals("TIFF")) {
-        RandomAccessFileOrArray tif =
-            new RandomAccessFileOrArray(new RandomAccessSourceFactory().createSource(imageIn));
+        RandomAccessFileOrArray tif = new RandomAccessFileOrArray(
+            new RandomAccessSourceFactory().createSource(imageIn));
         int numberOfPages = TiffImage.getNumberOfPages(tif);
         for (int i = 1; i <= numberOfPages; i++) {
           Image image = TiffImage.getTiffImage(tif, i);

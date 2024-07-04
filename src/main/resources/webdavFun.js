@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-01 17:46:12                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-03 15:59:02                              *
+ * @LastEditDate          : 2024-07-04 13:30:27                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -134,13 +134,21 @@ function clearCookie(name) {
 
 function sendRequest(url) {
   var bp = document.getElementById("bpCode").value;
+  var isDirectory = false;
+  if (url.endsWith("/")) {
+    isDirectory = true;
+  }
   if (bp !== "") {
     url = url + "?bpCode=" + bp;
     setCookie("bpCode", bp, 60 * 60 * 24);
   } else {
     clearCookie("bpCode");
   }
-  window.open(url);
+  if (isDirectory) {
+    window.location.href = url;
+  } else {
+    window.open(url);
+  }
 }
 
 window.onload = function () {

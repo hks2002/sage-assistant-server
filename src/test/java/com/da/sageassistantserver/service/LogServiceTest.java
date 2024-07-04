@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2023-03-11 16:26:53                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-08 01:11:09                              *
+ * @LastEditDate          : 2024-07-05 01:15:19                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -67,5 +67,12 @@ class LogServiceTest {
         for (LogFinal l : logs) {
             log.info(l.toString());
         }
+    }
+
+    @Test
+    @Order(4)
+    void testLogService2() {
+        logService.addLog("DOC_AUTO_DOWNLOAD");
+        logService.addLog("DOC_AUTO_DOWNLOAD", "v0", "v1", "v2", "v3", "v4", "v5", "v6", "v7", "v8", "v9");
     }
 }
