@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 17:57:07                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-04 17:44:01                               *
+ * @LastEditDate          : 2024-07-05 17:44:07                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -11,6 +11,7 @@ package com.da.sageassistantserver.service;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -247,7 +248,7 @@ public class DocsService {
 
     }
 
-    @Scheduled(fixedRate = 1000 * 60 * 5)
+    @Scheduled(fixedRate = 1000 * 60 * 1)
     public void cronTask() {
         String docBasePath = servletContext.getRealPath("/");
         String attachmentPath = Utils.isWin() ? windowsPath : linuxPath;
@@ -256,6 +257,6 @@ public class DocsService {
                 docBasePath, attachmentPath, subFolderDeep, subFolderLen);
         // update doc info first, this amount of files, would be less
         updateDocInfo(new File(docBasePath));
-        Utils.moveFiles(new File(docBasePath), new File(attachmentPath), subFolderDeep, subFolderLen);
+        Utils.moveFiles(Paths.get(docBasePath), Paths.get(attachmentPath), subFolderDeep, subFolderLen);
     }
 }

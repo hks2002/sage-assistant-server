@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-10 15:42:04                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-03 13:15:10                               *
+ * @LastEditDate          : 2024-07-05 17:48:49                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -16,6 +16,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -306,8 +309,8 @@ public class Utils {
    * Move files from one directory to another, ignore hidden files
    * <p>
    * 
-   * @param from            the source directory
-   * @param to              the destination directory
+   * @param fromPath        the source directory
+   * @param toPath          the destination directory
    * @param fileNameNoExt   the file name without the extension
    * @param toSubFolderDeep the depth of sub-folders to create
    * @param toSubFolderLen  the length of each sub-folder
@@ -316,17 +319,17 @@ public class Utils {
    *       and remove "TDS", "OMSD", "GIM" ... from file name
    * @Note this method does not update database
    */
-  public static void moveFiles(File from, File to, int toSubFolderDeep, int toSubFolderLen) {
-    if (!from.isDirectory()) {
-      log.warn("[MoveFiles] Source path is not a directory: {}", from.getAbsolutePath());
+  public static void moveFiles(Path fromPath, Path toPath, int toSubFolderDeep, int toSubFolderLen) {
+    if (!fromPath.toFile().isDirectory()) {
+      log.warn("[MoveFiles] Source path is not a directory: {}", fromPath.toString());
       return;
     }
-    if (!to.isDirectory()) {
-      log.warn("[MoveFiles] Destination path is not a directory: {}", to.getAbsolutePath());
+    if (!toPath.toFile().isDirectory()) {
+      log.warn("[MoveFiles] Destination path is not a directory: {}", toPath.toString());
       return;
     }
 
-    File[] files = from.listFiles();
+    File[] files = fromPath.toFile().listFiles();
     if (null == files) {
       return;
     }
@@ -345,28 +348,32 @@ public class Utils {
           continue;
         }
 
-        File toFolder = new File(
-            to.getAbsolutePath() + '/' + getPathByFileName(fileNameNoExt, toSubFolderDeep, toSubFolderLen));
-        if (!toFolder.exists()) {
-          toFolder.mkdirs();
+        try {
+          Path toFolder = Paths.get(
+              toPath.toString() + '/' + getPathByFileName(fileNameNoExt, toSubFolderDeep, toSubFolderLen));
+
+          // make sure toFolder exists
+          Files.createDirectories(toFolder);
+
+          Path toFile = Paths.get(toFolder.toString() + '/' + fileName);
+          Files.move(Paths.get(file.getAbsolutePath()), toFile, StandardCopyOption.REPLACE_EXISTING);
+
+          if (toFile.toFile().exists()) {
+            log.info("[Move] {} to {} success", file.getAbsolutePath(), toFile.toString());
+          } else {
+            log.warn("[Move] {} to {} failed", file.getAbsolutePath(), toFile.toString());
+          }
+
+        } catch (Exception e) {
+          log.error("[Move] {} failed: {}", file.getAbsolutePath(), e.getMessage());
         }
 
-        File toFile = new File(toFolder, fileName);
-        if (toFile.exists()) {
-          toFile.delete();
-        }
-
-        if (!file.renameTo(toFile)) {
-          log.warn("[Move] {} failed", file.getAbsolutePath());
-        } else {
-          log.info("[Move] {} success", file.getAbsolutePath());
-        }
       } else { // directory
         // skip META-INF and WEB-INF folder
         if (file.getName().equals("META-INF") || file.getName().equals("WEB-INF")) {
           continue;
         }
-        moveFiles(file, to, toSubFolderDeep, toSubFolderLen);
+        moveFiles(Paths.get(file.getAbsolutePath()), toPath, toSubFolderDeep, toSubFolderLen);
 
         if (file.listFiles() == null || file.listFiles().length == 0) {
           if (file.delete()) { // delete original empty folder
