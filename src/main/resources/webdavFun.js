@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-01 17:46:12                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-04 13:30:27                              *
+ * @LastEditDate          : 2024-07-05 09:06:57                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -49,7 +49,7 @@ function renderFileSize(sizeInBytes) {
 
 function updateDocumentList(data) {
   if (data.length === 0) {
-    document.getElementById("documentList").innerHTML = "No document found";
+    document.getElementById("documentList").innerHTML = "No document found, Background will download it, try it after 5 min (文件未找到，后台将会下载，请等5分钟)";
   } else {
     var html = "<tbody><tr>";
     html += "<td align='left'><font size='+1'><strong>Filename</strong></font></td>";
