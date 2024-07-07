@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-18 17:36:09                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-04 13:11:34                              *
+ * @LastEditDate          : 2024-07-07 15:57:15                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -55,7 +55,7 @@ public class ITextTools {
     PdfReader reader = null;
     PdfStamper stamper = null;
     try {
-      reader.unethicalreading = true;
+      PdfReader.unethicalreading = true;
       reader = new PdfReader(pdfIn);
       stamper = new PdfStamper(reader, os);
 
@@ -166,7 +166,7 @@ public class ITextTools {
     PdfReader reader = null;
     PdfStamper stamper = null;
     try {
-      reader.unethicalreading = true;
+      PdfReader.unethicalreading = true;
       reader = new PdfReader(pdfIn);
       stamper = new PdfStamper(reader, os);
 

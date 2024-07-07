@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 17:57:07                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-05 17:44:07                               *
+ * @LastEditDate          : 2024-07-05 22:48:11                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -10,7 +10,9 @@ package com.da.sageassistantserver.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URLDecoder;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.sql.Timestamp;
@@ -22,16 +24,24 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.da.sageassistantserver.dao.DocsMapper;
 import com.da.sageassistantserver.model.Docs;
+import com.da.sageassistantserver.utils.SageActionHelper;
+import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;
 import com.da.sageassistantserver.utils.Utils;
 
 import jakarta.servlet.ServletContext;
 import lombok.extern.slf4j.Slf4j;
 
+/**
+ * DocsService is provide the /docs/* api, documents is stored at the ZHU HAI
+ * database/file server
+ */
 @Slf4j
 @Service
 public class DocsService {
@@ -118,6 +128,7 @@ public class DocsService {
         for (Docs doc : docs) {
             String docBasePath = servletContext.getRealPath("/");
             String file = docBasePath + doc.getFile_name();
+            Path filePath = Paths.get(file);
 
             // log
             log.debug("Auto download {} from Dms server to {} start ...", doc.getFile_name(), docBasePath);
@@ -126,7 +137,7 @@ public class DocsService {
             byte[] content = DmsService.getDocumentContent(doc.getLocation()); // using location as id
             Utils.saveFileContent(file, content);
 
-            if ((new File(file)).exists()) {
+            if (Files.exists(filePath)) {
                 log.info("Auto download {} from Dms server to {}", doc.getFile_name(), file);
                 logService.addLog("DOC_AUTO_DOWNLOAD", doc.getFile_name(), file);
             } else {
@@ -248,12 +259,69 @@ public class DocsService {
 
     }
 
+    public JSONObject handleFileUpload(final MultipartFile uploadFile) {
+        try {
+            if (uploadFile.isEmpty()) {
+                return SageActionHelper.rtnObj(false, MsgTyp.RESULT, "Upload file is empty");
+            }
+            String docBasePath = servletContext.getRealPath("/");
+            String originalFilename = uploadFile.getOriginalFilename();
+            Path fullSavePath = Paths.get(docBasePath + "/" + originalFilename);
+
+            log.info("[Upload] [" + originalFilename + "] " + fullSavePath);
+
+            Files.createDirectories(fullSavePath.getParent());
+
+            Files.copy(uploadFile.getInputStream(), fullSavePath);
+
+            if (fullSavePath.toFile().exists()) {
+                return SageActionHelper.rtnObj(true, MsgTyp.RESULT,
+                        "Upload file " + originalFilename + "] with success!");
+            } else {
+                return SageActionHelper.rtnObj(false, MsgTyp.RESULT,
+                        "Upload file " + originalFilename + "] with failed!");
+            }
+
+        } catch (Exception e) {
+            log.error("[Upload] " + e.getMessage());
+            return SageActionHelper.rtnObj(false, MsgTyp.ERROR, e.getMessage());
+        }
+    }
+
+    public JSONObject handleFileDelete(String path) {
+        String attachmentPath = Utils.isWin() ? windowsPath : linuxPath;
+        String docBasePath = servletContext.getRealPath("/");
+
+        try {
+            Path docBaseFilePath = Paths.get(docBasePath + URLDecoder.decode(path, "UTF-8"));
+            Path attachmentFilePath = Paths.get(attachmentPath + URLDecoder.decode(path, "UTF-8"));
+            if (Files.exists(attachmentFilePath)) {
+                Files.delete(attachmentFilePath);
+            }
+            if (Files.exists(docBaseFilePath)) {
+                Files.delete(docBaseFilePath);
+            }
+
+            if (Files.exists(attachmentFilePath) || Files.exists(docBaseFilePath)) {
+                log.info("[Delete] {} with failed!", path);
+                return SageActionHelper.rtnObj(false, MsgTyp.RESULT, "Delete file [" + path + "] with failed!");
+            } else {
+                log.info("[Delete] {} with success!", path);
+                return SageActionHelper.rtnObj(true, MsgTyp.RESULT, "Delete file [" + path + "] with success!");
+            }
+
+        } catch (Exception e) {
+            log.error("[Delete] " + e.getMessage());
+            return SageActionHelper.rtnObj(false, MsgTyp.ERROR, e.getMessage());
+        }
+    }
+
     @Scheduled(fixedRate = 1000 * 60 * 1)
     public void cronTask() {
         String docBasePath = servletContext.getRealPath("/");
         String attachmentPath = Utils.isWin() ? windowsPath : linuxPath;
 
-        log.info("Start to update doc info from [{}] to [{}], deep {}, len {}",
+        log.debug("Start to update doc info from [{}] to [{}], deep {}, len {}",
                 docBasePath, attachmentPath, subFolderDeep, subFolderLen);
         // update doc info first, this amount of files, would be less
         updateDocInfo(new File(docBasePath));

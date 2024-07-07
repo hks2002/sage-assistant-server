@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-04 09:39:40                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-05 00:05:37                              *
+ * @LastEditDate          : 2024-07-07 15:57:33                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -33,9 +33,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
-import lombok.extern.slf4j.Slf4j;
 
-@Slf4j
 @Component
 public class AuthFilter extends OncePerRequestFilter {
 
@@ -54,13 +52,15 @@ public class AuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(@SuppressWarnings("null") HttpServletRequest request,
             @SuppressWarnings("null") HttpServletResponse response, @SuppressWarnings("null") FilterChain filterChain)
             throws ServletException, IOException {
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent.contains("Microsoft-WebDAV-MiniRedir")) {
+            return;
+        }
+
         // // trace request code block
-        // log.info("xxxxxxx {} {} xxxxxxxx", request.getMethod(), pathInfo);
-        // BufferedReader br = new BufferedReader(request.getReader());
-        // String line;
-        // while ((line = br.readLine()) != null) {
-        // log.info(line);
-        // }
+        // String path = getRelativePath(request);
+        // log.info("{} {}", request.getMethod(), path);
+
         // Enumeration<String> headers = request.getHeaderNames();
         // while (headers.hasMoreElements()) {
         // String header = headers.nextElement();
@@ -206,9 +206,8 @@ public class AuthFilter extends OncePerRequestFilter {
         String userName = (String) req.getSession().getAttribute("loginUser");
         String path = getRelativePath(req);
         String remoteIP = getTrueRemoteIp(req);
-        String remoteHost = req.getRemoteHost();
         if (!path.endsWith("/")) {
-            logService.addLog("DOC_ACCESS_SUCCESS", user, userName, path, remoteIP, remoteHost);
+            logService.addLog("DOC_ACCESS_SUCCESS", user, userName, path, remoteIP);
         }
 
         res.setStatus(200);
@@ -220,9 +219,8 @@ public class AuthFilter extends OncePerRequestFilter {
         String userName = (String) req.getSession().getAttribute("loginUser");
         String path = getRelativePath(req);
         String remoteIP = getTrueRemoteIp(req);
-        String remoteHost = req.getRemoteHost();
         if (!path.endsWith("/")) {
-            logService.addLog("DOC_ACCESS_FAILED", user, userName, path, remoteIP, remoteHost);
+            logService.addLog("DOC_ACCESS_FAILED", user, userName, path, remoteIP);
         }
 
         res.setStatus(401);
@@ -235,8 +233,9 @@ public class AuthFilter extends OncePerRequestFilter {
         String userName = (String) req.getSession().getAttribute("loginUser");
         String path = getRelativePath(req);
         String remoteIP = getTrueRemoteIp(req);
-        String remoteHost = req.getRemoteHost();
-        logService.addLog("DOC_ACCESS_FAILED", user, userName, path, remoteIP, remoteHost);
+        if (!path.endsWith("/")) {
+            logService.addLog("DOC_ACCESS_FAILED", user, userName, path, remoteIP);
+        }
 
         res.setStatus(403);
         return false;

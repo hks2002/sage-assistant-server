@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-11 15:45:58                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-03 13:37:31                               *
+ * @LastEditDate          : 2024-07-05 18:34:30                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -10,6 +10,7 @@ package com.da.sageassistantserver.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -135,7 +136,7 @@ public class UtilsTest {
 
   @Test
   void testMoveFile() {
-    Utils.moveFiles(new File("C:/var"), new File("C:/var2"), 2, 3);
+    Utils.moveFiles(Paths.get("C:/var"), Paths.get("C:/var2"), 2, 3);
   }
 
   @Test

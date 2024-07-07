@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-01 17:46:12                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-05 09:06:57                              *
+ * @LastEditDate          : 2024-07-07 16:49:41                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -47,66 +47,70 @@ function renderFileSize(sizeInBytes) {
   return `${sizeInBytes.toFixed(1)} ${units[unitIndex]}`;
 }
 
-function updateDocumentList(data) {
+function updateZHUDocumentList(data) {
   if (data.length === 0) {
-    document.getElementById("documentList").innerHTML = "No document found, Background will download it, try it after 5 min (文件未找到，后台将会下载，请等5分钟)";
+    document.getElementById("docsInZHUList").innerHTML = "❗️No document found in Zhuhai server";
   } else {
-    var html = "<tbody><tr>";
-    html += "<td align='left'><font size='+1'><strong>Filename</strong></font></td>";
-    html += "<td align='center'><font size='+1'><strong>Size</strong></font></td>";
-    html += "<td align='right'><font size='+1'><strong>Last Modified</strong></font></td>";
-    html += "</tr>";
-    var shade = false;
-    for (var i = 0; i < data.length; i++) {
-      if (shade) {
-        html += "<tr bgcolor='#eeeeee'>";
-      } else {
-        html += "<tr>";
-      }
+    let html = "";
+    let shade = false;
+    for (let i = 0; i < data.length; i++) {
+      html += shade ? "<tr bgcolor='#eeeeee'>" : "<tr>";
       shade = !shade;
-      html += `<td align='left'>&nbsp;&nbsp;<a href='javascript:void(0)' onclick="sendRequest('/docs/${data[i].location}/${encodeURIComponent(data[i].file_name)}')"><tt>${
+
+      html += `<td align='left'>&nbsp;&nbsp;<a href='javascript:void(0)' onclick="sendRequest('/docs/${data[i].location}/${encodeURIComponent(data[i].file_name)}')">${
         data[i].file_name
-      }</tt></a></td>`;
+      }</a></td>`;
       html += `<td align='right'>${renderFileSize(data[i].size)}</td>`;
-      html += `<td align='right'><tt>${data[i].doc_modified_at}</tt></td>`;
+      html += `<td align='right'>${data[i].doc_modified_at}</td>`;
       html += "</tr>";
     }
-    html += "</tbody>";
-    document.getElementById("documentList").innerHTML = html;
+    document.getElementById("docsInZHUList").innerHTML = html;
   }
 }
 
-document.getElementById("search").addEventListener(
-  "input",
-  debounce(function (e) {
-    if (e.target.value.length < 3) {
-      return;
-    }
+function updateDmsDocumentList(data) {
+  if (data.length === 0) {
+    document.getElementById("docsInDmsList").innerHTML = "❗️No document found in New Sage DMS Audros server!";
+  } else {
+    let html = "<tr>Documents in New Sage DMS Audros server:</tr>";
+    let shade = false;
+    for (let i = 0; i < data.length; i++) {
+      html += shade ? "<tr bgcolor='#eeeeee'>" : "<tr>";
+      shade = !shade;
 
-    fetch("/Data/GetDocsInfo" + "?Pn=" + e.target.value)
-      .then((res) => res.json())
-      .then((data) => {
-        updateDocumentList(data);
-      });
-  }, 1500)
-);
-
-document.getElementById("bpCode").addEventListener(
-  "input",
-  debounce(function (e) {
-    if (e.target.value.length !== 5) {
-      return;
-    } else {
-      setCookie("bpCode", e.target.value, 60 * 60 * 24);
+      html += `<td align='left'>&nbsp;&nbsp;${data[i].file_name}</td>`;
+      html += `<td align='right'></td>`;
+      html += `<td align='right'></td>`;
+      html += "</tr>";
     }
-  }, 1000)
-);
+    document.getElementById("docsInDmsList").innerHTML = html;
+  }
+}
+
+function updateTLSDocumentList(data) {
+  if (data.length === 0) {
+    document.getElementById("docsInTLSList").innerHTML = "❗️No document found in Old file server!";
+  } else {
+    let html = "<tr>Documents in Old file server:</tr>";
+    let shade = false;
+    for (let i = 0; i < data.length; i++) {
+      html += shade ? "<tr bgcolor='#eeeeee'>" : "<tr>";
+      shade = !shade;
+
+      html += `<td align='left'>&nbsp;&nbsp;>${data[i].File}</td>`;
+      html += `<td align='right'></td>`;
+      html += `<td align='right'></td>`;
+      html += "</tr>";
+    }
+    document.getElementById("docsInTLSList").innerHTML = html;
+  }
+}
 
 function setCookie(name, value, seconds) {
   seconds = seconds || 0;
-  var expires = "";
+  let expires = "";
   if (seconds != 0) {
-    var date = new Date();
+    let date = new Date();
     date.setTime(date.getTime() + seconds * 1000);
     expires = "; expires=" + date.toGMTString();
   }
@@ -114,10 +118,10 @@ function setCookie(name, value, seconds) {
 }
 
 function getCookie(name) {
-  var nameEQ = name + "=";
-  var ca = document.cookie.split(";");
-  for (var i = 0; i < ca.length; i++) {
-    var c = ca[i];
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(";");
+  for (let i = 0; i < ca.length; i++) {
+    let c = ca[i];
     while (c.charAt(0) == " ") {
       c = c.substring(1, c.length);
     }
@@ -133,8 +137,8 @@ function clearCookie(name) {
 }
 
 function sendRequest(url) {
-  var bp = document.getElementById("bpCode").value;
-  var isDirectory = false;
+  const bp = document.getElementById("bpCode").value;
+  const isDirectory = false;
   if (url.endsWith("/")) {
     isDirectory = true;
   }
@@ -151,9 +155,74 @@ function sendRequest(url) {
   }
 }
 
+document.getElementById("search").addEventListener(
+  "input",
+  debounce(function (e) {
+    if (e.target.value.length < 3) {
+      return;
+    }
+
+    fetch("/Data/GetDocsInfoFromZHU" + "?Pn=" + e.target.value)
+      .then((res) => res.json())
+      .then((data) => {
+        updateZHUDocumentList(data);
+      });
+
+    fetch("/Data/GetDocsInfoFromDms" + "?Pn=" + e.target.value)
+      .then((res) => res.json())
+      .then((data) => {
+        updateDmsDocumentList(data);
+      });
+
+    fetch("/Data/GetDocsInfoFromTLS" + "?Pn=" + e.target.value)
+      .then((res) => res.json())
+      .then((data) => {
+        updateTLSDocumentList(data);
+      });
+  }, 1500)
+);
+
+document.getElementById("bpCode").addEventListener(
+  "input",
+  debounce(function (e) {
+    if (e.target.value.length !== 5) {
+      return;
+    } else {
+      setCookie("bpCode", e.target.value, 60 * 60 * 24);
+    }
+  }, 1000)
+);
+
 window.onload = function () {
-  var bp = getCookie("bpCode");
+  const bp = getCookie("bpCode");
   if (bp !== false) {
     document.getElementById("bpCode").value = bp;
+  }
+};
+
+function uploadFile(file) {
+  const formData = new FormData();
+  formData.append("file", file); // 'file' 是服务器端用来接收文件的字段名，可以根据实际情况调整
+
+  fetch("/Data/FileUpload", {
+    method: "POST",
+    body: formData,
+  })
+    .then((response) => response.text())
+    .then((data) => {
+      alert(data.msg);
+    })
+    .catch((error) => {
+      alert(error);
+    });
+}
+
+document.getElementById("upLoad").onchange = function (e) {
+  const files = e.target.files;
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    console.log(`FileName: ${file.name}, Size: ${file.size} bytes, Type: ${file.type}`);
+    uploadFile(file);
   }
 };
