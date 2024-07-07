@@ -1,5 +1,37 @@
 # Changelog
 
+## [4.1.0](https://github.com/hks2002/sage-assistant-server/compare/v4.0.0...v4.1.0) (2024-07-07)
+
+
+### Features
+
+* ✨Add docs services ([cf841dc](https://github.com/hks2002/sage-assistant-server/commit/cf841dcae9ed9ecfe7f4d47e08fe67d43116fb00))
+* ✨add image water mark ([fd60063](https://github.com/hks2002/sage-assistant-server/commit/fd60063a91c0b29eab48ec8a82aa4bf785ba0a3e))
+* ✨add login interceptor ([6c4a426](https://github.com/hks2002/sage-assistant-server/commit/6c4a426dfd2b573116511752e58ddd6b028c4b83))
+* ✨add pdf water mark ([56ec30a](https://github.com/hks2002/sage-assistant-server/commit/56ec30a3e4ddd9e3636fa337a92503dde957d1dd))
+* ✨add second database for user and docs ([2cfeaf2](https://github.com/hks2002/sage-assistant-server/commit/2cfeaf2d0e967d05b80c4298f762c65d7897d370))
+* ✨Add session and log support ([8f33c6d](https://github.com/hks2002/sage-assistant-server/commit/8f33c6ddace8e9783323e894f9c37a937d7b6f50))
+* ✨add vendor and customer for webdav ([ee1f4f6](https://github.com/hks2002/sage-assistant-server/commit/ee1f4f6d2ee560acaf23d8ed402c6b93914812f0))
+* ✨add webdav for attachment ([7190cf2](https://github.com/hks2002/sage-assistant-server/commit/7190cf2b78be13fadc9c310b1afc6603d7fdda19))
+* ✨Add webdav search for web ([33fe0c1](https://github.com/hks2002/sage-assistant-server/commit/33fe0c1ca0500cee2bc497589be202847433be16))
+* ✨auto download docs from Dms ([af5192a](https://github.com/hks2002/sage-assistant-server/commit/af5192aead16781557ef73c27ae2e8c858d5a828))
+* ✨auto download docs from DMS server ([bc105f7](https://github.com/hks2002/sage-assistant-server/commit/bc105f720c030c776654f73a4ed5dfea7c32a6f7))
+* ✨multi database support ([d9f2f76](https://github.com/hks2002/sage-assistant-server/commit/d9f2f76102be72be51d790737de04f4d197a32c8))
+* ✨PNOGSEM Inventory Info ([2a82065](https://github.com/hks2002/sage-assistant-server/commit/2a82065c7dcb983edaa203902dea02e9216f51ed))
+
+
+### Bug Fixes
+
+* 🐛 fix test error after add multi database ([0d75d5e](https://github.com/hks2002/sage-assistant-server/commit/0d75d5ec6bcf55e1f24a9295428c9bd86148f812))
+* 🐛china ip range changed ([4173bb6](https://github.com/hks2002/sage-assistant-server/commit/4173bb6e6c90b9c12b6cdb18df9be2b57d9590e4))
+* 🐛DateTo add 23:59:59 ([e7709e3](https://github.com/hks2002/sage-assistant-server/commit/e7709e3f21bcfb0c629801324e2de35aa9e157e0))
+* 🐛fix a save path error ([124d559](https://github.com/hks2002/sage-assistant-server/commit/124d5598c0601673fdd3099b0942aa661382cc08))
+* 🐛fix bugs for deploy to tomcat ([1a117f3](https://github.com/hks2002/sage-assistant-server/commit/1a117f3b1250c78ec0bb2837562b7ef2efa92694))
+* 🐛fix empty ori project no link in purchase ([ea2db6e](https://github.com/hks2002/sage-assistant-server/commit/ea2db6e823cca9eae2415730107b631bdee8959c))
+* 🐛fix moving file not work in linux ([0829240](https://github.com/hks2002/sage-assistant-server/commit/0829240a2b78b4774a32a74110dac1abe930b6a5))
+* 🐛fix sql bugs ([ab34970](https://github.com/hks2002/sage-assistant-server/commit/ab349700c8f0f6fc790d8bbd307dda2a216450b9))
+* 🐛fix webdav access init bug ([48fd9d3](https://github.com/hks2002/sage-assistant-server/commit/48fd9d366c8527acaac9c1e646f2f46bca55e486))
+
 ## 1.0.0 (2024-05-25)
 
 
