@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.da.sageassistantserver.dao.AttachmentMapper">
+	<select id="getDuplicateDocs" parameterType="String" resultType="com.da.sageassistantserver.model.Docs">
+	SELECT * FROM (
+		SELECT 
+			id,
+			sage_id,
+			file_name,
+			location,
+			doc_create_date,
+			doc_modified_date,
+			size,
+			md5,
+			count(md5) as cnt
+		FROM docs
+		GROUP BY id,
+			sage_id,
+			file_name,
+			location,
+			doc_create_date,
+			doc_modified_date,
+			size
+		ORDER BY id DESC
+	) AS t1 WHERE t1.cnt &gt; 1
+	</select>
+</mapper>

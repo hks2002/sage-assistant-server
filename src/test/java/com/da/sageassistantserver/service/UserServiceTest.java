@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2023-03-11 16:26:53                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-07 21:25:54                              *
+ * @LastEditDate          : 2024-06-25 12:51:35                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -15,23 +15,22 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 
 @SpringBootTest
-class CommonServiceTest {
+class UserServiceTest {
 
-    // Unit Test for Service，sample code
-    @TestConfiguration
-    static class prepare {
+  // Unit Test for Service，sample code
+  @TestConfiguration
+  static class prepare {
 
-        @Bean
-        public CommonService getService() {
-            return new CommonService();
-        }
+    @Bean
+    public UserService getService() {
+      return new UserService();
     }
+  }
 
-    @Autowired
-    CommonService commonService;
+  @Autowired UserService userService;
 
-    @Test
-    void testAllSites() {
-        commonService.getAllSites();
-    }
+  @Test
+  public void setLogTemplate() {
+    userService.getUserByLoginName("rhuang");
+  }
 }
