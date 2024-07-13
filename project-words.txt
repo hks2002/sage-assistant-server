@@ -1,5 +1,6 @@
 ADFGKSLV
 AEDUSD
+Audros
 AUDUSD
 BONCDE
 BONLIV
@@ -10,10 +11,13 @@ classpath
 CPDPRT
 Curr
 Cust
+D'UTILISATION
+D'UTILISATIONS
 Dedienne
 DNSA
 EURUSD
 Fapiao
+Funcs
 GBPUSD
 GESPOH
 GESSDH
@@ -22,6 +26,8 @@ GESSOH
 HKDUSD
 httpclient
 JPYUSD
+MKCOL
+modificationdate
 MSGTYP
 MXNUSD
 Mybatis
@@ -30,7 +36,10 @@ omsd
 Piao
 PNROOT
 postdata
+PROPFIND
+PROPPATCH
 QARUSD
+Redir
 Referer
 Rhek
 RMBUSD
@@ -44,5 +53,9 @@ SORDER
 srvdata
 srvop
 srvsyr
+thead
 Tobe
+unethicalreading
+webclient
+Webdav
 Zhuhai

@@ -9,13 +9,13 @@
 	</Properties>
 	<Appenders>
 		<Console name="Console" target="SYSTEM_OUT">
-			<ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY" />
+			<ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY" />
 			<PatternLayout>
 				<Pattern>${patternConsole}</Pattern>
 			</PatternLayout>
 		</Console>
 		<RollingFile name="RollingFile" fileName="${LOG_HOME}/sage-assistant-server.log" filePattern="${LOG_HOME}/sage-assistant-server.%d{yyyy-MM-dd}.log" append="true">
-			<ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+			<ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
 			<PatternLayout>
 				<Pattern>${patternFile}</Pattern>
 			</PatternLayout>

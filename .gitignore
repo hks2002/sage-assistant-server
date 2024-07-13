@@ -3,3 +3,4 @@ target/
 src/main/resources/application-prod.properties
 src/main/resources/application-test.properties
 src/test/resources/auth.txt
+src/test/resources/application-test.properties
