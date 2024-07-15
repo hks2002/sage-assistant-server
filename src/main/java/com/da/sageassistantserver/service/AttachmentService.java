@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 17:57:07                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-08 13:01:33                               *
+ * @LastEditDate          : 2024-07-16 00:07:52                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -50,7 +50,7 @@ public class AttachmentService {
 
             // stand path is /File/docs_sagex3/*
             if (pathOri.startsWith("[DOCS_SAGEX3]")) {
-                pathOri = "/File/srvdata01/DOCS_SAGEX3/" + pathOri.substring(14);
+                pathOri = "file://192.168.10.47/DOCS_SAGEX3/" + pathOri.substring(14);
             } else {
                 // Here keep the path
             }
