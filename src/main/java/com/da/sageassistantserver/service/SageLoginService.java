@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-11-23 20:45:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-03 17:35:35                               *
+ * @LastEditDate          : 2024-07-15 12:37:54                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -76,28 +76,11 @@ public class SageLoginService {
   public static Cache<String, Boolean> authCache = Caffeine.newBuilder().initialCapacity(100).maximumSize(1000)
       .expireAfterAccess(30, TimeUnit.MINUTES).build();
 
-  public static JSONObject endSession(String auth, String sessionId) {
-    String html = HttpService
-        .request(String.format("https://192.168.10.62/trans/x3/erp/EXPLOIT/$sessions('%s')", sessionId),
-            "DELETE", null, auth)
-        .body();
-
-    JSONObject json = JSONObject.parseObject(html).getJSONArray("$diagnoses").getJSONObject(0);
-
-    String severity = json.getString("$severity");
-    switch (severity) {
-      case "info":
-        return SageActionHelper.rtnObj(true, MsgTyp.INFO, json.getString("$message"));
-      default:
-        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "End session failed");
-    }
-  }
-
   /**
    * Internal method to get Sage Session, using getSafeSessionCache to get session
    * from cache
    */
-  public static JSONObject getSageSession(String auth, String function, String trans) {
+  private static JSONObject getSageSession(String auth, String function, String trans) {
     HttpResponse<String> response = HttpService.request(
         String.format("https://192.168.10.62/trans/x3/erp/EXPLOIT/$sessions?f=%s/2//M&trackngId=%s",
             function, UUID.randomUUID().toString()),
@@ -190,9 +173,34 @@ public class SageLoginService {
     key.put("auth", auth);
     key.put("function", function);
     key.put("trans", trans);
-    return getSageSession(auth, function, trans);
+    return sageSessionCache.get(key);
   }
 
+  public static JSONObject endSession(String auth, String sessionId) {
+    String html = HttpService
+        .request(String.format("https://192.168.10.62/trans/x3/erp/EXPLOIT/$sessions('%s')", sessionId),
+            "DELETE", null, auth)
+        .body();
+
+    JSONObject json = JSONObject.parseObject(html).getJSONArray("$diagnoses").getJSONObject(0);
+
+    String severity = json.getString("$severity");
+    switch (severity) {
+      case "info":
+        return SageActionHelper.rtnObj(true, MsgTyp.INFO, json.getString("$message"));
+      default:
+        return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "End session failed");
+    }
+  }
+
+  /**
+   * Do login, using authCache to get return login result,
+   * Do really login will be called with high frequency, so cache the auth,
+   * 30 minutes expire
+   *
+   * @param auth
+   * @return
+   */
   public static JSONObject doLogin(String auth) {
     // do login will be called with high frequency, so cache the auth
     if (authCache.getIfPresent(auth) != null) {

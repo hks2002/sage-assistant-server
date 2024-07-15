@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2024-06-02 21:34:24                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-01 10:04:03                               *
+ * @LastEditDate          : 2024-07-15 11:08:57                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -20,6 +20,7 @@ import com.da.sageassistantserver.dao.UserMapper;
 import com.da.sageassistantserver.model.User;
 import com.da.sageassistantserver.utils.SageActionHelper;
 import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;
+import com.da.sageassistantserver.utils.Utils;
 
 @Service
 public class UserService {
@@ -96,6 +97,12 @@ public class UserService {
         : SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
   }
 
+  public User getUserByUid(Long id) {
+    LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
+    queryWrapper.eq(User::getId, id);
+    return userMapper.selectOne(queryWrapper);
+  }
+
   public User getUserBySid(String sid) {
     LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
     queryWrapper.eq(User::getSage_id, sid);
@@ -106,6 +113,11 @@ public class UserService {
     LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
     queryWrapper.eq(User::getLogin_name, login_name);
     return userMapper.selectOne(queryWrapper);
+  }
+
+  public User getUserByAuth(String auth) {
+    String loginName = Utils.decodeBasicAuth(auth).split(":")[0];
+    return getUserByLoginName(loginName);
   }
 
   public JSONObject updateUserByWrapper(User user, LambdaUpdateWrapper<User> wrapper) {
@@ -155,11 +167,11 @@ public class UserService {
    *         user ID, first name, last name, full name, email, and language,
    *         or an error message if the user is not found
    */
-  public JSONObject getProfile(String login_name) {
-    User user = getUserByLoginName(login_name);
+  public JSONObject getProfileByAuth(String auth) {
+    User user = getUserByAuth(auth);
 
     if (user == null) {
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found.");
+      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when get profile.");
     }
 
     JSONObject profile = new JSONObject();

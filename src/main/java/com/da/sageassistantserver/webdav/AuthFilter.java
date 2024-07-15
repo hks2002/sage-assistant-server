@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-04 09:39:40                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-11 09:32:05                              *
+ * @LastEditDate          : 2024-07-15 09:05:53                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -47,6 +47,15 @@ public class AuthFilter extends OncePerRequestFilter {
     LogService logService;
 
     final List<String> modifiableMethods = Arrays.asList("PUT", "POST", "PROPPATCH", "MKCOL", "MOVE");
+
+    @Override
+    protected boolean shouldNotFilter(@SuppressWarnings("null") HttpServletRequest request) throws ServletException {
+        return request.getRequestURI().startsWith("/Data/Login") ||
+                request.getRequestURI().startsWith("/Data/Logout") ||
+                request.getRequestURI().startsWith("/Data/Analyses")
+                        ? true
+                        : false;
+    }
 
     @Override
     protected void doFilterInternal(@SuppressWarnings("null") HttpServletRequest request,
@@ -115,11 +124,6 @@ public class AuthFilter extends OncePerRequestFilter {
             // auth by Sage User
             JSONObject loginResult = SageLoginService.doLogin(authorization);
             if (loginResult.getBoolean("success")) {
-                // ignore cache login log, message is "Cache login success"
-                if (loginResult.getString("msg").equals("Login success")) {
-                    logService.addLog("LOGIN_SUCCESS", loginName);
-                }
-
                 User user = userService.getUserByLoginName(loginName);
                 if (user == null) {
                     JSONObject profileResult = SageLoginService.getProfile(authorization);
@@ -135,6 +139,14 @@ public class AuthFilter extends OncePerRequestFilter {
                 } else {
                     session.setAttribute("loginUser", user.getFirst_name() + " " + user.getLast_name());
                 }
+
+                // ignore cache login log, message is "Cache login success"
+                if (loginResult.getString("msg").equals("Login success")) {
+                    String userName = (String) session.getAttribute("loginUser");
+                    String remoteIP = getTrueRemoteIp(httpReq);
+                    logService.addLog("LOGIN_SUCCESS", loginName, userName, null, remoteIP);
+                }
+
                 setBusinessPartner(httpReq, httpRes);
                 return authByPath(httpReq, httpRes);
             }

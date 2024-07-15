@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2024-06-02 17:50:39                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-06-07 23:42:14                               *
+ * @LastEditDate          : 2024-07-14 15:27:08                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -20,7 +20,5 @@ import com.da.sageassistantserver.model.UserFunc;
 @Mapper
 @DS("slave")
 public interface UserFuncMapper extends BaseMapper<UserFunc> {
-    List<String> findSageActionsByAuth(@Param("Auth") String Auth);
-
     List<String> findSageActionsBySid(@Param("Sid") String Sid);
 }

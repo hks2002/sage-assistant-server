@@ -3,23 +3,12 @@
 
 <mapper namespace="com.da.sageassistantserver.dao.UserFuncMapper">
 	<!--Open L2 Cache under Names pace: 1 Hour-->
-	<cache eviction="LRU" flushInterval="3600000" readOnly="true" size="102400"/>
-	<select id="findSageActionsByAuth" resultType="java.lang.String">
-		SELECT DISTINCT
-			user_func.func_details 
-		FROM user 
-		INNER JOIN user_func
-		ON user.id = user_func.user_id
-			AND user.auth = #{Auth}
-			AND user_func.enable = true
-			AND user_func.func_system = 'SAGE'			  
-		    AND user_func.func_code = 'ACTIONS'
-	</select>
+	<cache eviction="LRU" flushInterval="3600000" readOnly="true" size="1024"/>
 	<select id="findSageActionsBySid" resultType="java.lang.String">
-		SELECT DISTINCT
+		SELECT DISTINCT 
 			user_func.func_details 
 		FROM user_func
-		WHERE user_func.user_id = #{Sid}
+		WHERE user_func.sage_id = #{Sid}
 		      AND user_func.func_system = 'SAGE'			  
 		      AND user_func.func_code = 'ACTIONS'
 	</select>

@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-06 12:40:24                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-06-08 01:53:41                              *
+ * @LastEditDate          : 2024-07-14 11:47:41                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -33,6 +33,10 @@ public class AsyncFutureTest {
             return null;
         });
         Thread.sleep(3000);
+
+        CompletableFuture.runAsync(() -> {
+            log.info("Run third");
+        });
     }
 
 }

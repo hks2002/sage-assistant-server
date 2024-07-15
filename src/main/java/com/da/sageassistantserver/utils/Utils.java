@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-10 15:42:04                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-05 17:48:49                               *
+ * @LastEditDate          : 2024-07-14 15:30:40                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -83,6 +83,12 @@ public class Utils {
     }
   }
 
+  /**
+   * Convert a list of strings to a string separated by semicolons.
+   * 
+   * @param list
+   * @return
+   */
   public static String ListToString(List<String> list) {
     StringBuilder sb = new StringBuilder();
     for (String s : list) {

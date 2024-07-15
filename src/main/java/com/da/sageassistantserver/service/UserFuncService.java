@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2024-06-02 21:34:24                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-02 15:01:11                               *
+ * @LastEditDate          : 2024-07-15 11:12:43                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -19,7 +19,6 @@ import com.alibaba.fastjson2.JSONObject;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.da.sageassistantserver.dao.UserFuncMapper;
-import com.da.sageassistantserver.dao.UserMapper;
 import com.da.sageassistantserver.model.User;
 import com.da.sageassistantserver.model.UserFunc;
 import com.da.sageassistantserver.utils.SageActionHelper;
@@ -32,7 +31,7 @@ public class UserFuncService {
   UserFuncMapper userFuncMapper;
 
   @Autowired
-  UserMapper userMapper;
+  UserService userService;
 
   /**
    * Adds a new user function to the database and returns a JSONObject indicating
@@ -72,12 +71,10 @@ public class UserFuncService {
    */
   public JSONObject addUserFuncBySid(String sage_id, String func_system, String func_code, String func_name,
       String func_details, Boolean enable) {
-    LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-    queryWrapper.eq(User::getSage_id, sage_id);
-    User user = userMapper.selectOne(queryWrapper);
+    User user = userService.getUserBySid(sage_id);
 
     if (user == null) {
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found.");
+      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when add user func by sid.");
     }
 
     UserFunc userFunc = new UserFunc();
@@ -105,12 +102,10 @@ public class UserFuncService {
    */
   public JSONObject addUserFuncByUid(Long id, String func_system, String func_code, String func_name,
       String func_details, Boolean enable) {
-    LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-    queryWrapper.eq(User::getId, id);
-    User user = userMapper.selectOne(queryWrapper);
+    User user = userService.getUserByUid(id);
 
     if (user == null) {
-      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found.");
+      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when add user func by uid.");
     }
 
     UserFunc userFunc = new UserFunc();
@@ -175,7 +170,27 @@ public class UserFuncService {
     userFunc.setFunc_details(functions);
     userFunc.setFunc_name("functions in sage");
     userFunc.setEnable(true);
+
     return updateUserFunc(userFunc, updateWrapper);
+  }
+
+  public JSONObject updateSageActionsByAuth(String auth, String functions) {
+    User user = userService.getUserByAuth(auth);
+
+    if (user == null) {
+      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when update Sage actions.");
+    }
+
+    String sid = user.getSage_id();
+    LambdaQueryWrapper<UserFunc> queryWrapper2 = new LambdaQueryWrapper<>();
+    queryWrapper2.eq(UserFunc::getSage_id, sid);
+    UserFunc userFunc2 = userFuncMapper.selectOne(queryWrapper2);
+
+    if (userFunc2 == null) {
+      return addUserFuncBySid(sid, "SAGE", "ACTIONS", "functions in sage", functions, true);
+    }
+
+    return updateSageActionsBySid(sid, functions);
   }
 
   /**
@@ -186,11 +201,13 @@ public class UserFuncService {
    *         of functions
    */
   public JSONObject getSageActionsByAuth(String auth) {
-    List<String> functions = userFuncMapper.findSageActionsByAuth(auth);
+    User user = userService.getUserByAuth(auth);
 
-    JSONObject rtn = SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
-    rtn.put("functions", functions.toArray());
-    return rtn;
+    if (user == null) {
+      return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "User not found when get Sage actions.");
+    }
+
+    return getSageActionsBySid(user.getSage_id());
   }
 
   /**
@@ -200,17 +217,20 @@ public class UserFuncService {
    * @return a JSON object containing the list of functions
    */
   public JSONObject getSageActionsBySid(String sid) {
-    List<String> functions = userFuncMapper.findSageActionsBySid(sid);
+    List<String> functionsList = userFuncMapper.findSageActionsBySid(sid);
+    String[] functions = Utils.ListToString(functionsList).split(";");
+    List<String> finalFunctions = new ArrayList<>();
+    for (int i = 0; i < functions.length; i++) {
+      finalFunctions.add(functions[i]);
+    }
 
     JSONObject rtn = SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
-    rtn.put("functions", Utils.ListToString(functions));
+    rtn.put("functions", finalFunctions);
     return rtn;
   }
 
   public List<UserFunc> getWebDavAccess(String login_name) {
-    LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-    queryWrapper.eq(User::getLogin_name, login_name);
-    User user = userMapper.selectOne(queryWrapper);
+    User user = userService.getUserByLoginName(login_name);
 
     if (user == null) {
       return new ArrayList<>();
@@ -223,9 +243,7 @@ public class UserFuncService {
   }
 
   public boolean initWebDavAccessByLoginName(String login_name) {
-    LambdaQueryWrapper<User> queryWrapper = new LambdaQueryWrapper<>();
-    queryWrapper.eq(User::getLogin_name, login_name);
-    User user = userMapper.selectOne(queryWrapper);
+    User user = userService.getUserByLoginName(login_name);
 
     if (user == null) {
       return false;
