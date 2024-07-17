@@ -2,11 +2,13 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-09-21 09:17:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2023-11-17 13:08:21                               *
+ * @LastEditDate          : 2024-07-16 09:31:45                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
 package com.da.sageassistantserver.model;
+
+import java.sql.Date;
 
 import lombok.Data;
 
@@ -17,9 +19,11 @@ public class SuspectDuplicatedRA {
     private String PN;
     private String ReceiptNO;
     private String ReceiptLine;
+    private Date ReceiptDate;
     private String Receiptor;
     private String PurchaseNO;
     private String PurchaseLine;
+    private Date PurchaseDate;
     private String Purchaser;
     private Integer ReceiptQty;
     private Float ReceiptAmount;
