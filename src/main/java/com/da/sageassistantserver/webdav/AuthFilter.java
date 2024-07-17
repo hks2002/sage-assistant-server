@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-04 09:39:40                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-15 09:05:53                              *
+ * @LastEditDate          : 2024-07-17 14:58:47                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -52,7 +52,8 @@ public class AuthFilter extends OncePerRequestFilter {
     protected boolean shouldNotFilter(@SuppressWarnings("null") HttpServletRequest request) throws ServletException {
         return request.getRequestURI().startsWith("/Data/Login") ||
                 request.getRequestURI().startsWith("/Data/Logout") ||
-                request.getRequestURI().startsWith("/Data/Analyses")
+                request.getRequestURI().startsWith("/Data/Analyses") ||
+                request.getRequestURI().startsWith("/Data/ReportFile")
                         ? true
                         : false;
     }

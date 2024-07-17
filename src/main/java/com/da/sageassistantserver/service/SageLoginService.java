@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-11-23 20:45:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-15 12:37:54                               *
+ * @LastEditDate          : 2024-07-17 13:29:19                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -128,7 +128,7 @@ public class SageLoginService {
       // with trans
       else {
         String select = SageActionHelper.popSel("B", "bA", 0, trans);
-        JSONObject rtn2 = SageActionService.doSageAct(auth, function, trans, sessionId, select, null);
+        JSONObject rtn2 = SageActionService.doSageAct(auth, sessionId, select, null);
 
         if (rtn2.getBoolean("success")) {
           rtn = SageActionHelper.rtnObj(true, MsgTyp.RESULT, "Session and trans Success");
@@ -142,7 +142,7 @@ public class SageLoginService {
           // ❗❗❗❗❗ Some times Sage Server will return bad content, it doesn't contains
           // recorder
           try {
-            String rcdNO = json2.getJSONObject("sap")
+            String defaultRcdNO = json2.getJSONObject("sap")
                 .getJSONObject("wins")
                 .getJSONObject("B")
                 .getJSONObject("entities")
@@ -150,7 +150,7 @@ public class SageLoginService {
                 .getString("v");
 
             rtn.put("xid", xid);
-            rtn.put("rcdNO", rcdNO);
+            rtn.put("defaultRcdNO", defaultRcdNO);
             return rtn;
           } catch (Exception e) {
             return SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Session and trans Failed");

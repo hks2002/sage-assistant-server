@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-02-19 20:31:38                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-15 09:35:08                               *
+ * @LastEditDate          : 2024-07-17 12:36:22                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -37,7 +37,8 @@ public class SageActionHelper {
     }
 
     public enum Action {
-        SELECT_LIST(1052),
+        SELECT(1051),
+        SELECT_POP(1052),
         SEARCH(782),
         ENTER_PRINT_PAGE(2820),
         PRINT(2125),
@@ -61,7 +62,7 @@ public class SageActionHelper {
         }
     }
 
-    static HashMap<String, String> rptMap = new HashMap<String, String>() {
+    static HashMap<String, String> funMap = new HashMap<String, String>() {
         {
             put("SalesOrder", "GESSOH");
             put("Delivery", "GESSDH");
@@ -84,49 +85,41 @@ public class SageActionHelper {
     }
 
     /**
-     * Set target data
+     * Set target data, then Tab
      */
-    public static String set(String win, String xid, Integer nl, String val) {
+    public static String tabSet(String win, String xid, Integer nl, String val) {
         return String.format(
                 """
                         {
                             "act":%d,
                             "fld":{
-                                    "st":{"win":"%s","xid":"%s","nl":%d},
+                                    "ist":{"win":"%s","xid":"%s","nl":%d},
                                     "fmtKind":"EDIT","ctx":{},
                                     "notModified":false,"v":"%s"
                             },
                             "tech":{}
                         }
                         """,
-                Action.INPUT_TAB.value,
-                win,
-                xid,
-                nl,
-                val);
+                Action.INPUT_TAB.value, win, xid, nl, val, win, xid, nl);
     }
 
     /**
-     * Set target data
+     * Set target data, then tab
      */
-    public static String set(String win, String xid, Integer nl, Integer val) {
+    public static String tabSet(String win, String xid, Integer nl, Integer val) {
         return String.format(
                 """
                         {
                             "act":%d,
                             "fld":{
-                                    "st":{"win":"%s","xid":"%s","nl":%d},
+                                    "ist":{"win":"%s","xid":"%s","nl":%d},
                                     "fmtKind":"EDIT","ctx":{},
                                     "notModified":false,"v":%d
                             },
                             "tech":{}
                         }
                         """,
-                Action.INPUT_TAB.value,
-                win,
-                xid,
-                nl,
-                val);
+                Action.INPUT_TAB.value, win, xid, nl, val);
     }
 
     /**
@@ -138,18 +131,14 @@ public class SageActionHelper {
                         {
                             "act":%d,
                             "fld":{
-                                    "st":{"win":"%s","xid":"%s","nl":%d},
+                                    "ist":{"win":"%s","xid":"%s","nl":%d},
                                     "fmtKind":"EDIT","ctx":{},
                                     "notModified":false,"v":"%s"
                             },
                             "tech":{}
                         }
                         """,
-                Action.SAVE.value,
-                win,
-                xid,
-                nl,
-                val);
+                Action.SAVE.value, win, xid, nl, val);
     }
 
     /**
@@ -161,25 +150,20 @@ public class SageActionHelper {
                         {
                             "act":%d,
                             "fld":{
-                                    "st":{"win":"%s","xid":"%s","nl":%d},
+                                    "ist":{"win":"%s","xid":"%s","nl":%d},
                                     "fmtKind":"EDIT","ctx":{},
                                     "notModified":false,"v":%d
                             },
                             "tech":{}
                         }
                         """,
-                Action.SAVE.value,
-                win,
-                xid,
-                nl,
-                val);
+                Action.SAVE.value, win, xid, nl, val);
     }
 
     /**
      * Select pop list target
      */
     public static String popSel(String win, String xid, Integer nl, String val) {
-        // ACT.SELECT_LIST 1052, std: ["2~2"] without input
         // ACT.SEARCH 782, sudo: [["v1","v2"],null]
         String s = """
                 {
@@ -192,18 +176,24 @@ public class SageActionHelper {
                 }
                 """;
 
-        return String.format(s, Action.SELECT_LIST.value, win, xid, nl, val);
+        return String.format(s, Action.SELECT_POP.value, win, xid, nl, val);
     }
 
     /**
-     * Search list target
+     * Search list target, then select
      */
-    public static String searchSel(String win, String xid, Integer nl, String val) {
-        // ACT.SELECT_LIST 1052, std: ["2~2"] without input
+    public static String search(String win, String xid, Integer nl, String val) {
         // ACT.SEARCH 782, sudo: [["v1","v2"],null]
         String s = """
                 {
                     "act":%d,
+                    "fld": {
+                        "ist":{"win":"%s","xid":"%s","nl":%d},
+                        "fmtKind":"SHOW",
+                        "ctx":{},
+                        "notModified":false,
+                        "v":""
+                    },
                     "param":{
                         "target":{"win":"%s","xid":"%s","nl":%d},
                         "sudo":[["%s"],null]
@@ -211,8 +201,45 @@ public class SageActionHelper {
                     "tech":{}
                 }
                 """;
+        return String.format(s, Action.SEARCH.value, win, xid, nl, win, xid, nl, val);
+    }
 
-        return String.format(s, Action.SEARCH.value, win, xid, nl, val);
+    /**
+     * Select value after search
+     */
+    public static String searchSelect(String win, String xid, Integer nl, String val) {
+        // ACT.SELECT 1051, sudo: [["v1","v2"],null]
+        String s = """
+                {
+                    "act":%d,
+                    "param":{
+                        "target":{"win":"%s","xid":"%s","nl":%d},
+                        "std":["7~%s"]
+                    },
+                    "tech":{}
+                }
+                """;
+
+        return String.format(s, Action.SELECT.value, win, xid, nl, val);
+    }
+
+    /**
+     * Directly select value without search
+     */
+    public static String select(String win, String xid, Integer nl, String val) {
+        // ACT.SELECT 1051, sudo: [["v1","v2"],null]
+        String s = """
+                {
+                    "act":%d,
+                    "param":{
+                        "target":{"win":"%s","xid":"%s","nl":%d},
+                        "sudo": [[], ["7~%s"]]
+                    },
+                    "tech":{}
+                }
+                """;
+
+        return String.format(s, Action.SELECT.value, win, xid, nl, val);
     }
 
     public static String goTo(String win, String xid, Integer nl) {
@@ -252,7 +279,7 @@ public class SageActionHelper {
     }
 
     public static String getFunction(String name) {
-        return rptMap.get(name);
+        return funMap.get(name);
     }
 
     public static String getSalesOrderTransaction(String orderNO) {

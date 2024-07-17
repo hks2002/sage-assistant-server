@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-16 17:14:44                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-06-07 17:11:46                               *
+ * @LastEditDate          : 2024-07-17 14:29:39                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -10,30 +10,16 @@ package com.da.sageassistantserver.service;
 
 import java.util.concurrent.ExecutionException;
 
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import com.da.sageassistantserver.utils.Utils;
+import com.alibaba.fastjson2.JSONObject;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SageServiceTest {
 
-    private static String auth;
-
-    @BeforeAll
-    public static void loadAuth() {
-        auth = Utils.readFileContent("auth.txt");
-        log.info(auth);
-    }
-
-    @AfterEach
-    public void tearDown() {
-        log.info("do logout for each");
-        SageLoginService.doLogout(auth);
-    }
+    private String auth;
 
     @Test
     void testDoLogin() {
@@ -77,5 +63,13 @@ public class SageServiceTest {
         // SAD: EA55
         SageActionService.updateSageField(auth, "SalesOrder", "ZCC220007", 8, "EA55", "1");
         SageLoginService.doLogout(auth);
+    }
+
+    @Test
+    void testPrintUUID() throws ExecutionException {
+        auth = "Basic cmh1YW5nOkRhekAyMDIyMDMwOA==";
+        JSONObject rtn = SagePrintService.getPrintUUID(auth, "PurchaseOrder", "ZCF2400543",
+                null);
+        log.debug(rtn.toString());
     }
 }

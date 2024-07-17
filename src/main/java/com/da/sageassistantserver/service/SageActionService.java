@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-11-23 20:45:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-06-07 18:54:40                               *
+ * @LastEditDate          : 2024-07-17 13:45:09                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -11,6 +11,7 @@ package com.da.sageassistantserver.service;
 import java.net.http.HttpResponse;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import org.springframework.stereotype.Service;
 
@@ -46,21 +47,20 @@ public class SageActionService {
     public static JSONObject getTrackingResponse(String auth, String location) {
         log.debug(location);
 
-        // Sleep 0.5 seconds
+        // Sleep 2 seconds
         try {
-            Thread.sleep(1000);
+            Thread.sleep(2000);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
         String html = HttpService.request("https://192.168.10.62" + location, "GET", null, auth).body();
+
         JSONObject json = JSONObject.parseObject(html);
         return isPerformanceLow(json) ? getTrackingResponse(auth, location) : json;
     }
 
     public static JSONObject doSageAct(
             String auth,
-            String function,
-            String trans,
             String session,
             String data,
             String preTacking) {
@@ -84,8 +84,8 @@ public class SageActionService {
             json = getTrackingResponse(auth, location);
         }
 
-        JSONObject sap = json.getJSONObject("sap");
-        JSONObject target = sap != null ? sap.getJSONObject("target") : null;
+        JSONObject sap = Optional.ofNullable(json.getJSONObject("sap")).orElse(new JSONObject());
+        JSONObject target = sap.getJSONObject("target");
 
         JSONObject rtn = new JSONObject();
 
@@ -97,6 +97,7 @@ public class SageActionService {
                     // ist means success, without pop window
                     rtn = SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
                     rtn.put("result", Optional.ofNullable(json).orElse(new JSONObject()).toJSONString());
+
                     break;
                 case "box":
                     JSONObject box = target.getJSONObject("box");
@@ -150,20 +151,27 @@ public class SageActionService {
         return rtn;
     }
 
-    public static JSONObject updateSageField(
+    /**
+     * After go to recorder, get session id and xid and default value of recorder
+     * <p>
+     * get SessionId, xid, defaultRcdNO
+     * 
+     * @param auth
+     * @param rcdType
+     * @param rcdNO
+     * @return
+     */
+    public static JSONObject goToRecorder(
             String auth,
-            String targetMain,
-            String targetMainNO,
-            Integer modLine,
-            String targetSub,
-            String targetSubVal) {
-        String function = SageActionHelper.getFunction(targetMain);
+            String rcdType,
+            String rcdNO) {
+        String function = SageActionHelper.getFunction(rcdType);
 
         // trans
         String trans = switch (function) {
-            case "GESSOH" -> SageActionHelper.getSalesOrderTransaction(targetMainNO);
-            case "GESSIH" -> SageActionHelper.getInvoiceTransaction(targetMainNO);
-            case "GESPOH" -> SageActionHelper.getPurchaseTransaction(targetMainNO);
+            case "GESSOH" -> SageActionHelper.getSalesOrderTransaction(rcdNO);
+            case "GESSIH" -> SageActionHelper.getInvoiceTransaction(rcdNO);
+            case "GESPOH" -> SageActionHelper.getPurchaseTransaction(rcdNO);
             default -> "";
         };
 
@@ -174,30 +182,50 @@ public class SageActionService {
         }
 
         String sessionId = session.getString("SessionId");
-        String targetMainField = session.getString("xid");
-        String rcdNO = session.getString("rcdNO");
+        String xid = session.getString("xid"); // xid is the default focus field after go into function
+        String defaultRcdNO = session.getString("defaultRcdNO");
 
-        // step one: go to target recorder
         log.debug("go to target recorder >>>");
         JSONObject rtn = SageActionService.doSageAct(
                 auth,
-                function,
-                trans,
                 sessionId,
-                SageActionHelper.set("B", targetMainField, 0, targetMainNO),
+                SageActionHelper.tabSet("B", xid, 0, rcdNO),
                 null);
         if (!rtn.getBooleanValue("success")) {
             if (rtn.getString("msgTyp").equals("WARN")) {
                 // rewrite message, original message is ""
                 rtn.put("msg", "Recorder not found");
             }
-            return rtn;
         }
         log.debug("go to target recorder <<<");
 
+        // add sessionId and xid
+        rtn.put("SessionId", sessionId);
+        rtn.put("xid", xid);
+        rtn.put("defaultRcdNO", defaultRcdNO);
+        return rtn;
+    }
+
+    public static JSONObject updateSageField(
+            String auth,
+            String rcdType,
+            String rcdNO,
+            Integer modLine,
+            String targetSub,
+            String targetSubVal) {
+
+        // step one: go to recorder
+        JSONObject rtn = goToRecorder(auth, rcdType, rcdNO);
+        String sessionId = rtn.getString("SessionId");
+        String xid = rtn.getString("xid");
+        String defaultRcdNO = rtn.getString("defaultRcdNO");
+        if (!rtn.getBooleanValue("success")) {
+            return rtn;
+        }
+
         // step two: try to edit
         log.debug("edit model >>>");
-        rtn = SageActionService.doSageAct(auth, function, trans, sessionId,
+        rtn = SageActionService.doSageAct(auth, sessionId,
                 SageActionHelper.goTo("B", targetSub, modLine), null);
         if (!rtn.getBooleanValue("success")) {
             return rtn;
@@ -207,7 +235,7 @@ public class SageActionService {
         // step three: always no revise
         if (rtn.getBooleanValue("success") && rtn.getString("msgTyp").equals("QUESTION")) {
             log.debug("always no revise >>>");
-            rtn = SageActionService.doSageAct(auth, function, trans, sessionId, SageActionHelper.noRevise(), null);
+            rtn = SageActionService.doSageAct(auth, sessionId, SageActionHelper.noRevise(), null);
             log.debug("always no revise <<<");
         }
 
@@ -226,16 +254,12 @@ public class SageActionService {
             if (iVal > 0 && iVal < 10) {
                 rtn = SageActionService.doSageAct(
                         auth,
-                        function,
-                        trans,
                         sessionId,
                         SageActionHelper.save("B", targetSub, modLine, iVal),
                         null);
             } else {
                 rtn = SageActionService.doSageAct(
                         auth,
-                        function,
-                        trans,
                         sessionId,
                         SageActionHelper.save("B", targetSub, modLine, targetSubVal),
                         null);
@@ -245,10 +269,12 @@ public class SageActionService {
 
         // Finally, we goto the default record, here could not await, make response time
         // less to user
-        log.debug("goto the default record >>>");
-        SageActionService.doSageAct(auth, function, trans, sessionId,
-                SageActionHelper.set("B", targetMainField, 0, rcdNO), null);
-        log.debug("goto the default record <<<");
+        CompletableFuture.runAsync(() -> {
+            log.debug("goto the default record >>>");
+            SageActionService.doSageAct(auth, sessionId,
+                    SageActionHelper.tabSet("B", xid, 0, defaultRcdNO), null);
+            log.debug("goto the default record <<<");
+        });
 
         // return
         return rtn;

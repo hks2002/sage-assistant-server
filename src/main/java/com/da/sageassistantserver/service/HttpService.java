@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2022-03-26 17:57:07                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-02 20:59:31                              *
+ * @LastEditDate          : 2024-07-17 00:22:43                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -120,6 +120,7 @@ public class HttpService {
                     reqBuilder.header("Cookie", cache.getIfPresent(auth));
                 }
             }
+            log.debug("data:{}", data);
 
             switch (method) {
                 case "GET":
@@ -159,7 +160,7 @@ public class HttpService {
             if (!Utils.isNullOrEmpty(auth)) {
                 String cookieStr = String.join(";", cookieCache);
                 cache.put(auth, cookieStr);
-                log.debug(cookieStr);
+                log.debug("cookie:{}", cookieStr);
 
                 // save last cookie, for request need login
                 cache.put("LastCookie", cookieStr);

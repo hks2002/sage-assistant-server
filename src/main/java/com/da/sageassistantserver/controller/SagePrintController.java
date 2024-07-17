@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-25 15:19:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-02 21:09:43                               *
+ * @LastEditDate          : 2024-07-17 14:53:10                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -22,7 +22,6 @@ import com.alibaba.fastjson2.JSONObject;
 import com.da.sageassistantserver.service.HttpService;
 import com.da.sageassistantserver.service.SagePrintService;
 import com.da.sageassistantserver.utils.SageActionHelper;
-import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;
 
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -34,22 +33,22 @@ public class SagePrintController {
     @PostMapping("/Data/PrintUUID")
     public JSONObject getPrintUUID(
             @RequestHeader(value = "authorization", required = false) String Auth,
-            @RequestParam(value = "Report", required = false) String Report,
+            @RequestParam(value = "ReportType", required = false) String ReportType,
             @RequestParam(value = "ReportNO", required = false) String ReportNO,
             @RequestParam(value = "Opt", required = false, defaultValue = "") String Opt) {
         if (Auth == null) {
             return SageActionHelper.missingAuth();
         }
 
-        if (SageActionHelper.getFunction(Report) == null) {
-            return SageActionHelper.rtnObj(false, MsgTyp.WARN, "Report is not supported.");
+        if (ReportType == null) {
+            return SageActionHelper.paraRequired("Report");
         }
 
         if (ReportNO == null) {
             return SageActionHelper.paraRequired("ReportNO");
         }
 
-        return SagePrintService.getPrintUUID(Auth, Report, ReportNO, Opt);
+        return SagePrintService.getPrintUUID(Auth, ReportType, ReportNO, Opt);
     }
 
     @PostMapping("/Data/ReportUUID")
