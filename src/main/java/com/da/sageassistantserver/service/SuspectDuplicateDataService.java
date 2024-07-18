@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-03-26 17:57:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2023-11-17 13:06:21                               *
+ * @LastEditDate          : 2024-07-19 01:15:52                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -23,14 +23,14 @@ public class SuspectDuplicateDataService {
     @Autowired
     private SuspectDuplicateDataMapper dirtyDataMapper;
 
-    public List<SuspectDuplicatedPO> findDuplicatedPOBySite(String Site, String DateFrom, String OnlyForSales) {
-        List<SuspectDuplicatedPO> listPage = dirtyDataMapper.findDuplicatedPOBySite(Site, DateFrom, OnlyForSales);
+    public List<SuspectDuplicatedPO> findDuplicatedPOBySite(String Site, String DateFrom) {
+        List<SuspectDuplicatedPO> listPage = dirtyDataMapper.findDuplicatedPOBySite(Site, DateFrom);
 
         return listPage;
     }
 
-    public List<SuspectDuplicatedRA> findDuplicatedRABySite(String Site, String DateFrom, String OnlyForSales) {
-        List<SuspectDuplicatedRA> listPage = dirtyDataMapper.findDuplicatedRABySite(Site, DateFrom, OnlyForSales);
+    public List<SuspectDuplicatedRA> findDuplicatedRABySite(String Site, String DateFrom) {
+        List<SuspectDuplicatedRA> listPage = dirtyDataMapper.findDuplicatedRABySite(Site, DateFrom);
 
         return listPage;
     }

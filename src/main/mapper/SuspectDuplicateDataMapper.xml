@@ -5,124 +5,265 @@
     <!--Open L2 Cache under Names pace: 10 Min-->
     <cache eviction="LRU" flushInterval="600000" readOnly="true" size="512" />
     <select id="findDuplicatedPOBySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedPO">
-		WITH T1 AS ( SELECT DISTINCT
-			PORDERP.PJT_0,
-			PORDERP.ITMREF_0,
+    WITH
+    T0 AS (
+        SELECT
+        PORDERP.PJT_0,
+        PORDERP.ITMREF_0,
+        DENSE_RANK() OVER (PARTITION BY PRECEIPTD.PJT_0, PRECEIPTD.ITMREF_0 ORDER BY PRECEIPTD.ROWID) AS SEQ
+        FROM
+        EXPLOIT.PORDERP AS PORDERP
+        WHERE
+        PORDERP.PRHFCY_0 = #{Site}
+        AND RIGHT(PORDERP.PJT_0, 4)!= '0001'
+        AND RIGHT(PORDERP.PJT_0, 8) != 'ZLOGISTIC'
+        AND PORDERP.PJT_0 != 'TQUALITE'
+        ---FACHDIV0001:   PURCHASE VARIOUS
+        ---FACHTRADRTD:   INBOUND CUSTOM FEES
+        ---FVENTRAAUT:    OUTBOUND SHIPMENT FEES
+        ---FACHTRAAUT:    INBOUND SHIPMENT FEES
+        AND PORDERP.ITMREF_0 NOT IN ('FACHDIV0001', 'FACHTRADRTD', 'FVENTRAAUT','FACHTRAAUT')
+    ),
+    T1 AS (
+        SELECT DISTINCT 
+          T0.PJT_0,
+          T0.ITMREF_0
+        FROM
+          T0
+        WHERE
+          T0.SEQ > 1
+    ),
+    T2 AS ( 
+        SELECT DISTINCT
+            PORDERP.PJT_0,
+            PORDERP.ITMREF_0,
             PORDERP.POHNUM_0,
             PORDERP.POPLIN_0,
             PORDERP.CREDAT_0,
             PORDERQ.QTYSTU_0,
+            PORDERQ.LINATIAMT_0,      
+            PORDERQ.NETCUR_0,
             PORDERP.CREUSR_0,
-			DENSE_RANK() OVER (PARTITION BY PORDERP.ITMREF_0, PORDERP.PJT_0 ORDER BY PORDERP.ROWID ) AS SEQ,
+            DENSE_RANK() OVER (PARTITION BY PORDERP.PJT_0, PORDERP.ITMREF_0 ORDER BY PORDERP.ROWID ) AS SEQ,
             SUM(PORDERQ.QTYSTU_0) OVER (PARTITION BY PORDERP.ITMREF_0, PORDERP.PJT_0 ) AS PQTY,
-            ISNULL(SORDERQ.QTYSTU_0,0) AS SQTY
-		FROM  EXPLOIT.PORDERP AS PORDERP
-			INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
-				ON PORDERP.POHNUM_0=PORDERQ.POHNUM_0
-					AND PORDERP.POPLIN_0=PORDERQ.POPLIN_0
-            LEFT JOIN EXPLOIT.SORDERQ SORDERQ
-                ON  ( SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = PORDERP.PJT_0)
-				    AND LEFT(SORDERQ.SALFCY_0,1) = LEFT(PORDERP.PJT_0,1)
-		WHERE RIGHT(PORDERP.PJT_0,4)!='0001' 
-			AND RIGHT(PORDERP.PJT_0,8) != 'ZLOGISTIC'
-			AND PORDERP.PJT_0 !='TQUALITE'
-			-- FACHDIV0001:   PURCHASE VARIOUS
-			---FACHTRADRTD:   INBOUND CUSTOM FEES
-			---FVENTRAAUT:    OUTBOUND SHIPMENT FEES
-			---FACHTRAAUT:    INBOUND SHIPMENT FEES
-			AND PORDERP.ITMREF_0 NOT IN ('FACHDIV0001', 'FACHTRADRTD','FVENTRAAUT' ,'FACHTRAAUT')
-			AND PORDERP.PRHFCY_0 = #{Site}
-			AND PORDERP.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
-	)
+            SORDERQ.QTYSTU_0 AS SQTY
+        FROM  T1
+        INNER JOIN EXPLOIT.PORDERP AS PORDERP
+            ON T1.PJT_0 = PORDERP.PJT_0
+            AND T1.ITMREF_0 = PORDERP.ITMREF_0
+        INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+            ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+            AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+        INNER JOIN EXPLOIT.SORDERQ SORDERQ
+            ON (SORDERQ.YSOH_PJT_0 = T1.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = T1.PJT_0)
+        WHERE
+            PORDERP.PRHFCY_0 = #{Site}        
+        AND PORDERP.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
+        AND PORDERQ.PRHFCY_0 = #{Site}
+        AND SORDERQ.SALFCY_0 = #{Site}
+    ),
+    T3 AS ( 
+        SELECT DISTINCT
+            PORDERP.PJT_0,
+            PORDERP.ITMREF_0,
+            PORDERP.POHNUM_0,
+            PORDERP.POPLIN_0,
+            PORDERP.CREDAT_0,
+            PORDERQ.QTYSTU_0,
+            PORDERQ.LINATIAMT_0,
+            PORDERQ.NETCUR_0,
+            PORDERP.CREUSR_0,
+            DENSE_RANK() OVER (PARTITION BY PORDERP.PJT_0, PORDERP.ITMREF_0 ORDER BY PORDERP.ROWID ) AS SEQ,
+            SUM(PORDERQ.QTYSTU_0) OVER (PARTITION BY PORDERP.ITMREF_0, PORDERP.PJT_0 ) AS PQTY,
+            0 AS SQTY
+        FROM  T1
+        INNER JOIN EXPLOIT.PORDERP AS PORDERP
+            ON T1.PJT_0 = PORDERP.PJT_0
+            AND T1.ITMREF_0 = PORDERP.ITMREF_0
+        INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+            ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+            AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+        WHERE
+            PORDERP.PRHFCY_0 = #{Site}
+        AND PORDERQ.PRHFCY_0 = #{Site}
+        AND PORDERP.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
+        AND (
+            SUBSTRING(PORDERP.PJT_0,6,1) = '-'              --- ProjectNO is not Sales projectno
+            OR SUBSTRING(PORDERP.PJT_0,7,1) = '-'
+            OR SUBSTRING(PORDERP.PJT_0,8,1) = '-'
+            )
+    )
+    
+    SELECT
+        T2.PJT_0 AS ProjectNO,
+        T2.ITMREF_0 AS PN,
+        T2.POHNUM_0 AS PurchaseNO,
+        T2.POPLIN_0 AS PurchaseLine,
+        T2.QTYSTU_0 AS PurchaseQty,
+        T2.LINATIAMT_0 AS Cost,      
+        T2.NETCUR_0 AS Currency,
+        T2.CREDAT_0 AS PurchaseDate,
+        T2.PQTY AS TotalPurchaseQty,
+        T2.SQTY  AS TotalSalesQty,
+        T2.CREUSR_0 AS Purchaser,
+        T2.SEQ AS Seq
+    FROM
+        T2
 
-	SELECT  DISTINCT
-			T1.PJT_0 AS ProjectNO,
-			T1.ITMREF_0 AS PN,
-			T1.POHNUM_0 AS PurchaseNO, 
-            T1.CREDAT_0 AS PurchaseDate,
-			T1.POPLIN_0 AS PurchaseLine,
-            T1.QTYSTU_0 AS PurchaseQty,
-			T1.PQTY AS TotalPurchaseQty,
-            T1.SQTY AS TotalSalesQty,			
-		    T1.CREUSR_0 AS Purchaser,
-            T1.SEQ AS Seq
-	FROM T1 
-			INNER JOIN T1 AS T2
-			ON T1.PJT_0 = T2.PJT_0
-                AND T1.ITMREF_0 = T2.ITMREF_0
-				AND T2.SEQ >1 AND T2.PQTY > T2.SQTY
-        <if test='OnlyForSales != null and OnlyForSales == "Y"'>
-                -- this filter no order qty line, order qty line is 0
-                AND T2.SQTY > 0
-        </if>
-	ORDER BY T1.PJT_0 ASC, 
-			T1.ITMREF_0 ASC,
-			T1.POHNUM_0 ASC
+    UNION
+
+    SELECT
+        T3.PJT_0 AS ProjectNO,
+        T3.ITMREF_0 AS PN,
+        T3.POHNUM_0 AS PurchaseNO,
+        T3.POPLIN_0 AS PurchaseLine,
+        T3.QTYSTU_0 AS PurchaseQty,
+        T3.LINATIAMT_0 AS Cost,      
+        T3.NETCUR_0 AS Currency,
+        T3.CREDAT_0 AS PurchaseDate,
+        T3.PQTY AS TotalPurchaseQty,
+        T3.SQTY  AS TotalSalesQty,
+        T3.CREUSR_0 AS Purchaser,
+        T3.SEQ AS Seq
+    FROM
+        T3
     </select>
     <select id="findDuplicatedRABySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedRA">
-WITH T1 AS (SELECT DISTINCT
-            PRECEIPTD.PJT_0,
-            PRECEIPTD.ITMREF_0, 
-            PRECEIPTD.PTHNUM_0,
-            PRECEIPTD.PTDLIN_0,
-            PRECEIPTD.CREDAT_0 AS ReceiptDate,
-            PRECEIPTD.POHNUM_0,
-            PRECEIPTD.POPLIN_0,
-            PRECEIPTD.CREUSR_0 AS Receiptor,
-            PORDERP.CREDAT_0 AS PurchaseDate,
-            PORDERP.CREUSR_0 AS Purchaser,
-            PRECEIPTD.QTYSTU_0,
-            PRECEIPTD.LINATIAMT_0, 
-            PRECEIPTD.NETCUR_0,
-            DENSE_RANK() OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ORDER BY PRECEIPTD.ROWID ) AS SEQ,
-            SUM(PRECEIPTD.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0) AS RQTY,
-            ISNULL(SORDERQ.QTYSTU_0,0) AS SQTY
-        FROM EXPLOIT.PRECEIPTD AS PRECEIPTD 
-             LEFT JOIN EXPLOIT.PORDERP AS PORDERP
-                   ON PRECEIPTD.POHNUM_0 = PORDERP.POHNUM_0 AND PRECEIPTD.POPLIN_0 = PORDERP.POPLIN_0
-            LEFT JOIN EXPLOIT.SORDERQ SORDERQ
-                ON  SORDERQ.YSOH_PJT_0 = PORDERP.PJT_0 
-                    -- This line to fix the origin order site
-                    AND LEFT(SORDERQ.SALFCY_0,1) = LEFT(PORDERP.PJT_0,1)
-        WHERE PRECEIPTD.PRHFCY_0 = #{Site}
-              AND RIGHT(PRECEIPTD.PJT_0,4)!='0001'
-              -- FACHDIV0001:   PURCHASE VARIOUS
-              ---FACHTRADRTD:   INBOUND CUSTOM FEES
-              ---FVENTRAAUT:    OUTBOUND SHIPMENT FEES
-              ---FACHTRAAUT:    INBOUND SHIPMENT FEES
-			AND PRECEIPTD.ITMREF_0 NOT IN ('FACHDIV0001', 'FACHTRADRTD','FVENTRAAUT' ,'FACHTRAAUT')
-              AND PRECEIPTD.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
-)
+WITH
+  T0 AS (
+    SELECT
+      PRECEIPTD.PJT_0,
+      PRECEIPTD.ITMREF_0,
+      DENSE_RANK() OVER (PARTITION BY PRECEIPTD.PJT_0, PRECEIPTD.ITMREF_0 ORDER BY PRECEIPTD.ROWID) AS SEQ
+    FROM
+      EXPLOIT.PRECEIPTD AS PRECEIPTD
+    WHERE
+      PRECEIPTD.PRHFCY_0 = #{Site}
+      AND RIGHT(PRECEIPTD.PJT_0, 4)!= '0001'
+      AND RIGHT(PRECEIPTD.PJT_0, 8) != 'ZLOGISTIC'
+      AND PRECEIPTD.PJT_0 != 'TQUALITE'
+      ---FACHDIV0001:   PURCHASE VARIOUS
+      ---FACHTRADRTD:   INBOUND CUSTOM FEES
+      ---FVENTRAAUT:    OUTBOUND SHIPMENT FEES
+      ---FACHTRAAUT:    INBOUND SHIPMENT FEES
+      AND PRECEIPTD.ITMREF_0 NOT IN ('FACHDIV0001', 'FACHTRADRTD', 'FVENTRAAUT','FACHTRAAUT')
+  ),
+  T1 AS (
+    SELECT DISTINCT 
+      T0.PJT_0,
+      T0.ITMREF_0
+    FROM
+      T0
+    WHERE
+      T0.SEQ > 1
+  ),
+  T2 AS ( 
+    SELECT DISTINCT
+      PRECEIPTD.PJT_0,
+	  PRECEIPTD.ITMREF_0, 
+	  PRECEIPTD.PTHNUM_0,
+	  PRECEIPTD.PTDLIN_0,
+	  PRECEIPTD.CREDAT_0 AS ReceiptDate,
+	  PRECEIPTD.POHNUM_0,
+	  PRECEIPTD.POPLIN_0,
+	  PRECEIPTD.CREUSR_0 AS Receiptor,
+	  PORDERP.CREDAT_0 AS PurchaseDate,
+	  PORDERP.CREUSR_0 AS Purchaser,
+	  PRECEIPTD.QTYSTU_0,
+	  PRECEIPTD.LINATIAMT_0, 
+	  PRECEIPTD.NETCUR_0,
+      DENSE_RANK() OVER (PARTITION BY PRECEIPTD.PJT_0, PRECEIPTD.ITMREF_0 ORDER BY PRECEIPTD.ROWID ) AS SEQ,
+      SUM(PRECEIPTD.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ) AS RQTY,
+      SORDERQ.QTYSTU_0 AS SQTY
+    FROM  T1
+      INNER JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD
+        ON T1.PJT_0 = PRECEIPTD.PJT_0
+           AND T1.ITMREF_0 = PRECEIPTD.ITMREF_0
+      LEFT JOIN EXPLOIT.PORDERP AS PORDERP
+         ON PRECEIPTD.POHNUM_0 = PORDERP.POHNUM_0 
+		   AND PRECEIPTD.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON (SORDERQ.YSOH_PJT_0 = T1.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = T1.PJT_0)
+    WHERE
+          PRECEIPTD.PRHFCY_0 = #{Site}
+      AND PRECEIPTD.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
+      AND PORDERP.PRHFCY_0 = #{Site}
+      AND SORDERQ.SALFCY_0 = #{Site}
+  ),
+  T3 AS ( 
+    SELECT DISTINCT
+      PRECEIPTD.PJT_0,
+	  PRECEIPTD.ITMREF_0, 
+	  PRECEIPTD.PTHNUM_0,
+	  PRECEIPTD.PTDLIN_0,
+	  PRECEIPTD.CREDAT_0 AS ReceiptDate,
+	  PRECEIPTD.POHNUM_0,
+	  PRECEIPTD.POPLIN_0,
+	  PRECEIPTD.CREUSR_0 AS Receiptor,
+	  PORDERP.CREDAT_0 AS PurchaseDate,
+	  PORDERP.CREUSR_0 AS Purchaser,
+	  PRECEIPTD.QTYSTU_0,
+	  PRECEIPTD.LINATIAMT_0, 
+	  PRECEIPTD.NETCUR_0,
+      DENSE_RANK() OVER (PARTITION BY PRECEIPTD.PJT_0, PRECEIPTD.ITMREF_0 ORDER BY PRECEIPTD.ROWID ) AS SEQ,
+      SUM(PRECEIPTD.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ) AS RQTY,
+      SORDERQ.QTYSTU_0 AS SQTY
+    FROM  T1
+      INNER JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD
+        ON T1.PJT_0 = PRECEIPTD.PJT_0
+           AND T1.ITMREF_0 = PRECEIPTD.ITMREF_0
+      LEFT JOIN EXPLOIT.PORDERP AS PORDERP
+         ON PRECEIPTD.POHNUM_0 = PORDERP.POHNUM_0 
+		   AND PRECEIPTD.POPLIN_0 = PORDERP.POPLIN_0
+    WHERE
+          PRECEIPTD.PRHFCY_0 = #{Site}
+      AND PRECEIPTD.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
+      AND PORDERP.PRHFCY_0 = #{Site}
+      AND (
+         SUBSTRING(PRECEIPTD.PJT_0,6,1) = '-'            --- ProjectNO is not Sales projectno
+         OR SUBSTRING(PRECEIPTD.PJT_0,7,1) = '-'
+         OR SUBSTRING(PRECEIPTD.PJT_0,8,1) = '-'
+         )
+  )
+ 
+SELECT
+    T2.PJT_0 AS ProjectNO,
+    T2.ITMREF_0 AS PN, 
+    T2.PTHNUM_0 AS ReceiptNO,
+    T2.PTDLIN_0 AS ReceiptLine,
+    T2.Receiptor,
+    T2.POHNUM_0 AS PurchaseNO,
+    T2.POPLIN_0 AS PurchaseLine,
+    T2.PurchaseDate,
+    T2.Purchaser,
+    T2.QTYSTU_0 AS ReceiptQty,
+    T2.LINATIAMT_0 AS ReceiptAmount, 
+    T2.NETCUR_0 AS Currency,
+    T2.RQTY AS TotalReceiptQty,
+    T2.SQTY AS TotalSalesQty,
+    T2.SEQ AS Seq
+FROM
+  T2
 
-SELECT DISTINCT
-    T1.PJT_0 AS ProjectNO,
-    T1.ITMREF_0 AS PN, 
-    T1.PTHNUM_0 AS ReceiptNO,
-    T1.PTDLIN_0 AS ReceiptLine,
-    T1.Receiptor,
-    T1.POHNUM_0 AS PurchaseNO,
-    T1.POPLIN_0 AS PurchaseLine,
-    T1.PurchaseDate,
-    T1.Purchaser,
-    T1.QTYSTU_0 AS ReceiptQty,
-    T1.LINATIAMT_0 AS ReceiptAmount, 
-    T1.NETCUR_0 AS Currency,
-    T1.RQTY AS TotalReceiptQty,
-    T1.SQTY AS TotalSalesQty,
-    T1.SEQ AS Seq
-FROM T1
-INNER JOIN T1 AS T2 
-     ON T1.PJT_0 = T2.PJT_0  AND T1.ITMREF_0 = T2.ITMREF_0
-        WHERE T2.SEQ > 1   
-        AND T2.RQTY > T2.SQTY
-        <if test='OnlyForSales != null and OnlyForSales == "Y"'>
-        -- this filter no order qty line, order qty line is 0
-        AND T2.SQTY > 0
-        </if>
+UNION
 
-    ORDER BY 
-    T1.PJT_0 ASC,
-    T1.ITMREF_0 ASC,
-    T1.PTHNUM_0 ASC
+SELECT
+    T3.PJT_0 AS ProjectNO,
+    T3.ITMREF_0 AS PN, 
+    T3.PTHNUM_0 AS ReceiptNO,
+    T3.PTDLIN_0 AS ReceiptLine,
+    T3.Receiptor,
+    T3.POHNUM_0 AS PurchaseNO,
+    T3.POPLIN_0 AS PurchaseLine,
+    T3.PurchaseDate,
+    T3.Purchaser,
+    T3.QTYSTU_0 AS ReceiptQty,
+    T3.LINATIAMT_0 AS ReceiptAmount, 
+    T3.NETCUR_0 AS Currency,
+    T3.RQTY AS TotalReceiptQty,
+    T3.SQTY AS TotalSalesQty,
+    T3.SEQ AS Seq
+FROM
+  T3
     </select>
 </mapper>
