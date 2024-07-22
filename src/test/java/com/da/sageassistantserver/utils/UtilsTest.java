@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-11 15:45:58                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-05 18:34:30                               *
+ * @LastEditDate          : 2024-07-18 01:04:44                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -14,6 +14,7 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 
 import org.junit.jupiter.api.Assertions;
@@ -171,6 +172,18 @@ public class UtilsTest {
 
     File file = new File("C:/var/HU80001-1_B.pdf");
     file.setLastModified(date.getTime());
+
+  }
+
+  @Test
+  void testSplitStringByByteSize() {
+    String testString = "这是一个测试字符串，用于验证字符串切分功能是否正常工作。" +
+        "这是一个测试字符串，用于验证字符串切分功能是否正常工作。" +
+        "这是一个测试字符串，用于验证字符串切分功能是否正常工作。";
+    List<String> splitStrings = Utils.splitStringByByteSize(testString, 20);
+    for (String s : splitStrings) {
+      log.debug(s);
+    }
 
   }
 }

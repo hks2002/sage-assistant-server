@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-03-10 15:42:04                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-14 15:30:40                               *
+ * @LastEditDate          : 2024-07-21 02:04:04                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -14,6 +14,9 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,6 +28,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.List;
 
 import org.bouncycastle.util.encoders.Hex;
@@ -132,6 +136,27 @@ public class Utils {
       return true;
     }
     return false;
+  }
+
+  public static Boolean isZhuhaiServer() {
+    try {
+      Enumeration<NetworkInterface> networkInterfaces = NetworkInterface.getNetworkInterfaces();
+
+      while (networkInterfaces.hasMoreElements()) {
+        NetworkInterface networkInterface = networkInterfaces.nextElement();
+        Enumeration<InetAddress> addresses = networkInterface.getInetAddresses();
+        while (addresses.hasMoreElements()) {
+          InetAddress address = addresses.nextElement();
+          if (!address.isLoopbackAddress() && address.isSiteLocalAddress()
+              && address.getHostAddress().startsWith("192.168.0.")) {
+            return true;
+          }
+        }
+      }
+      return false;
+    } catch (SocketException e) {
+      return false;
+    }
   }
 
   public static long dateDiff(Date start, Date end) {
@@ -256,6 +281,31 @@ public class Utils {
       sb.append("0");
     }
     return sb.toString();
+  }
+
+  /**
+   * Splits a string into substrings by byte size.
+   *
+   * @param str      the input string to be split
+   * @param maxBytes the maximum number of bytes for each substring
+   * @return a list of substrings split by the specified byte size
+   */
+  public static List<String> splitStringByByteSize(String str, int maxBytes) {
+    List<String> result = new ArrayList<>();
+    int startIndex = 0;
+
+    while (startIndex < str.length()) {
+      int endIndex = startIndex + 1;
+      while (endIndex <= str.length() &&
+          str.substring(startIndex, endIndex).getBytes(StandardCharsets.UTF_8).length <= maxBytes) {
+        endIndex++;
+      }
+
+      result.add(str.substring(startIndex, endIndex - 1));
+      startIndex = endIndex - 1;
+    }
+
+    return result;
   }
 
   /**

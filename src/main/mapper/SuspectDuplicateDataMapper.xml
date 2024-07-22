@@ -2,15 +2,15 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.da.sageassistantserver.dao.SuspectDuplicateDataMapper">
-    <!--Open L2 Cache under Names pace: 10 Min-->
-    <cache eviction="LRU" flushInterval="600000" readOnly="true" size="512" />
-    <select id="findDuplicatedPOBySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedPO">
+  <!--Open L2 Cache under Names pace: 10 Min-->
+  <cache eviction="LRU" flushInterval="600000" readOnly="true" size="512" />
+  <select id="findDuplicatedPOBySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedPO">
     WITH
-    T0 AS (
+    T0 AS (      -- find project with seq
         SELECT
         PORDERP.PJT_0,
         PORDERP.ITMREF_0,
-        DENSE_RANK() OVER (PARTITION BY PRECEIPTD.PJT_0, PRECEIPTD.ITMREF_0 ORDER BY PRECEIPTD.ROWID) AS SEQ
+        DENSE_RANK() OVER (PARTITION BY PORDERP.PJT_0, PORDERP.ITMREF_0 ORDER BY PORDERP.ROWID) AS SEQ
         FROM
         EXPLOIT.PORDERP AS PORDERP
         WHERE
@@ -24,14 +24,14 @@
         ---FACHTRAAUT:    INBOUND SHIPMENT FEES
         AND PORDERP.ITMREF_0 NOT IN ('FACHDIV0001', 'FACHTRADRTD', 'FVENTRAAUT','FACHTRAAUT')
     ),
-    T1 AS (
+    T1 AS (    -- find project which has more than one seq
         SELECT DISTINCT 
           T0.PJT_0,
           T0.ITMREF_0
         FROM
           T0
         WHERE
-          T0.SEQ > 1
+          T0.SEQ &gt; 1
     ),
     T2 AS ( 
         SELECT DISTINCT
@@ -40,6 +40,7 @@
             PORDERP.POHNUM_0,
             PORDERP.POPLIN_0,
             PORDERP.CREDAT_0,
+            PORDERP.CREDATTIM_0,
             PORDERQ.QTYSTU_0,
             PORDERQ.LINATIAMT_0,      
             PORDERQ.NETCUR_0,
@@ -57,8 +58,7 @@
         INNER JOIN EXPLOIT.SORDERQ SORDERQ
             ON (SORDERQ.YSOH_PJT_0 = T1.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = T1.PJT_0)
         WHERE
-            PORDERP.PRHFCY_0 = #{Site}        
-        AND PORDERP.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
+            PORDERP.PRHFCY_0 = #{Site}
         AND PORDERQ.PRHFCY_0 = #{Site}
         AND SORDERQ.SALFCY_0 = #{Site}
     ),
@@ -69,6 +69,7 @@
             PORDERP.POHNUM_0,
             PORDERP.POPLIN_0,
             PORDERP.CREDAT_0,
+            PORDERP.CREDATTIM_0,
             PORDERQ.QTYSTU_0,
             PORDERQ.LINATIAMT_0,
             PORDERQ.NETCUR_0,
@@ -86,7 +87,6 @@
         WHERE
             PORDERP.PRHFCY_0 = #{Site}
         AND PORDERQ.PRHFCY_0 = #{Site}
-        AND PORDERP.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
         AND (
             SUBSTRING(PORDERP.PJT_0,6,1) = '-'              --- ProjectNO is not Sales projectno
             OR SUBSTRING(PORDERP.PJT_0,7,1) = '-'
@@ -109,6 +109,10 @@
         T2.SEQ AS Seq
     FROM
         T2
+    INNER JOIN T2 AS T4
+        ON T2.PJT_0 = T4.PJT_0
+           AND T2.ITMREF_0 = T4.ITMREF_0                   
+           AND T2.CREDATTIM_0 &gt;= CONVERT(datetime, #{DateFrom}, 120)
 
     UNION
 
@@ -127,8 +131,12 @@
         T3.SEQ AS Seq
     FROM
         T3
-    </select>
-    <select id="findDuplicatedRABySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedRA">
+    INNER JOIN T3 AS T5
+        ON T3.PJT_0 = T5.PJT_0
+           AND T3.ITMREF_0 = T5.ITMREF_0                   
+           AND T3.CREDATTIM_0 &gt;= CONVERT(datetime, #{DateFrom}, 120)
+  </select>
+  <select id="findDuplicatedRABySite" resultType="com.da.sageassistantserver.model.SuspectDuplicatedRA">
 WITH
   T0 AS (
     SELECT
@@ -139,7 +147,7 @@ WITH
       EXPLOIT.PRECEIPTD AS PRECEIPTD
     WHERE
       PRECEIPTD.PRHFCY_0 = #{Site}
-      AND RIGHT(PRECEIPTD.PJT_0, 4)!= '0001'
+      AND RIGHT(PRECEIPTD.PJT_0, 4) != '0001'
       AND RIGHT(PRECEIPTD.PJT_0, 8) != 'ZLOGISTIC'
       AND PRECEIPTD.PJT_0 != 'TQUALITE'
       ---FACHDIV0001:   PURCHASE VARIOUS
@@ -155,11 +163,11 @@ WITH
     FROM
       T0
     WHERE
-      T0.SEQ > 1
+      T0.SEQ &gt; 1
   ),
   T2 AS ( 
     SELECT DISTINCT
-      PRECEIPTD.PJT_0,
+    PRECEIPTD.PJT_0,
 	  PRECEIPTD.ITMREF_0, 
 	  PRECEIPTD.PTHNUM_0,
 	  PRECEIPTD.PTDLIN_0,
@@ -186,28 +194,28 @@ WITH
         ON (SORDERQ.YSOH_PJT_0 = T1.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = T1.PJT_0)
     WHERE
           PRECEIPTD.PRHFCY_0 = #{Site}
-      AND PRECEIPTD.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
+      AND PRECEIPTD.CREDATTIM_0 &gt;= CONVERT(datetime, #{DateFrom}, 120)
       AND PORDERP.PRHFCY_0 = #{Site}
       AND SORDERQ.SALFCY_0 = #{Site}
   ),
   T3 AS ( 
     SELECT DISTINCT
       PRECEIPTD.PJT_0,
-	  PRECEIPTD.ITMREF_0, 
-	  PRECEIPTD.PTHNUM_0,
-	  PRECEIPTD.PTDLIN_0,
-	  PRECEIPTD.CREDAT_0 AS ReceiptDate,
-	  PRECEIPTD.POHNUM_0,
-	  PRECEIPTD.POPLIN_0,
-	  PRECEIPTD.CREUSR_0 AS Receiptor,
-	  PORDERP.CREDAT_0 AS PurchaseDate,
-	  PORDERP.CREUSR_0 AS Purchaser,
-	  PRECEIPTD.QTYSTU_0,
-	  PRECEIPTD.LINATIAMT_0, 
-	  PRECEIPTD.NETCUR_0,
+      PRECEIPTD.ITMREF_0, 
+      PRECEIPTD.PTHNUM_0,
+      PRECEIPTD.PTDLIN_0,
+      PRECEIPTD.CREDAT_0 AS ReceiptDate,
+      PRECEIPTD.POHNUM_0,
+      PRECEIPTD.POPLIN_0,
+      PRECEIPTD.CREUSR_0 AS Receiptor,
+      PORDERP.CREDAT_0 AS PurchaseDate,
+      PORDERP.CREUSR_0 AS Purchaser,
+      PRECEIPTD.QTYSTU_0,
+      PRECEIPTD.LINATIAMT_0, 
+      PRECEIPTD.NETCUR_0,
       DENSE_RANK() OVER (PARTITION BY PRECEIPTD.PJT_0, PRECEIPTD.ITMREF_0 ORDER BY PRECEIPTD.ROWID ) AS SEQ,
       SUM(PRECEIPTD.QTYSTU_0) OVER (PARTITION BY PRECEIPTD.ITMREF_0, PRECEIPTD.PJT_0 ) AS RQTY,
-      SORDERQ.QTYSTU_0 AS SQTY
+      0 AS SQTY
     FROM  T1
       INNER JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD
         ON T1.PJT_0 = PRECEIPTD.PJT_0
@@ -217,7 +225,7 @@ WITH
 		   AND PRECEIPTD.POPLIN_0 = PORDERP.POPLIN_0
     WHERE
           PRECEIPTD.PRHFCY_0 = #{Site}
-      AND PRECEIPTD.CREDAT_0 >= CONVERT(datetime, #{DateFrom}, 120)
+      AND PRECEIPTD.CREDATTIM_0 &gt;= CONVERT(datetime, #{DateFrom}, 120)
       AND PORDERP.PRHFCY_0 = #{Site}
       AND (
          SUBSTRING(PRECEIPTD.PJT_0,6,1) = '-'            --- ProjectNO is not Sales projectno
@@ -244,6 +252,10 @@ SELECT
     T2.SEQ AS Seq
 FROM
   T2
+INNER JOIN T2 AS T4
+    ON T2.PJT_0 = T4.PJT_0
+        AND T2.ITMREF_0 = T4.ITMREF_0                   
+        AND T2.ReceiptDate &gt;= CONVERT(datetime, #{DateFrom}, 120)
 
 UNION
 
@@ -265,5 +277,9 @@ SELECT
     T3.SEQ AS Seq
 FROM
   T3
-    </select>
+INNER JOIN T3 AS T5
+    ON T3.PJT_0 = T5.PJT_0
+        AND T3.ITMREF_0 = T5.ITMREF_0                   
+        AND T3.ReceiptDate &gt;= CONVERT(datetime, #{DateFrom}, 120)
+  </select>
 </mapper>

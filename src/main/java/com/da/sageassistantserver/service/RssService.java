@@ -1,11 +1,10 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:03:12                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/service/RssService.java                         *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/*****************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                    *
+ * @CreatedDate           : 2022-03-26 17:57:00                              *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                    *
+ * @LastEditDate          : 2024-07-17 19:14:18                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
+ ****************************************************************************/
 
 package com.da.sageassistantserver.service;
 
@@ -30,7 +29,6 @@ import lombok.extern.slf4j.Slf4j;
 @Service
 public class RssService {
 
-
     @Autowired
     private PnService pnService;
 
@@ -46,9 +44,7 @@ public class RssService {
         content += "<tr style=\"background-color:blue;\">";
         content += "<th>ProjectNO</th>";
         content += "<th>PN</th>";
-        content += "<th>Desc1</th>";
-        content += "<th>Desc2</th>";
-        content += "<th>Desc3</th>";
+        content += "<th>Desc</th>";
         content += "<th>PN Status</th>";
         content += "<th>WC</th>";
         content += "<th>CustomerCode</th>";
@@ -59,9 +55,7 @@ public class RssService {
             content += "<tr style=\"background-color:red;\">";
             content += "<td>" + o.getProjectNO() + "</td>";
             content += "<td>" + o.getPN() + "</td>";
-            content += "<td>" + o.getDesc1() + "</td>";
-            content += "<td>" + o.getDesc2() + "</td>";
-            content += "<td>" + o.getDesc3() + "</td>";
+            content += "<td>" + o.getDesc1() + " " + o.getDesc2() + " " + o.getDesc3() + "</td>";
             content += "<td>" + o.getPNStatus() + "</td>";
             content += "<td>" + o.getWC() + "</td>";
             content += "<td>" + o.getCustomerCode() + "</td>";

@@ -2,11 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
 <mapper namespace="com.da.sageassistantserver.dao.AnalysesMapper">
-	<!--Open
+  <!--Open
 	L2 Cache under Names pace: 1 Hour -->
-	<cache eviction="FIFO" flushInterval="3600000" readOnly="true" size="102400" />
+  <cache eviction="FIFO" flushInterval="3600000" readOnly="true" size="102400" />
 
-	<select id="analysesQuoteSalesCost" resultType="com.da.sageassistantserver.model.AnalysesQuoteSalesCost">
+  <select id="analysesQuoteSalesCost" resultType="com.da.sageassistantserver.model.AnalysesQuoteSalesCost">
 	WITH 
 	Quote AS (
 	SELECT *
@@ -48,12 +48,12 @@
 				LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER 
 					ON SQUOTED.ITMREF_0 = ITMMASTER.ITMREF_0
 			WHERE SQUOTED.NETPRI_0 > 0
-		<if test="CategoryCode != null and CategoryCode != ''">
+    <if test="CategoryCode != null and CategoryCode != ''">
 					AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-		</if>
-		<if test="PnRoot != null and PnRoot != ''">
+    </if>
+    <if test="PnRoot != null and PnRoot != ''">
 					AND ITMMASTER.ITMREF_0 = #{PnRoot}
-		</if>
+    </if>
 				AND SQUOTE.SALFCY_0 = #{Site}
 				AND SQUOTED.SALFCY_0 = #{Site}
 				AND (SQUOTE.QUODAT_0 BETWEEN CONVERT(datetime, #{DateFrom},120) AND CONVERT(datetime, #{DateTo},120) )
@@ -102,12 +102,12 @@
 				LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
 					ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
 			WHERE SORDERP.NETPRI_0 > 0
-		<if test="CategoryCode != null and CategoryCode != ''">
+    <if test="CategoryCode != null and CategoryCode != ''">
 					AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-		</if>
-		<if test="PnRoot != null and PnRoot != ''">
+    </if>
+    <if test="PnRoot != null and PnRoot != ''">
 					AND ITMMASTER.ITMREF_0 = #{PnRoot}
-		</if>
+    </if>
 				AND SORDER.SALFCY_0 = #{Site}
 				AND SORDERQ.SALFCY_0 = #{Site}
 				AND SORDERP.SALFCY_0 = #{Site}
@@ -140,12 +140,12 @@
 				LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
 					ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
 			WHERE SORDERP.NETPRI_0 > 0
-		<if test="CategoryCode != null and CategoryCode != ''">
+    <if test="CategoryCode != null and CategoryCode != ''">
 					AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-		</if>
-		<if test="PnRoot != null and PnRoot != ''">
+    </if>
+    <if test="PnRoot != null and PnRoot != ''">
 					AND ITMMASTER.ITMREF_0 = #{PnRoot}
-		</if>
+    </if>
 				AND SORDER.SALFCY_0 = #{Site}
 				AND SORDERQ.SALFCY_0 = #{Site}
 				AND SORDERP.SALFCY_0 = #{Site}
@@ -197,12 +197,12 @@
 					 LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
 						ON SORDERQ.ITMREF_0 = ITMMASTER.ITMREF_0
 				WHERE 1=1
-		<if test="CategoryCode != null and CategoryCode != ''">
+    <if test="CategoryCode != null and CategoryCode != ''">
 						AND ITMMASTER.TSICOD_1 LIKE #{CategoryCode}
-		</if>
-		<if test="PnRoot != null and PnRoot != ''">
+    </if>
+    <if test="PnRoot != null and PnRoot != ''">
 						AND ITMMASTER.ITMREF_0 = #{PnRoot}
-		</if>
+    </if>
 					AND PORDER.POHFCY_0 = #{Site}
 					AND PORDERP.PRHFCY_0 = #{Site}
 					AND SORDERQ.SALFCY_0 = #{Site}
@@ -226,8 +226,8 @@
 		ON SalesPJT.SPJTPN = Quote.PN
 	LEFT JOIN ProjectCost
 		ON ProjectCost.PJTCPN = Quote.PN
-	</select>
-	<select id="analysesPurchase" resultType="com.da.sageassistantserver.model.AnalysesPurchase">
+  </select>
+  <select id="analysesPurchase" resultType="com.da.sageassistantserver.model.AnalysesPurchase">
 		WITH
 		Currency AS (
 				SELECT 
@@ -291,8 +291,8 @@
 				AND SORDERQ.SALFCY_0 = #{Site}
 		) AS T1
 		WHERE T1.ROWNUM = #{LastN}
-	</select>
-	<select id="analysesQuote" resultType="com.da.sageassistantserver.model.AnalysesQuote">
+  </select>
+  <select id="analysesQuote" resultType="com.da.sageassistantserver.model.AnalysesQuote">
 	WITH
 	Currency AS (
 			SELECT 
@@ -333,8 +333,8 @@
 	
 	SELECT * FROM Quote
 	WHERE Quote.ROWNUM = #{LastN}
-	</select>
-	<select id="analysesSales" resultType="com.da.sageassistantserver.model.AnalysesSales">
+  </select>
+  <select id="analysesSales" resultType="com.da.sageassistantserver.model.AnalysesSales">
 	WITH
 	Currency AS (
 			SELECT 
@@ -376,5 +376,68 @@
 	
 	SELECT * FROM Sales
 	WHERE Sales.ROWNUM = #{LastN}
-	</select>
+  </select>
+
+  <select id="preAnalysesProjectProfit" resultType="com.da.sageassistantserver.model.ProjectProfit">
+	WITH T0 AS (
+	SELECT 
+		DISTINCT Iif(
+		SORDERQ.YSOQ_PJTORI_0 = '', SORDERQ.YSOH_PJT_0, 
+		SORDERQ.YSOQ_PJTORI_0
+		) AS ProjectNO, 
+		SORDERQ.SOHNUM_0, 
+		SORDERP.ITMREF_0, 
+		SORDERP.ITMDES_0,
+    SORDERP.TSICOD_1, 
+		SORDERQ.QTY_0, 
+    SORDERP.CREDAT_0,
+		SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 AS ProjectPrice, 
+		Sum(
+		SORDERP.NETPRIATI_0 * SORDERQ.QTY_0
+		) OVER (PARTITION BY SORDERP.SOHNUM_0) AS OrderPrice 
+	FROM 
+		EXPLOIT.SORDERQ AS SORDERQ 
+		INNER JOIN EXPLOIT.SORDERP AS SORDERP ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0 
+		AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0 
+		AND SORDERQ.SALFCY_0 = #{Site} 
+		AND SORDERP.SALFCY_0 = #{Site} 
+		AND SORDERP.NETPRIATI_0 &gt; 0
+		AND SORDERP.CREDAT_0 &gt; CONVERT(DATETIME, #{DateFrom}, 120)
+	), 
+	T2 AS (
+	SELECT 
+		T0.ProjectNO, 
+		T0.SOHNUM_0 AS OrderNO, 
+		T0.ITMREF_0 AS PN, 
+		T0.ITMDES_0 AS Description,
+    T0.TSICOD_1 AS CategoryCode, 
+		T0.QTY_0 AS QTY, 
+    T0.CREDAT_0 AS OrderDate,
+		SORDER.ORDINVATIL_0 AS OrderLocalPrice, 
+		SORDER.ORDINVATIL_0 * (T0.ProjectPrice / T0.OrderPrice) AS ProjectLocalPrice, 
+		T0.OrderPrice 
+	FROM 
+		T0 
+		INNER JOIN EXPLOIT.SORDER SORDER ON T0.SOHNUM_0 = SORDER.SOHNUM_0
+	), 
+	T3 AS (
+	SELECT 
+		DISTINCT PORDERP.PJT_0, 
+		Sum(PORDERQ.LINAMTCPR_0) OVER (PARTITION BY PORDERP.PJT_0) AS ProjectLocalCost 
+	FROM 
+		EXPLOIT.PORDERP AS PORDERP 
+		INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0 
+		AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0 
+	WHERE 
+		PORDERQ.PRHFCY_0 = #{Site} 
+		AND PORDERP.PRHFCY_0 = #{Site}
+	) 
+	SELECT 
+    T2.*, 
+		T3.ProjectLocalCost, 
+		T2.ProjectLocalPrice - T3.ProjectLocalCost AS Profit 
+	FROM 
+		T2 
+	LEFT JOIN T3 ON T2.ProjectNO = T3.PJT_0 
+  </select>
 </mapper>
