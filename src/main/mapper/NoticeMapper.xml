@@ -192,7 +192,7 @@
   </select>
 
   <select id="findLongTimeNoInvoice" resultType="com.da.sageassistantserver.model.TobeInvoice">
-	SELECT TOP  
+	SELECT
       PRECEIPTD.POHNUM_0 AS PurchaseNO,
       PRECEIPTD.POPLIN_0 AS PurchaseLine,
       PORDERP.CREDAT_0 AS PurchaseDate,
@@ -215,9 +215,9 @@
           ON PRECEIPT.PTHNUM_0 = PRECEIPTD.PTHNUM_0
         INNER JOIN EXPLOIT.PORDERP PORDERP
           ON PRECEIPTD.POHNUM_0 =PORDERP.POHNUM_0 AND PRECEIPTD.POPLIN_0 = PORDERP.POPLIN_0
-    WHERE PRECEIPTD.LININVFLG_0 =1
+    WHERE PRECEIPTD.LININVFLG_0 = 1      
+      AND PRECEIPTD.YPTD_NC_0 != 1                                      --- exclude manual marked nc
       AND PRECEIPTD.RCPDAT_0 &lt;=  DATEADD(DAY, #{DiffDays}, GETDATE())
-      AND PRECEIPTD.CREDATTIM_0 &gt; CONVERT(DATETIME, '2024-01-01', 120)
       AND PRECEIPTD.PRHFCY_0 = #{Site}
     ORDER BY PRECEIPTD.RCPDAT_0 ASC
   </select>
