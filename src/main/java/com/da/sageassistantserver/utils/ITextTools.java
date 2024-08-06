@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-18 17:36:09                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-09 15:07:41                              *
+ * @LastEditDate          : 2024-08-06 18:04:32                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -259,12 +259,16 @@ public class ITextTools {
         int numberOfPages = TiffImage.getNumberOfPages(tif);
         for (int i = 1; i <= numberOfPages; i++) {
           Image image = TiffImage.getTiffImage(tif, i);
-          document.setPageSize(new Rectangle(image.getWidth(), image.getHeight()));
+          // page size limit to 14400*14400
+          image.scaleToFit(14400, 14400);
+          document.setPageSize(new Rectangle(image.getScaledWidth(), image.getScaledHeight()));
           document.newPage();
           document.add(image);
         }
       } else {
         Image image = Image.getInstance(imageIn);
+        // page size limit to 14400*14400
+        image.scaleToFit(14400, 14400);
         document.setPageSize(new Rectangle(image.getWidth(), image.getHeight()));
         document.newPage();
         document.add(image);

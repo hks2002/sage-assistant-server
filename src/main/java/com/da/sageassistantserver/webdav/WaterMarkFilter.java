@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-16 23:24:10                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-13 21:43:24                              *
+ * @LastEditDate          : 2024-08-06 18:43:50                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -79,8 +79,6 @@ public class WaterMarkFilter implements Filter {
       text += " " + Utils.now();
 
       resWrapper.addHeader("Cache-Control", "no-store");
-      resWrapper.addHeader("Content-Disposition",
-          "inline; filename=\"" + URLEncoder.encode(fileNameNoExt, "UTF-8") + ' ' + text + '.' + fileExt + "\"");
 
       chain.doFilter(reqWrapper, resWrapper);
 
@@ -107,9 +105,15 @@ public class WaterMarkFilter implements Filter {
       if (success) {
         httpRes.setContentLength(finalData.length); // Must set it before write
         httpRes.getOutputStream().write(finalData);
+        resWrapper.addHeader("Content-Disposition",
+            "inline; filename=\"" + URLEncoder.encode(fileNameNoExt, "UTF-8") + ' ' + text + ".PDF" + "\"");
+
       } else {
         httpRes.setContentLength(data.length); // Must set it before write
         httpRes.getOutputStream().write(data);
+        resWrapper.addHeader("Content-Disposition",
+            "inline; filename=\"" + URLEncoder.encode(fileNameNoExt, "UTF-8") + ' ' + text + '.' + fileExt + "\"");
+
       }
 
       httpRes.getOutputStream().flush();

@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-07-01 17:46:12                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-22 15:21:41                              *
+ * @LastEditDate          : 2024-08-06 17:11:38                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -151,38 +151,7 @@ function sendRequest(url) {
     if (isDirectory) {
         window.location.href = url
     } else {
-        if (url.toUpperCase().endsWith('TIF') || url.toUpperCase().endsWith('TIFF')) {
-            // window.open(url);
-            var xhr = new XMLHttpRequest()
-            xhr.responseType = 'arraybuffer'
-            xhr.open('GET', url)
-            xhr.onload = function (e) {
-                if (xhr.responseType == 'application/pdf') {
-                    window.open(url)
-                } else {
-                    const newDiv = document.createElement('div')
-                    const deleteButton = document.createElement('button')
-                    deleteButton.innerHTML = 'Close Tiff viewer'
-                    deleteButton.addEventListener('click', function () {
-                        newDiv.remove()
-                        deleteButton.remove()
-                    })
-                    document.getElementsByTagName('h1')[0].appendChild(deleteButton)
-                    document.getElementsByTagName('table')[0].before(newDiv)
-
-                    var tiff = new Tiff({ buffer: xhr.response })
-                    for (var i = 0, len = tiff.countDirectory(); i < len; ++i) {
-                        tiff.setDirectory(i)
-                        var canvas = tiff.toCanvas()
-                        canvas.style.width = window.innerWidth - 50 + 'px'
-                        newDiv.append(canvas)
-                    }
-                }
-            }
-            xhr.send()
-        } else {
-            window.open(url)
-        }
+        window.open(url)
     }
 }
 
