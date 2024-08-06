@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2024-06-02 21:34:24                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-31 13:29:32                               *
+ * @LastEditDate          : 2024-08-07 01:43:15                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -15,11 +15,13 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.da.sageassistantserver.dao.MsteamsWorkflowMapper;
 import com.da.sageassistantserver.dao.NoticeMapper;
 import com.da.sageassistantserver.dao.WeworkRobotMapper;
 import com.da.sageassistantserver.model.DeadPurchaseLine;
 import com.da.sageassistantserver.model.LongTimeNC;
 import com.da.sageassistantserver.model.LongTimeNoQC;
+import com.da.sageassistantserver.model.MsteamsWorkflow;
 import com.da.sageassistantserver.model.PnStatus;
 import com.da.sageassistantserver.model.ProjectProfit;
 import com.da.sageassistantserver.model.SuspectDuplicatedPO;
@@ -35,7 +37,7 @@ import com.da.sageassistantserver.utils.Utils;
 
 @Service
 public class NoticeService {
-  List<String> Sites = List.of("HKG", "ZHU", "YSH");
+  List<String> Sites = List.of("HKG", "ZHU", "YSH", "SGP");
 
   @Autowired
   RobotLastRunService robotLastRunService;
@@ -52,6 +54,27 @@ public class NoticeService {
   @Autowired
   WeworkRobotMapper weworkRobotMapper;
 
+  @Autowired
+  MsteamsWorkflowMapper msteamsWorkflowMapper;
+
+  public void sendMessage(String msg, String site, String code) {
+    weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
+        .eq(WeworkRobot::getRobot_code, code).like(WeworkRobot::getSites, site))
+        .forEach(r -> {
+          Utils.splitStringByByteSize(msg, 2048).forEach(ss -> {
+            WeWorkService.sendMessage(r.getRobot_uuid(), ss);
+          });
+        });
+
+    msteamsWorkflowMapper.selectList((new LambdaQueryWrapper<MsteamsWorkflow>())
+        .eq(MsteamsWorkflow::getWorkflow_code, code).like(MsteamsWorkflow::getSites, site))
+        .forEach(f -> {
+          Utils.splitStringByByteSize(msg, 8192).forEach(ss -> {
+            MSteamsService.sendMessage(f.getWorkflow_url(), ss);
+          });
+        });
+  }
+
   @Scheduled(cron = "0 0 9 * * MON-FRI")
   public void sendPNNotActive() {
     if (!Utils.isZhuhaiServer()) {
@@ -59,10 +82,9 @@ public class NoticeService {
     }
     robotLastRunService.getLastRun("INACTIVE_PN");
 
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<PnStatus> list = pnService.findObsoletePnBySite(site);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -84,25 +106,13 @@ public class NoticeService {
             .append(" ")
             .append(pn.getDesc3())
             .append("\n");
-        msg.append("\n");
+      }
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
-        }
+      if (msg.length() > 0) {
+        String s = "⚠︎PN状态不可用\n" + msg.toString();
+        sendMessage(s, site, "SALES");
       }
     });
-
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "SALES"))
-          .forEach(r -> {
-            String s = "⚠︎PN状态不可用\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
 
   }
 
@@ -112,11 +122,11 @@ public class NoticeService {
       return;
     }
 
-    final StringBuilder msg = new StringBuilder();
     String lastRun = robotLastRunService.getLastRun("NEW_SALES_ORDER");
 
     Sites.forEach(site -> {
       List<TobeDelivery> list = noticeMapper.findNewSOSince(site, lastRun);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -151,25 +161,14 @@ public class NoticeService {
         msg.append("交货日期: ")
             .append(Utils.formatDate(order.getRequestDate()))
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "🤑💰新订单来了\n" + msg.toString();
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "🤑💰新订单来了\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 10 10,14 * * MON-FRI")
@@ -180,10 +179,9 @@ public class NoticeService {
     robotLastRunService.getLastRun("SALES_ORDER_WITHOUT_DEAL");
 
     // for purchaser
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<TobeDealWithOrderLine> list = noticeMapper.findTobeDealWithOrderLines(site, -7);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -215,84 +213,59 @@ public class NoticeService {
             .append(" ")
             .append(order.getCustomerName())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "😡新订单超7天未处理\n" + msg.toString();
+          s += "\n更多待处理新订单,请查看https://192.168.10.12/#/Todo 中的NEW-ORDER";
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😡新订单超7天未处理\n" + msg.toString();
-
-            s += "\n更多待处理新订单,请查看https://192.168.10.12/#/Todo 中的NEW-ORDER";
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
-
     // for sales
-    final StringBuilder msg2 = new StringBuilder();
     Sites.forEach(site -> {
       List<TobeDealWithOrderLine> list = noticeMapper.findTobeDealWithOrderLines(site, -14);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
-          msg2.append(site + ":\n-------------------\n");
+          msg.append(site + ":\n-------------------\n");
         }
 
         TobeDealWithOrderLine order = list.get(i);
-        msg2.append("项目号: ")
+        msg.append("项目号: ")
             .append(order.getProjectNO())
             .append("\n");
-        msg2.append("类型: ")
+        msg.append("类型: ")
             .append(order.getOrderType())
             .append(" ")
             .append(order.getOrderCategory())
             .append("\n");
-        msg2.append("订单日期: ")
+        msg.append("订单日期: ")
             .append(Utils.formatDate(order.getOrderDate()))
             .append("\n");
-        msg2.append("PN: ")
+        msg.append("PN: ")
             .append(order.getPN())
             .append(" ")
             .append(order.getDescription())
             .append("\n");
-        msg2.append("数量: ")
+        msg.append("数量: ")
             .append(order.getQty())
             .append("\n");
-        msg2.append("客户: ")
+        msg.append("客户: ")
             .append(order.getCustomerCode())
             .append(" ")
             .append(order.getCustomerName())
             .append("\n");
-        msg2.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg2.append("\n");
+        if (msg.length() > 0) {
+          String s = "😟新订单超14天未处理\n" + msg.toString();
+          s += "\n更多待处理新订单,请查看https://192.168.10.12/#/Todo 中的NEW-ORDER";
+          sendMessage(s, site, "SALES");
         }
       }
     });
 
-    if (msg2.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "SALES"))
-          .forEach(r -> {
-            String s = "😟新订单超14天未处理\n" + msg2.toString();
-
-            s += "\n更多待处理新订单,请查看https://192.168.10.12/#/Todo 中的NEW-ORDER";
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 15 10,14 * * MON-FRI")
@@ -302,10 +275,9 @@ public class NoticeService {
     }
     robotLastRunService.getLastRun("BOM_NO_DEAL");
 
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<TobePurchaseBom> list = noticeMapper.findTobePurchaseBom(site, -14);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -344,27 +316,14 @@ public class NoticeService {
             .append(" ")
             .append(line.getCustomerName())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "😡Bom项超14天未采购\n" + msg.toString();
+          s += "\n更多待采购状态,请查看https://192.168.10.12/#/Todo 中的SHORT-BOM";
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
-
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😡Bom项超14天未采购\n" + msg.toString();
-
-            s += "\n更多待采购状态,请查看https://192.168.10.12/#/Todo 中的SHORT-BOM";
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0 11 * * MON-FRI")
@@ -375,10 +334,9 @@ public class NoticeService {
     robotLastRunService.getLastRun("PURCHASE_ORDER_NO_ACK_DATE");
 
     // for purchaser
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<TobeReceive> list = noticeMapper.findNoACkPO(site);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size() && i <= 5; i++) { // only send 5 lines, because too many
         if (i == 0) {
@@ -406,25 +364,14 @@ public class NoticeService {
             .append(" ")
             .append(line.getVendorName())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "😡采购单没有供应商交付日期\n" + msg.toString();
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😡采购单没有供应商交付日期\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0 10 * * MON")
@@ -435,10 +382,9 @@ public class NoticeService {
     robotLastRunService.getLastRun("LONG_TIME_NO_RECEIVE");
 
     // for purchaser
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<TobeReceive> list = noticeMapper.findLongTimeNoReceive(site, -90);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size() && i <= 5; i++) { // only send 5 lines, because too many
         if (i == 0) {
@@ -466,27 +412,15 @@ public class NoticeService {
             .append(" ")
             .append(line.getVendorName())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "😬采购交货严重超期(大于90天)\n" + msg.toString();
+          s += "\n更多收货状态,请查看https://192.168.10.12/#/Todo 中的RECEIVE";
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😬采购交货严重超期(大于90天)\n" + msg.toString();
-
-            s += "\n更多收货状态,请查看https://192.168.10.12/#/Todo 中的RECEIVE";
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0 15 * * MON-FRI")
@@ -497,10 +431,9 @@ public class NoticeService {
     robotLastRunService.getLastRun("LONG_TIME_NC");
 
     // for purchaser
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<LongTimeNC> list = noticeMapper.findLongTimeNC(site, -14);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size() && i <= 5; i++) { // only send 5 lines, because too many
         if (i == 0) {
@@ -528,34 +461,14 @@ public class NoticeService {
             .append(" ")
             .append(line.getVendorName())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "😬NC处理14天仍未出货\n" + msg.toString();
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😬NC处理14天仍未出货\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "QC"))
-          .forEach(r -> {
-            String s = "😬NC处理14天仍未出货\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 30 9 * * MON-FRI")
@@ -566,10 +479,9 @@ public class NoticeService {
     robotLastRunService.getLastRun("LONG_TIME_NO_QC");
 
     // for purchaser
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<LongTimeNoQC> list = noticeMapper.findLongTimeNoQC(site, -14);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size() && i <= 5; i++) { // only send 5 lines, because too many
         if (i == 0) {
@@ -597,34 +509,14 @@ public class NoticeService {
             .append(" ")
             .append(line.getVendorName())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "😬收货14天仍未检验\n" + msg.toString();
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😬收货14天仍未检验\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "QC"))
-          .forEach(r -> {
-            String s = "😬收货14天仍未检验\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0 9-11,13-17 * * MON-FRI")
@@ -635,10 +527,9 @@ public class NoticeService {
     robotLastRunService.getLastRun("ORPHAN_PURCHASE_ORDER");
 
     // for purchaser
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<TobeReceive> list = noticeMapper.findOrphanPO(site);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size() && i <= 5; i++) { // only send 5 lines, because too many
         if (i == 0) {
@@ -674,25 +565,14 @@ public class NoticeService {
         msg.append("采购者: ")
             .append(line.getCreateUser())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "🧯🧯采购单项目不存在🧯🧯\n" + msg.toString();
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "🧯🧯采购单的项目已经不存在🧯🧯\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 20 10,14 * * MON-FRI")
@@ -703,10 +583,9 @@ public class NoticeService {
     robotLastRunService.getLastRun("LONG_TIME_NO_INVOICE");
 
     // for purchaser
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<TobeInvoice> list = noticeMapper.findLongTimeNoInvoice(site, -14);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size() && i <= 5; i++) { // only send 5 lines, because too many
         if (i == 0) {
@@ -752,27 +631,14 @@ public class NoticeService {
             .append(line.getPrice().setScale(2))
             .append(" ").append(line.getCurrency())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "😬发票严重超期90天(仅2024年后)\n" + msg.toString();
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😬发票严重超期90天(仅2024年后)\n" + msg.toString();
-
-            // s += "\n更多收货状态,请查看https://192.168.10.12/#/Todo 中的RECEIVE";
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0/5 8-11,13-17 * * MON-FRI")
@@ -781,11 +647,11 @@ public class NoticeService {
       return;
     }
 
-    final StringBuilder msg = new StringBuilder();
-    String lastRun = robotLastRunService.getLastRun("DUPLICATE_PURCHASE_ORDER");
+    robotLastRunService.getLastRun("DUPLICATE_PURCHASE_ORDER");
 
     Sites.forEach(site -> {
-      List<SuspectDuplicatedPO> list = suspectDuplicateDataService.findDuplicatedPOBySite(site, lastRun);
+      List<SuspectDuplicatedPO> list = noticeMapper.findDuplicatedPOBySite(site);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -799,15 +665,14 @@ public class NoticeService {
         msg.append("PN: ")
             .append(order.getPN())
             .append("\n");
-        msg.append("第" + order.getSeq() + "次采购人: ")
-            .append(order.getPurchaser())
-            .append("\n");
         msg.append("第" + order.getSeq() + "次采购单: ")
             .append(order.getPurchaseNO())
-            .append(" [")
+            .append("-")
             .append(order.getPurchaseLine())
-            .append("] ")
+            .append(" ")
             .append(Utils.formatDate(order.getPurchaseDate()))
+            .append(" ")
+            .append(order.getPurchaser())
             .append("\n");
         msg.append("第" + order.getSeq() + "次采购数量: ")
             .append(order.getPurchaseQty())
@@ -823,39 +688,29 @@ public class NoticeService {
         msg.append("项目关联销售单数量: ")
             .append(order.getTotalSalesQty())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
+        if (msg.length() > 0) {
+          String s = "😵疑似重复采购\n" + msg.toString();
+          s += "\n在PurchaseLine或者ReceiveLine的Text中添加'AGAIN'可抑制通知";
+          s += "\n更多重复采购,请查看https://192.168.10.12/#/SuspectDuplicateRecords";
+          sendMessage(s, site, "PURCHASE");
         }
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😵疑似重复采购\n" + msg.toString();
-            s += "\n更多重复采购,请查看https://192.168.10.12/#/SuspectDuplicateRecords";
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
-  @Scheduled(cron = "0 0/6 8-11,13-17 * * MON-FRI")
+  @Scheduled(cron = "0 0/5 8-11,13-17 * * MON-FRI")
   public void sendDuplicateReceive() {
     if (!Utils.isZhuhaiServer()) {
       return;
     }
 
-    final StringBuilder msg = new StringBuilder();
-    String lastRun = robotLastRunService.getLastRun("DUPLICATE_RECEIVE");
+    robotLastRunService.getLastRun("DUPLICATE_RECEIVE");
 
     Sites.forEach(site -> {
-      List<SuspectDuplicatedRA> list = suspectDuplicateDataService.findDuplicatedRABySite(site, lastRun);
+      List<SuspectDuplicatedRA> list = noticeMapper.findDuplicatedRABySite(site);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -869,57 +724,51 @@ public class NoticeService {
         msg.append("PN: ")
             .append(ra.getPN())
             .append("\n");
-        msg.append("第" + ra.getSeq() + "次采购单: ")
-            .append(ra.getPurchaseNO())
-            .append(" [")
-            .append(ra.getPurchaseLine())
-            .append("] ")
-            .append(Utils.formatDate(ra.getPurchaseDate()))
-            .append("\n");
         msg.append("第" + ra.getSeq() + "次收货单: ")
             .append(ra.getReceiptNO())
-            .append(" [")
+            .append("-")
             .append(ra.getReceiptLine())
-            .append("] ")
+            .append(" ")
             .append(Utils.formatDate(ra.getReceiptDate()))
+            .append(" ")
+            .append(ra.getReceiptor())
             .append("\n");
         msg.append("第" + ra.getSeq() + "次收货数量: ")
             .append(ra.getReceiptQty())
             .append("\n");
         msg.append("第" + ra.getSeq() + "次金额: ")
-            .append(ra.getReceiptAmount())
+            .append(ra.getReceiptAmount().setScale(2))
             .append(" ")
             .append(ra.getCurrency())
             .append("\n");
-        msg.append("第" + ra.getSeq() + "次采购人: ")
+        msg.append("第" + ra.getSeq() + "次采购单: ")
+            .append(ra.getPurchaseNO())
+            .append("-")
+            .append(ra.getPurchaseLine())
+            .append(" ")
+            .append(Utils.formatDate(ra.getPurchaseDate()))
+            .append(" ")
             .append(ra.getPurchaser())
             .append("\n");
         msg.append("项目总收货数量: ")
             .append(ra.getTotalReceiptQty())
             .append("\n");
+        msg.append("项目总采购数量: ")
+            .append(ra.getTotalPurchaseQty())
+            .append("\n");
         msg.append("项目关联销售单数量: ")
             .append(ra.getTotalSalesQty())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
-        }
+      }
+      if (msg.length() > 0) {
+        String s = "😵疑似重复收货\n" + msg.toString();
+        s += "\n在PurchaseLine或者ReceiveLine的Text中添加'AGAIN'可抑制通知";
+        s += "\n更多重复收货,请查看https://192.168.10.12/#/SuspectDuplicateRecords";
+        sendMessage(s, site, "PURCHASE");
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😵疑似重复收货\n" + msg.toString();
-            s += "\n更多重复收货,请查看https://192.168.10.12/#/SuspectDuplicateRecords";
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0/5 8-11,13-17 * * MON-FRI")
@@ -928,11 +777,11 @@ public class NoticeService {
       return;
     }
 
-    final StringBuilder msg = new StringBuilder();
     robotLastRunService.getLastRun("DUPLICATE_WORK_ORDER");
 
     Sites.forEach(site -> {
       List<String> list = noticeMapper.duplicatedWO(site);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -943,19 +792,12 @@ public class NoticeService {
         msg.append(PJT)
             .append("\n");
       }
+
+      if (msg.length() > 0) {
+        sendMessage("😵疑似重复工包\n" + msg.toString(), site, "PURCHASE");
+      }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "😵疑似重复工包\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0/5 9-11,13-17 * * MON-FRI")
@@ -976,15 +818,8 @@ public class NoticeService {
     }
 
     if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "🤯珠海和上海采购单混用项目号\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
+      String s = "🤯珠海和上海采购单混用项目号\n" + msg.toString();
+      sendMessage(s, "ZHU", "PURCHASE");
     }
 
     List<String> list2 = noticeMapper.mixWOProjectBetweenZHUAndYSH();
@@ -997,15 +832,8 @@ public class NoticeService {
     }
 
     if (msg2.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "🤯珠海和上海工包混用项目号\n" + msg2.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
+      String s = "🤯珠海和上海工包混用项目号\n" + msg2.toString();
+      sendMessage(s, "ZHU", "PURCHASE");
     }
   }
 
@@ -1015,11 +843,11 @@ public class NoticeService {
       return;
     }
 
-    final StringBuilder msg = new StringBuilder();
     String lastRun = robotLastRunService.getLastRun("NEW_RECEIVE");
 
     Sites.forEach(site -> {
       List<SuspectDuplicatedRA> list = suspectDuplicateDataService.findDuplicatedRABySite(site, lastRun);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -1061,25 +889,14 @@ public class NoticeService {
         msg.append("项目总收货数量: ")
             .append(ra.getTotalReceiptQty())
             .append("\n");
-        msg.append("\n");
+      }
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
-        }
+      if (msg.length() > 0) {
+        String s = "🤯新收货通知\n" + msg.toString();
+        sendMessage(s, site, "PURCHASE");
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "🤣收货通知\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 30 9 * * MON,WED,FRI")
@@ -1089,10 +906,9 @@ public class NoticeService {
     }
     robotLastRunService.getLastRun("LONG_TIME_NO_DELIVERY");
 
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<TobeDelivery> list = noticeMapper.findLongTimeNoDelivery(site, -30);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size() && i <= 5; i++) { // only send 5 lines, because too many
         if (i == 0) {
@@ -1130,25 +946,14 @@ public class NoticeService {
         msg.append("计划交货日期: ")
             .append(Utils.formatDate(order.getPlanedDate()))
             .append("\n");
-        msg.append("\n");
+      }
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
-        }
+      if (msg.length() > 0) {
+        String s = "🧯🧯订单交付严重超期🧯🧯\n" + msg.toString();
+        sendMessage(s, site, "SALES");
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "SALES"))
-          .forEach(r -> {
-            String s = "🧯🧯订单交付严重超期🧯🧯\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 30 10,14 * * MON-FRI")
@@ -1159,9 +964,9 @@ public class NoticeService {
     robotLastRunService.getLastRun("SERVICE_ORDER_NO_WO");
 
     // for customer support service
-    final StringBuilder msg = new StringBuilder();
     Sites.forEach(site -> {
       List<TobeDealWithOrderLine> list = noticeMapper.findNOBomServiceOrder(site);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size() && i <= 5; i++) { // only send 5 lines, because too many
         if (i == 0) {
@@ -1193,25 +998,15 @@ public class NoticeService {
             .append(" ")
             .append(order.getCustomerName())
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
-        }
+      }
+
+      if (msg.length() > 0) {
+        String s = "😟售后订单建议创建工包\n" + msg.toString();
+        sendMessage(s, site, "SALES");
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "SALES"))
-          .forEach(r -> {
-            String s = "😟售后订单建议创建工包\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0 9-11,13-17 * * MON-FRI")
@@ -1221,10 +1016,9 @@ public class NoticeService {
     }
     robotLastRunService.getLastRun("TO_BE_CLOSE_WO");
 
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<TobeClosedWO> list = noticeMapper.findTobeClosedWO(site);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -1238,25 +1032,14 @@ public class NoticeService {
         msg.append("工包: ")
             .append(ra.getWorkOrderNO())
             .append("\n");
-        msg.append("\n");
+      }
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
-        }
+      if (msg.length() > 0) {
+        String s = "🧹WO关闭提醒, 订单项目已关闭, 工包未关闭\n" + msg.toString();
+        sendMessage(s, site, "PURCHASE");
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PRODUCTION"))
-          .forEach(r -> {
-            String s = "🧹WO关闭提醒, 订单项目已关闭, 工包未关闭\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0 14 * * MON-FRI")
@@ -1266,10 +1049,9 @@ public class NoticeService {
     }
     robotLastRunService.getLastRun("DEAD_PURCHASE_LINE");
 
-    final StringBuilder msg = new StringBuilder();
-
     Sites.forEach(site -> {
       List<DeadPurchaseLine> list = noticeMapper.findDeadPurchaseLine(site);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size() && i <= 5; i++) { // only send 5 lines, because too many
         if (i == 0) {
@@ -1297,25 +1079,15 @@ public class NoticeService {
         msg.append("采购日期: ")
             .append(Utils.formatDate(o.getPurchaseDate()))
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
-        }
+      }
+
+      if (msg.length() > 0) {
+        String s = "🧹采购单关闭提醒, 订单项目已关闭, 采购单未收货\n" + msg.toString();
+        sendMessage(s, site, "PURCHASE");
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "🧹采购单关闭提醒, 订单项目已关闭, 采购单未收货\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
 
   @Scheduled(cron = "0 0/10 9-11,13-17 * * MON-FRI")
@@ -1324,11 +1096,11 @@ public class NoticeService {
       return;
     }
 
-    final StringBuilder msg = new StringBuilder();
     String lastRun = robotLastRunService.getLastRun("PRE_ANALYZE_PROJECT_PROFIT");
 
     Sites.forEach(site -> {
       List<ProjectProfit> list = noticeMapper.findPreAnalysesProjectProfit(site, lastRun);
+      final StringBuilder msg = new StringBuilder();
 
       for (int i = 0; i < list.size(); i++) {
         if (i == 0) {
@@ -1353,24 +1125,14 @@ public class NoticeService {
         msg.append("利润: ")
             .append(o.getProfit().setScale(2))
             .append("\n");
-        msg.append("\n");
 
-        if (i == (list.size() - 1)) {
-          msg.append("\n");
-        }
+      }
+      if (msg.length() > 0) {
+        String s = "🥶预分析项目利润\n" + msg.toString();
+        sendMessage(s, site, "PURCHASE");
       }
     });
 
-    if (msg.length() > 0) {
-      weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-          .eq(WeworkRobot::getRobot_code, "PURCHASE"))
-          .forEach(r -> {
-            String s = "🥶🥶采购成本超过销售价格🥶🥶\n" + msg.toString();
-
-            Utils.splitStringByByteSize(s, 2048).forEach(ss -> {
-              WeWorkService.sendMessage(r.getRobot_uuid(), ss);
-            });
-          });
-    }
   }
+
 }

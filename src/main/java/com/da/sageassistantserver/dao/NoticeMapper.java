@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2024-06-02 17:50:39                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-31 09:49:39                               *
+ * @LastEditDate          : 2024-08-02 18:01:57                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -17,6 +17,7 @@ import com.da.sageassistantserver.model.DeadPurchaseLine;
 import com.da.sageassistantserver.model.LongTimeNC;
 import com.da.sageassistantserver.model.LongTimeNoQC;
 import com.da.sageassistantserver.model.ProjectProfit;
+import com.da.sageassistantserver.model.SuspectDuplicatedPO;
 import com.da.sageassistantserver.model.SuspectDuplicatedRA;
 import com.da.sageassistantserver.model.TobeClosedWO;
 import com.da.sageassistantserver.model.TobeDealWithOrderLine;
@@ -64,4 +65,8 @@ public interface NoticeMapper {
   List<DeadPurchaseLine> findDeadPurchaseLine(@Param("Site") String Site);
 
   List<ProjectProfit> findPreAnalysesProjectProfit(@Param("Site") String Site, @Param("Since") String Since);
+
+  List<SuspectDuplicatedPO> findDuplicatedPOBySite(@Param("Site") String Site);
+
+  List<SuspectDuplicatedRA> findDuplicatedRABySite(@Param("Site") String Site);
 }
