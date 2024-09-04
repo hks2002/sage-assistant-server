@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : Invalid Date                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-08-13 16:26:03                               *
+ * @LastEditDate          : 2024-09-04 19:58:45                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -60,13 +60,17 @@ public class NoticeService {
 
   public void sendMessage(String site, String code, String msg) {
     weworkRobotMapper.selectList((new LambdaQueryWrapper<WeworkRobot>())
-        .eq(WeworkRobot::getRobot_code, code).like(WeworkRobot::getSites, site))
+        .eq(WeworkRobot::getNotice_code, code)
+        .like(WeworkRobot::getSites, site)
+        .eq(WeworkRobot::getEnable, 1))
         .forEach(r -> {
           WeWorkService.sendMessage(r.getRobot_uuid(), msg);
         });
 
     msteamsWorkflowMapper.selectList((new LambdaQueryWrapper<MsteamsWorkflow>())
-        .eq(MsteamsWorkflow::getFlow_code, code).like(MsteamsWorkflow::getSites, site))
+        .eq(MsteamsWorkflow::getNotice_code, code)
+        .like(MsteamsWorkflow::getSites, site)
+        .eq(MsteamsWorkflow::getEnable, 1))
         .forEach(f -> {
           MSteamsService.sendMessage(f.getFlow_url(), msg);
         });
@@ -108,7 +112,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "SALES", "⚠︎PN状态不可用", msg);
+        sendMessage(site, "INACTIVE_PN", "⚠︎PN状态不可用", msg);
       }
     });
 
@@ -160,7 +164,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "🤑💰新订单来了", msg);
+        sendMessage(site, "NEW_SALES_ORDER", "🤑💰新订单来了", msg);
       }
     });
 
@@ -210,7 +214,7 @@ public class NoticeService {
 
       if (msg.length() > 0) {
         msg.append("\n更多待处理新订单,请查看https://192.168.10.12/#/Todo 中的NEW-ORDER");
-        sendMessage(site, "PURCHASE", "😡新订单超7天未处理", msg);
+        sendMessage(site, "SALES_ORDER_WITHOUT_DEAL", "😡新订单超7天未处理", msg);
       }
     });
 
@@ -251,7 +255,7 @@ public class NoticeService {
 
       if (msg.length() > 0) {
         msg.append("\n更多待处理新订单,请查看https://192.168.10.12/#/Todo 中的NEW-ORDER");
-        sendMessage(site, "SALES", "😡新订单超14天未处理", msg);
+        sendMessage(site, "SALES_ORDER_WITHOUT_DEAL", "😡新订单超14天未处理", msg);
       }
     });
 
@@ -310,7 +314,7 @@ public class NoticeService {
 
       if (msg.length() > 0) {
         msg.append("\n更多待采购状态,请查看https://192.168.10.12/#/Todo 中的SHORT-BOM");
-        sendMessage(site, "PURCHASE", "😡Bom项超14天未采购", msg);
+        sendMessage(site, "BOM_NO_DEAL", "😡Bom项超14天未采购", msg);
       }
     });
   }
@@ -354,7 +358,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "😡采购单没有供应商交付日期", msg);
+        sendMessage(site, "PURCHASE_ORDER_NO_ACK_DATE", "😡采购单没有供应商交付日期", msg);
       }
     });
 
@@ -401,7 +405,7 @@ public class NoticeService {
 
       if (msg.length() > 0) {
         msg.append("\n更多收货状态,请查看https://192.168.10.12/#/Todo 中的RECEIVE");
-        sendMessage(site, "PURCHASE", "😬采购交货严重超期(大于90天)", msg);
+        sendMessage(site, "LONG_TIME_NO_RECEIVE", "😬采购交货严重超期(大于90天)", msg);
       }
     });
 
@@ -447,7 +451,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "😬NC处理14天仍未出货", msg);
+        sendMessage(site, "LONG_TIME_NC", "😬NC处理14天仍未出货", msg);
       }
     });
 
@@ -493,7 +497,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "😬收货14天仍未检验", msg);
+        sendMessage(site, "LONG_TIME_NO_QC", "😬收货14天仍未检验", msg);
       }
     });
 
@@ -546,7 +550,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "🧯🧯采购单项目不存在🧯🧯", msg);
+        sendMessage(site, "ORPHAN_PURCHASE_ORDER", "🧯🧯采购单项目不存在🧯🧯", msg);
       }
     });
 
@@ -609,7 +613,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "😬发票严重超期90天(仅2024年后)", msg);
+        sendMessage(site, "LONG_TIME_NO_INVOICE", "😬发票严重超期90天(仅2024年后)", msg);
       }
     });
 
@@ -665,7 +669,7 @@ public class NoticeService {
       if (msg.length() > 0) {
         msg.append("\n在PurchaseLine或者ReceiveLine的Text中添加'AGAIN'可抑制通知");
         msg.append("\n更多重复采购,请查看https://192.168.10.12/#/SuspectDuplicateRecords");
-        sendMessage(site, "PURCHASE", "😵疑似重复采购", msg);
+        sendMessage(site, "DUPLICATE_PURCHASE_ORDER", "😵疑似重复采购", msg);
       }
     });
 
@@ -733,7 +737,7 @@ public class NoticeService {
       if (msg.length() > 0) {
         msg.append("\n在PurchaseLine或者ReceiveLine的Text中添加'AGAIN'可抑制通知");
         msg.append("\n更多重复收货,请查看https://192.168.10.12/#/SuspectDuplicateRecords");
-        sendMessage(site, "PURCHASE", "😵疑似重复收货", msg);
+        sendMessage(site, "DUPLICATE_RECEIVE", "😵疑似重复收货", msg);
       }
     });
 
@@ -758,7 +762,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "😵疑似重复工包", msg);
+        sendMessage(site, "DUPLICATE_WORK_ORDER", "😵疑似重复工包", msg);
       }
     });
 
@@ -782,7 +786,7 @@ public class NoticeService {
     }
 
     if (msg.length() > 0) {
-      sendMessage("ZHU", "PURCHASE", "🤯珠海和上海采购单混用项目号", msg);
+      sendMessage("ZHU", "MIX_PROJECT_BETWEEN_ZHU_YSH", "🤯珠海和上海采购单混用项目号", msg);
     }
 
     List<String> list2 = noticeMapper.mixWOProjectBetweenZHUAndYSH();
@@ -795,7 +799,7 @@ public class NoticeService {
     }
 
     if (msg2.length() > 0) {
-      sendMessage("ZHU", "PURCHASE", "🤯珠海和上海工包混用项目号", msg2);
+      sendMessage("ZHU", "MIX_PROJECT_BETWEEN_ZHU_YSH", "🤯珠海和上海工包混用项目号", msg2);
     }
   }
 
@@ -852,7 +856,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "🤯新收货通知", msg);
+        sendMessage(site, "NEW_RECEIVE", "🤯新收货通知", msg);
       }
     });
 
@@ -906,7 +910,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "SALES", "🧯🧯订单交付严重超期🧯🧯", msg);
+        sendMessage(site, "LONG_TIME_NO_DELIVERY", "🧯🧯订单交付严重超期🧯🧯", msg);
       }
     });
 
@@ -955,7 +959,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "SALES", "😟售后订单建议创建工包", msg);
+        sendMessage(site, "SERVICE_ORDER_NO_WO", "😟售后订单建议创建工包", msg);
       }
     });
 
@@ -985,7 +989,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "🧹WO关闭提醒, 订单项目已关闭, 工包未关闭", msg);
+        sendMessage(site, "TO_BE_CLOSE_WO", "🧹WO关闭提醒, 订单项目已关闭, 工包未关闭", msg);
       }
     });
 
@@ -1033,7 +1037,7 @@ public class NoticeService {
       }
 
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "🧹采购单关闭提醒, 订单项目已关闭, 采购单未收货", msg);
+        sendMessage(site, "DEAD_PURCHASE_LINE", "🧹采购单关闭提醒, 订单项目已关闭, 采购单未收货", msg);
       }
     });
 
@@ -1071,8 +1075,11 @@ public class NoticeService {
         msg.append("数量:\t")
             .append(o.getQty())
             .append("\n");
+        msg.append("销售原价:\t")
+            .append(o.getProjectSalesCurrencyPrice().setScale(2, RoundingMode.HALF_UP) + o.getSalesCurrency())
+            .append("\n");
         msg.append("销售价格:\t")
-            .append(o.getProjectLocalPrice().setScale(2, RoundingMode.HALF_UP))
+            .append(o.getProjectSalesLocalPrice().setScale(2, RoundingMode.HALF_UP) + o.getLocalCurrency())
             .append("\n");
         msg.append("采购成本:\t")
             .append(o.getProjectLocalCost().setScale(2, RoundingMode.HALF_UP))
@@ -1084,7 +1091,7 @@ public class NoticeService {
 
       }
       if (msg.length() > 0) {
-        sendMessage(site, "PURCHASE", "🥶预分析项目盈亏", msg);
+        sendMessage(site, "PRE_ANALYZE_PROJECT_PROFIT", "🥶预分析项目盈亏", msg);
       }
     });
 

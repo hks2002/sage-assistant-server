@@ -2,120 +2,128 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2022-11-23 20:45:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-17 22:01:39                               *
+ * @LastEditDate          : 2024-09-05 18:44:08                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
 package com.da.sageassistantserver.service;
 
 import java.net.http.HttpResponse;
+import java.util.ArrayDeque;
+import java.util.HashMap;
+import java.util.Queue;
 
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.da.sageassistantserver.utils.Utils;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
 public class WeWorkService {
+  private static HashMap<String, Queue<String>> robotMapQueue = new HashMap<>();
 
-  /**
-   * Caffeine cache
-   * Key is Object {corpId: "xxx", cropSecret: "xxxx"} Value is String, a token
-   * WeWork access token expires in 7200 seconds, 120 minutes
-   * We update it before 100 minutes
-   *
-   */
-  // private static LoadingCache<JSONObject, String> accessTokenCache =
-  // Caffeine.newBuilder()
-  // .maximumSize(10 * 3)
-  // .expireAfterWrite(100, TimeUnit.MINUTES) // 100 minutes, WeWork access token
-  // expires in 7200 seconds, 120 minutes
-  // .build(new CacheLoader<JSONObject, String>() {
-  // @Override
-  // public String load(JSONObject key) {
-  // log.debug("load key: {}", key);
+  @Scheduled(cron = "0 0/1 * * * MON-FRI")
+  private static void runWithLimit() {
+    // loop over all robots
+    robotMapQueue.forEach((robotId, queue) -> {
+      // check if the queue is empty
+      if (queue.isEmpty()) {
+        return;
+      }
 
-  // String corpId = key.getString("corpId");
-  // String cropSecret = key.getString("cropSecret");
+      // get 20 messages from the queue, wework webhook api has a limit of
+      // 20/min
+      int limit = 20;
+      for (int i = 0; i < limit && !queue.isEmpty(); i++) {
+        String data = robotMapQueue.get(robotId).poll();
 
-  // return getAccessToken(corpId, cropSecret);
-  // }
-  // });
+        HttpResponse<String> response = HttpService.request(
+            "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + robotId,
+            "POST", data);
 
-  /**
-   * Internal method to get we work access token, using <em>accessTokenCache</em>
-   * to get
-   * token
-   * from cache
-   */
-  // public static String getAccessToken(String corpId, String cropSecret) {
-  // HttpResponse<String> response = HttpService.request(
-  // "https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=" + corpId +
-  // "&corpsecret=" + cropSecret, "GET", null);
-  // String html = response.body();
-  // JSONObject json = JSONObject.parseObject(html);
-  // try {
-  // if (json.getInteger("errcode").equals(0)) {
-  // return json.getString("access_token");
-  // } else {
-  // log.error("get access token error: {}", json.getString("errmsg"));
-  // return null;
-  // }
-  // } catch (Exception e) {
-  // log.error("get access token error: {}", e.getMessage());
-  // return null;
-  // }
-  // }
+        try {
+          String html = response.body();
+          JSONObject json = JSONObject.parseObject(html);
+          if (json.getInteger("errcode").equals(0)) {
+            log.debug("Send message: [{}] success!", data);
+          } else {
+            log.error("Send message: [{}], error: {}", data,
+                json.getString("errmsg"));
+          }
+        } catch (Exception e) {
+          log.error("Send message", e.getMessage());
+        }
+      }
+    });
+  }
 
   /**
    * Send a message
-   * Group chart message robot doesn't need token
-   * 
+   *
    * @param robotId
-   * @param data
+   * @param data    JsonObject for webhook api
    */
-  public static void sendMessage(String robotId, JSONObject data) {
-    HttpResponse<String> response = HttpService.request(
-        "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=" + robotId, "POST",
-        data.toJSONString());
-
-    try {
-      String html = response.body();
-      JSONObject json = JSONObject.parseObject(html);
-      if (json.getInteger("errcode").equals(0)) {
-        log.debug("Send message: [{}] success!", data.toJSONString());
-      } else {
-        log.error("Send message: [{}], error: {}", data.toJSONString(), json.getString("errmsg"));
-      }
-    } catch (Exception e) {
-      log.error("Send message", e.getMessage());
+  private static void sendMessage(String robotId, JSONObject data) {
+    Queue<String> queue = robotMapQueue.get(robotId);
+    if (queue == null) {
+      queue = new ArrayDeque<>();
     }
+
+    queue.offer(data.toJSONString());
+    robotMapQueue.put(robotId, queue);
   }
 
   /**
    * Send simple message, text, or markdown
    * Group chart message robot doesn't need token
-   * 
+   *
    * @param robotId
    * @param messageType
    * @param message
    */
-  public static void sendMessage(String robotId, String message, String messageType) {
-    JSONObject data = new JSONObject();
-    data.put("msgtype", messageType);
+  public static void sendMessage(String robotId, String message,
+      String messageType) {
+    Utils.splitStringByByteSize(message, 2048).forEach(limitLenMsg -> {
+      JSONObject data = new JSONObject();
+      JSONObject msg = new JSONObject();
 
-    JSONObject msg = new JSONObject();
-    msg.put("content", message);
+      data.put("msgtype", messageType);
 
-    data.put(messageType, msg);
+      StringBuilder sb = new StringBuilder();
+      String[] paragraphs = limitLenMsg.split("\n\n");
 
-    sendMessage(robotId, data);
+      for (String paragraph : paragraphs) {
+
+        String[] lines = paragraph.split("\n");
+        for (String line : lines) {
+          if (line.indexOf(":\t") > -1) {
+            String[] factKV = line.split("\t");
+            sb.append(Utils.withRightPad(factKV[0], 5, '\u3000')); // 全角空格
+            if (factKV.length == 2) {
+              sb.append(factKV[1]);
+              sb.append('\n');
+            }
+          } else {
+            sb.append(line);
+            sb.append('\n');
+          }
+        }
+
+        sb.append('\n');
+      }
+
+      msg.put("content", sb.toString());
+      data.put(messageType, msg);
+
+      sendMessage(robotId, data);
+    });
   }
 
   public static void sendMessage(String robotId, String message) {
     sendMessage(robotId, message, "text");
   }
-
 }

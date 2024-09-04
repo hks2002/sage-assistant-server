@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                    *
  * @CreatedDate           : 2024-06-30 00:19:48                              *
  * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-08-06 23:47:29                              *
+ * @LastEditDate          : 2024-09-04 19:34:00                              *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
  ****************************************************************************/
 
@@ -21,8 +21,10 @@ public class WeworkRobot {
 
   @TableId(type = IdType.AUTO)
   private Long id;
+  private String notice_code;
   private String robot_code;
   private String robot_name;
   private String robot_uuid;
   private String sites;
+  private Boolean enable;
 }
