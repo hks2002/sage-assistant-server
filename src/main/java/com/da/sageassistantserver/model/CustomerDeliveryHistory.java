@@ -14,11 +14,12 @@ import java.util.Date;
 import lombok.Data;
 
 @Data
+@JSONType(alphabetic = false)
 public class CustomerDeliveryHistory {
 
     private String Site;
     private String CustomerCode;
-    private String OrderNO; 
+    private String OrderNO;
     private String ProjectNO;
     private String PN;
     private String Description;

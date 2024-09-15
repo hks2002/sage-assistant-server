@@ -10,6 +10,7 @@ package com.da.sageassistantserver.model;
 
 import java.sql.Timestamp;
 
+import com.alibaba.fastjson2.annotation.JSONType;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 
@@ -19,6 +20,7 @@ import lombok.Data;
  * Final Log, it is transformed from LogRaw, value is combined with TDefinition
  */
 @Data
+@JSONType(alphabetic = false)
 public class LogFinal {
 
   @TableId(type = IdType.AUTO)

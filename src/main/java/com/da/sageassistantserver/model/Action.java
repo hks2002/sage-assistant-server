@@ -1,14 +1,14 @@
 /******************************************************************************
  * @Author                : Robert Huang<56649783@qq.com>                     *
- * @CreatedDate           : 2024-06-02 17:10:30                               *
+ * @CreatedDate           : 2022-09-21 12:36:00                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-06-30 00:13:54                               *
+ * @LastEditDate          : 2024-08-14 15:36:49                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
 package com.da.sageassistantserver.model;
 
-import java.sql.Timestamp;
+import java.util.Date;
 
 import com.alibaba.fastjson2.annotation.JSONType;
 import com.baomidou.mybatisplus.annotation.IdType;
@@ -19,21 +19,14 @@ import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
-@TableName("log")
-public class Log {
-
+@TableName("action")
+public class Action {
   @TableId(type = IdType.AUTO)
   private Long id;
-  private Long template_id;
-  private String v0;
-  private String v1;
-  private String v2;
-  private String v3;
-  private String v4;
-  private String v5;
-  private String v6;
-  private String v7;
-  private String v8;
-  private String v9;
-  private Timestamp log_at;
+  private String act;
+  private String project;
+  private String pn;
+  private String sn;
+  private String act_user;
+  private Date act_date;
 }

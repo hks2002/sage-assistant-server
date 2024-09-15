@@ -13,8 +13,8 @@ import java.util.Date;
 
 import lombok.Data;
 
-
 @Data
+@JSONType(alphabetic = false)
 public class DeliveryDuration {
 
     private String SalesSite;

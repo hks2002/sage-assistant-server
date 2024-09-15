@@ -11,9 +11,12 @@ package com.da.sageassistantserver.model;
 import java.math.BigDecimal;
 import java.sql.Date;
 
+import com.alibaba.fastjson2.annotation.JSONType;
+
 import lombok.Data;
 
 @Data
+@JSONType(alphabetic = false)
 public class SuspectDuplicatedPO {
 
   private String ProjectNO;

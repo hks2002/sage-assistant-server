@@ -10,6 +10,7 @@ package com.da.sageassistantserver.model;
 
 import java.sql.Timestamp;
 
+import com.alibaba.fastjson2.annotation.JSONType;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 
@@ -20,6 +21,7 @@ import lombok.Data;
  * LogFinal
  */
 @Data
+@JSONType(alphabetic = false)
 public class LogRaw {
   @TableId(type = IdType.AUTO)
   private Long id;

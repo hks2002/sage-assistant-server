@@ -11,6 +11,7 @@ package com.da.sageassistantserver.model;
 import java.sql.Timestamp;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONType;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
@@ -18,6 +19,7 @@ import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
 
 @Data
+@JSONType(alphabetic = false)
 
 @TableName("docs")
 public class Docs {

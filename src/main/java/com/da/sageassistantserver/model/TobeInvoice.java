@@ -11,9 +11,12 @@ package com.da.sageassistantserver.model;
 import java.math.BigDecimal;
 import java.util.Date;
 
+import com.alibaba.fastjson2.annotation.JSONType;
+
 import lombok.Data;
 
 @Data
+@JSONType(alphabetic = false)
 public class TobeInvoice {
 
   private String PurchaseLine;

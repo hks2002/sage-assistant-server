@@ -11,8 +11,8 @@ package com.da.sageassistantserver.model;
 
 import lombok.Data;
 
-
 @Data
+@JSONType(alphabetic = false)
 public class CustomerSummaryQty {
 
     private String Site;

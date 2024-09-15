@@ -14,6 +14,7 @@ import java.util.Date;
 import lombok.Data;
 
 @Data
+@JSONType(alphabetic = false)
 public class CustomerDelayHistory {
 
     private String Site;

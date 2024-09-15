@@ -13,8 +13,8 @@ import java.math.BigDecimal;
 
 import lombok.Data;
 
-
 @Data
+@JSONType(alphabetic = false)
 public class CustomerSummaryAmount {
 
     private String Site;

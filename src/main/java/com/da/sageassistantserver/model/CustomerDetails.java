@@ -12,6 +12,7 @@ package com.da.sageassistantserver.model;
 import lombok.Data;
 
 @Data
+@JSONType(alphabetic = false)
 public class CustomerDetails {
 
     private String CustomerCode;
