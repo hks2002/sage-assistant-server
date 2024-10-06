@@ -8,20 +8,15 @@
 
 package com.da.sageassistantserver.dao;
 
+import com.da.sageassistantserver.model.SuspectDuplicatedPO;
+import com.da.sageassistantserver.model.SuspectDuplicatedRA;
 import java.util.List;
-
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.da.sageassistantserver.model.SuspectDuplicatedPO;
-import com.da.sageassistantserver.model.SuspectDuplicatedRA;
-
 @Mapper
 public interface SuspectDuplicateDataMapper {
+    List<SuspectDuplicatedPO> findDuplicatedPOBySite(@Param("Site") String Site, @Param("DateFrom") String DateFrom);
 
-        List<SuspectDuplicatedPO> findDuplicatedPOBySite(@Param("Site") String Site,
-                        @Param("DateFrom") String DateFrom);
-
-        List<SuspectDuplicatedRA> findDuplicatedRABySite(@Param("Site") String Site,
-                        @Param("DateFrom") String DateFrom);
+    List<SuspectDuplicatedRA> findDuplicatedRABySite(@Param("Site") String Site, @Param("DateFrom") String DateFrom);
 }

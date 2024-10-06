@@ -8,13 +8,11 @@
 
 package com.da.sageassistantserver.dao;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Mapper;
-
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.da.sageassistantserver.model.Docs;
+import java.util.List;
+import org.apache.ibatis.annotations.Mapper;
 
 @Mapper
 @DS("slave")

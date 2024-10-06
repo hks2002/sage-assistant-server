@@ -2,22 +2,19 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:03:49                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/service/StockService.java                       *
+ * @LastEditDate          : 2024-12-09 19:51:01                                                                      *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Param;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
 import com.da.sageassistantserver.dao.StockMapper;
 import com.da.sageassistantserver.model.StockHistory;
 import com.da.sageassistantserver.model.StockSummary;
+import java.util.List;
+import org.apache.ibatis.annotations.Param;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class StockService {

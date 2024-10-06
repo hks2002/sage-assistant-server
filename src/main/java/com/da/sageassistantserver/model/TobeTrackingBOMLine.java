@@ -1,32 +1,34 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-11-10 14:18:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-03-12 13:22:50                                                                      *
- * @FilePath              : src/main/java/sageassistant/dataSrv/model/TobeTrackingBOMLine.java                       *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-11-10 14:18:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-09 19:45:44                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.model;
 
 import com.alibaba.fastjson2.annotation.JSONType;
-
+import java.util.Date;
 import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
 public class TobeTrackingBOMLine {
 
+    private String Site;
     private String BomProjectNO;
     private String WorkOrderNO;
-    private String BomSeq;
+    private String BomLine;
     private String BomPN;
-    private String BomDesc;
-    private Integer BomQTY;
-    private String BomUnit;
-    private Integer ShortQty;
-    private Integer AllQty;
-    private String BomRequestDate;
     private String StockPN;
+    private String BomDesc;
+    private Integer BomQty;
+    private String BomUnit;
     private Integer AvaQty;
+    private Integer AllQty;
+    private Integer ShortQty;
+    private String Creator;
+    private Date BomRequestDate;
+    private LineNote LineNote;
 }

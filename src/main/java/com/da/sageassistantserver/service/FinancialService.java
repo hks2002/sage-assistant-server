@@ -1,23 +1,21 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2022-03-26 17:57:00                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2023-11-17 10:23:42                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-03-26 17:57:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-09 19:48:49                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.da.sageassistantserver.dao.FinancialMapper;
 import com.da.sageassistantserver.model.FinancialBalance;
 import com.da.sageassistantserver.model.FinancialInvoicePay;
 import com.da.sageassistantserver.model.FinancialInvoicePayPro;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Service
 public class FinancialService {
@@ -127,10 +125,11 @@ public class FinancialService {
     }
 
     public List<FinancialBalance> getAccountBalanceForAccountNOByCat(
-            String Site,
-            String Year,
-            String Cat,
-            String AccountNO) {
+        String Site,
+        String Year,
+        String Cat,
+        String AccountNO
+    ) {
         String[] AccountNOs = AccountNO.split(",");
         List<FinancialBalance> list = financialMapper.findAccountBalanceByAccountNO(Site, Year, AccountNOs);
         List<FinancialBalance> listBalance = new ArrayList<>();
@@ -223,17 +222,23 @@ public class FinancialService {
         return listBalance;
     }
 
-    public List<FinancialInvoicePay> getInvoicePay(String Site, String CustomerCode, String DateType, String DateFrom,
-            String DateTo) {
+    public List<FinancialInvoicePay> getInvoicePay(
+        String Site,
+        String CustomerCode,
+        String DateType,
+        String DateFrom,
+        String DateTo
+    ) {
         return financialMapper.findInvoicePay(Site, CustomerCode, DateType, DateFrom, DateTo);
     }
 
     public List<FinancialInvoicePayPro> getInvoicePayPro(
-            String Site,
-            String CustomerCode,
-            String DateType,
-            String DateFrom,
-            String DateTo) {
+        String Site,
+        String CustomerCode,
+        String DateType,
+        String DateFrom,
+        String DateTo
+    ) {
         return financialMapper.findInvoicePayPro(Site, CustomerCode, DateType, DateFrom, DateTo);
     }
 }

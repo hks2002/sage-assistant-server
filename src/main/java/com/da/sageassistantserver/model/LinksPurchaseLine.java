@@ -8,10 +8,8 @@
 
 package com.da.sageassistantserver.model;
 
-import java.sql.Date;
-
 import com.alibaba.fastjson2.annotation.JSONType;
-
+import java.sql.Date;
 import lombok.Data;
 
 @Data

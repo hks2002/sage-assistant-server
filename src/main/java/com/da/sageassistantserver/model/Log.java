@@ -8,13 +8,11 @@
 
 package com.da.sageassistantserver.model;
 
-import java.sql.Timestamp;
-
 import com.alibaba.fastjson2.annotation.JSONType;
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
-
+import java.sql.Timestamp;
 import lombok.Data;
 
 @Data
@@ -22,18 +20,19 @@ import lombok.Data;
 @TableName("log")
 public class Log {
 
-  @TableId(type = IdType.AUTO)
-  private Long id;
-  private Long template_id;
-  private String v0;
-  private String v1;
-  private String v2;
-  private String v3;
-  private String v4;
-  private String v5;
-  private String v6;
-  private String v7;
-  private String v8;
-  private String v9;
-  private Timestamp log_at;
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    private Long template_id;
+    private String v0;
+    private String v1;
+    private String v2;
+    private String v3;
+    private String v4;
+    private String v5;
+    private String v6;
+    private String v7;
+    private String v8;
+    private String v9;
+    private Timestamp log_at;
 }

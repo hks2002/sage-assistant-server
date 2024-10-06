@@ -1,30 +1,29 @@
-/******************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                     *
- * @CreatedDate           : 2022-11-23 20:45:00                               *
- * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-17 13:45:09                               *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
- *****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-11-23 20:45:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-09 19:50:36                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
+import com.alibaba.fastjson2.JSONObject;
+import com.da.sageassistantserver.utils.ResponseJsonHelper;
+import com.da.sageassistantserver.utils.ResponseJsonHelper.MsgTyp;
+import com.da.sageassistantserver.utils.SageActionHelper;
+import com.microsoft.sqlserver.jdbc.StringUtils;
 import java.net.http.HttpResponse;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-
-import org.springframework.stereotype.Service;
-
-import com.alibaba.fastjson2.JSONObject;
-import com.da.sageassistantserver.utils.SageActionHelper;
-import com.da.sageassistantserver.utils.SageActionHelper.MsgTyp;
-import com.microsoft.sqlserver.jdbc.StringUtils;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class SageActionService {
+
     /**
      * contains `phase`, `Tracking`, and status is 202
      */
@@ -39,7 +38,7 @@ public class SageActionService {
 
     /**
      * In case of server performance low, sleep 1s, then get response by GET
-     * 
+     *
      * @param auth
      * @param location without schemas and hosts
      * @return
@@ -59,21 +58,19 @@ public class SageActionService {
         return isPerformanceLow(json) ? getTrackingResponse(auth, location) : json;
     }
 
-    public static JSONObject doSageAct(
-            String auth,
-            String session,
-            String data,
-            String preTacking) {
+    public static JSONObject doSageAct(String auth, String session, String data, String preTacking) {
         String uuid = preTacking != null ? preTacking : UUID.randomUUID().toString();
         HttpResponse<String> response = HttpService.request(
-                String.format(
-                        "https://192.168.10.62/trans/x3/erp/EXPLOIT/$sessions('%s')/requestSvc?act=%s&trackngId=%s",
-                        session,
-                        JSONObject.parseObject(data).getString("act"),
-                        uuid),
-                "PUT",
-                data,
-                auth);
+            String.format(
+                "https://192.168.10.62/trans/x3/erp/EXPLOIT/$sessions('%s')/requestSvc?act=%s&trackngId=%s",
+                session,
+                JSONObject.parseObject(data).getString("act"),
+                uuid
+            ),
+            "PUT",
+            data,
+            auth
+        );
         String html = response.body();
         JSONObject json = JSONObject.parseObject(html);
 
@@ -95,7 +92,7 @@ public class SageActionService {
             switch (targetType) {
                 case "ist":
                     // ist means success, without pop window
-                    rtn = SageActionHelper.rtnObj(true, MsgTyp.RESULT, "success");
+                    rtn = ResponseJsonHelper.rtnObj(true, MsgTyp.RESULT, "success");
                     rtn.put("result", Optional.ofNullable(json).orElse(new JSONObject()).toJSONString());
 
                     break;
@@ -106,46 +103,49 @@ public class SageActionService {
                     switch (boxType) {
                         case 1:
                             // type 1 means info
-                            rtn = SageActionHelper.rtnObj(true, MsgTyp.INFO, box.getString("li"));
+                            rtn = ResponseJsonHelper.rtnObj(true, MsgTyp.INFO, box.getString("li"));
                             break;
                         case 2:
                             // 2 means success, with pop window, need to select
-                            rtn = SageActionHelper.rtnObj(
+                            rtn =
+                                ResponseJsonHelper.rtnObj(
                                     true,
                                     MsgTyp.QUESTION,
-                                    Optional.ofNullable(json).orElse(new JSONObject()).toJSONString());
+                                    Optional.ofNullable(json).orElse(new JSONObject()).toJSONString()
+                                );
 
                             break;
                         case 3:
                             // 3 means warning
-                            rtn = SageActionHelper.rtnObj(false, MsgTyp.WARN, box.getString("li"));
+                            rtn = ResponseJsonHelper.rtnObj(false, MsgTyp.WARN, box.getString("li"));
                             break;
                         default:
-                            rtn = SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Unknown response");
+                            rtn = ResponseJsonHelper.rtnObj(false, MsgTyp.ERROR, "Unknown response");
                             break;
                     }
                     break;
                 case "portal":
                     // portal means login expired or exit page
-                    if (Optional.ofNullable(sap).orElse(new JSONObject()).containsKey("func") &&
-                            Optional.ofNullable(sap).orElse(new JSONObject()).getJSONObject("func")
-                                    .containsKey("close")) {
-                        rtn = SageActionHelper.rtnObj(true, MsgTyp.INFO, "Page exit");
+                    if (
+                        Optional.ofNullable(sap).orElse(new JSONObject()).containsKey("func") &&
+                        Optional.ofNullable(sap).orElse(new JSONObject()).getJSONObject("func").containsKey("close")
+                    ) {
+                        rtn = ResponseJsonHelper.rtnObj(true, MsgTyp.INFO, "Page exit");
                     } else {
-                        rtn = SageActionHelper.rtnObj(true, MsgTyp.ERROR, "Session expired");
+                        rtn = ResponseJsonHelper.rtnObj(true, MsgTyp.ERROR, "Session expired");
                     }
                     break;
                 default:
-                    rtn = SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Unknown response");
+                    rtn = ResponseJsonHelper.rtnObj(false, MsgTyp.ERROR, "Unknown response");
             }
             // } else if (srvop != null && diagnosis != null) {
-            // rtn = SageActionHelper.rtnObj(false, MsgTyp.ERROR,
+            // rtn = ResponseJsonHelper.rtnObj(false, MsgTyp.ERROR,
             // diagnosis.getString("$message"));
         } else if (json.containsKey("$message")) {
             log.debug(Optional.ofNullable(json.getString("$details")).orElse("Unknown response"));
-            rtn = SageActionHelper.rtnObj(false, MsgTyp.ERROR, json.getString("$message"));
+            rtn = ResponseJsonHelper.rtnObj(false, MsgTyp.ERROR, json.getString("$message"));
         } else {
-            rtn = SageActionHelper.rtnObj(false, MsgTyp.ERROR, "Unknown response");
+            rtn = ResponseJsonHelper.rtnObj(false, MsgTyp.ERROR, "Unknown response");
         }
 
         return rtn;
@@ -155,25 +155,23 @@ public class SageActionService {
      * After go to recorder, get session id and xid and default value of recorder
      * <p>
      * get SessionId, xid, defaultRcdNO
-     * 
+     *
      * @param auth
      * @param rcdType
      * @param rcdNO
      * @return
      */
-    public static JSONObject goToRecorder(
-            String auth,
-            String rcdType,
-            String rcdNO) {
+    public static JSONObject goToRecorder(String auth, String rcdType, String rcdNO) {
         String function = SageActionHelper.getFunction(rcdType);
 
         // trans
-        String trans = switch (function) {
-            case "GESSOH" -> SageActionHelper.getSalesOrderTransaction(rcdNO);
-            case "GESSIH" -> SageActionHelper.getInvoiceTransaction(rcdNO);
-            case "GESPOH" -> SageActionHelper.getPurchaseTransaction(rcdNO);
-            default -> "";
-        };
+        String trans =
+            switch (function) {
+                case "GESSOH" -> SageActionHelper.getSalesOrderTransaction(rcdNO);
+                case "GESSIH" -> SageActionHelper.getInvoiceTransaction(rcdNO);
+                case "GESPOH" -> SageActionHelper.getPurchaseTransaction(rcdNO);
+                default -> "";
+            };
 
         JSONObject session = SageLoginService.getSageSessionCache(auth, function, trans);
         // if is not successful, return it
@@ -187,10 +185,11 @@ public class SageActionService {
 
         log.debug("go to target recorder >>>");
         JSONObject rtn = SageActionService.doSageAct(
-                auth,
-                sessionId,
-                SageActionHelper.tabSet("B", xid, 0, rcdNO),
-                null);
+            auth,
+            sessionId,
+            SageActionHelper.setThenTab("B", xid, 0, rcdNO),
+            null
+        );
         if (!rtn.getBooleanValue("success")) {
             if (rtn.getString("msgTyp").equals("WARN")) {
                 // rewrite message, original message is ""
@@ -207,13 +206,13 @@ public class SageActionService {
     }
 
     public static JSONObject updateSageField(
-            String auth,
-            String rcdType,
-            String rcdNO,
-            Integer modLine,
-            String targetSub,
-            String targetSubVal) {
-
+        String auth,
+        String rcdType,
+        String rcdNO,
+        Integer line,
+        String targetField,
+        String targetFieldVal
+    ) {
         // step one: go to recorder
         JSONObject rtn = goToRecorder(auth, rcdType, rcdNO);
         String sessionId = rtn.getString("SessionId");
@@ -225,8 +224,7 @@ public class SageActionService {
 
         // step two: try to edit
         log.debug("edit model >>>");
-        rtn = SageActionService.doSageAct(auth, sessionId,
-                SageActionHelper.goTo("B", targetSub, modLine), null);
+        rtn = SageActionService.doSageAct(auth, sessionId, SageActionHelper.goTo("B", targetField, line), null);
         if (!rtn.getBooleanValue("success")) {
             return rtn;
         }
@@ -245,24 +243,28 @@ public class SageActionService {
         if (rtn.getBooleanValue("success")) {
             Integer iVal = -1;
 
-            if (StringUtils.isInteger(targetSubVal)) {
-                iVal = Integer.valueOf(targetSubVal);
+            if (StringUtils.isInteger(targetFieldVal)) {
+                iVal = Integer.valueOf(targetFieldVal);
             }
 
             log.debug("modify and save >>>");
             // ❗❗❗❗❗ Limit integer value, assume that the value is list option val
             if (iVal > 0 && iVal < 10) {
-                rtn = SageActionService.doSageAct(
+                rtn =
+                    SageActionService.doSageAct(
                         auth,
                         sessionId,
-                        SageActionHelper.save("B", targetSub, modLine, iVal),
-                        null);
+                        SageActionHelper.save("B", targetField, line, iVal),
+                        null
+                    );
             } else {
-                rtn = SageActionService.doSageAct(
+                rtn =
+                    SageActionService.doSageAct(
                         auth,
                         sessionId,
-                        SageActionHelper.save("B", targetSub, modLine, targetSubVal),
-                        null);
+                        SageActionHelper.save("B", targetField, line, targetFieldVal),
+                        null
+                    );
             }
             log.debug("modify and save <<<");
         }
@@ -271,8 +273,7 @@ public class SageActionService {
         // less to user
         CompletableFuture.runAsync(() -> {
             log.debug("goto the default record >>>");
-            SageActionService.doSageAct(auth, sessionId,
-                    SageActionHelper.tabSet("B", xid, 0, defaultRcdNO), null);
+            SageActionService.doSageAct(auth, sessionId, SageActionHelper.setThenTab("B", xid, 0, defaultRcdNO), null);
             log.debug("goto the default record <<<");
         });
 

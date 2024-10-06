@@ -2,28 +2,25 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 20:03:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-04-08 21:47:45                                                                      *
- * @FilePath              : src/main/java/com/da/sage/assistant/controller/RssController.java                        *
+ * @LastEditDate          : 2024-12-09 19:14:29                                                                      *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.controller;
 
+import com.da.sageassistantserver.service.RssService;
+import com.rometools.rome.feed.rss.Channel;
+import com.rometools.rome.feed.rss.Description;
+import com.rometools.rome.feed.rss.Item;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.da.sageassistantserver.service.RssService;
-import com.rometools.rome.feed.rss.Channel;
-import com.rometools.rome.feed.rss.Description;
-import com.rometools.rome.feed.rss.Item;
 
 @RestController
 public class RssController {

@@ -9,10 +9,8 @@
 
 package com.da.sageassistantserver.model;
 
-import java.math.BigDecimal;
-
 import com.alibaba.fastjson2.annotation.JSONType;
-
+import java.math.BigDecimal;
 import lombok.Data;
 
 @Data

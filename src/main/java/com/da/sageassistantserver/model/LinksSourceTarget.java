@@ -9,7 +9,6 @@
 package com.da.sageassistantserver.model;
 
 import com.alibaba.fastjson2.annotation.JSONType;
-
 import lombok.Data;
 
 @Data

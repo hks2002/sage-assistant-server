@@ -1,20 +1,12 @@
-/*********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                            *
- * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:03:00                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/service/PnService.java                          *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
- ********************************************************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-03-26 17:57:00                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-09 19:50:17                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
 
 import com.da.sageassistantserver.dao.PnMapper;
 import com.da.sageassistantserver.dao.StockMapper;
@@ -27,13 +19,16 @@ import com.da.sageassistantserver.model.QuoteHistory;
 import com.da.sageassistantserver.model.SalesHistory;
 import com.da.sageassistantserver.model.StockInfo;
 import com.da.sageassistantserver.utils.Utils;
-
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 @Slf4j
 @Service
 public class PnService {
-
 
     @Autowired
     private PnMapper pnMapper;

@@ -2,19 +2,16 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:57:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-06-24 16:00:40                                                                      *
- * @FilePath              : src/main/java/com/da/sageassistantserver/service/CommonService.java                      *
+ * @LastEditDate          : 2024-12-09 19:48:18                                                                      *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
+import com.da.sageassistantserver.dao.CommonMapper;
 import java.util.List;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import com.da.sageassistantserver.dao.CommonMapper;
 
 @Service
 public class CommonService {
@@ -23,6 +20,7 @@ public class CommonService {
     private CommonMapper commonMapper;
 
     public List<String> getAllSites() {
-        return commonMapper.getAllSites();
+        List<String> list = commonMapper.getAllSites();
+        return list;
     }
 }

@@ -2,21 +2,18 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CreatedDate           : 2022-03-26 17:55:00                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
- * @LastEditDate          : 2023-03-12 19:32:00                                                                      *
- * @FilePath              : src/main/java/sageassistant/dataSrv/dao/StockMapper.java                                 *
+ * @LastEditDate          : 2024-12-09 19:21:19                                                                      *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  ********************************************************************************************************************/
 
 package com.da.sageassistantserver.dao;
 
-import java.util.List;
-
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Param;
-
 import com.da.sageassistantserver.model.StockHistory;
 import com.da.sageassistantserver.model.StockInfo;
 import com.da.sageassistantserver.model.StockSummary;
+import java.util.List;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 
 @Mapper
 public interface StockMapper {

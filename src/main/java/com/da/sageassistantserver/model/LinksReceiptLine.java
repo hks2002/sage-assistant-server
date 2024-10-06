@@ -8,15 +8,14 @@
 
 package com.da.sageassistantserver.model;
 
-import java.sql.Date;
-
 import com.alibaba.fastjson2.annotation.JSONType;
-
+import java.sql.Date;
 import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
 public class LinksReceiptLine {
+
     private String ReceiptNO;
     private String ReceiptLine;
     private String ReceiptProjectNO;

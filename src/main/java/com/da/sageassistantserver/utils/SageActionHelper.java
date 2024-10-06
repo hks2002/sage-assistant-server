@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                     *
  * @CreatedDate           : 2023-02-19 20:31:38                               *
  * @LastEditors           : Robert Huang<56649783@qq.com>                     *
- * @LastEditDate          : 2024-07-17 12:36:22                               *
+ * @LastEditDate          : 2024-10-07 23:37:28                               *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                   *
  *****************************************************************************/
 
@@ -10,31 +10,10 @@ package com.da.sageassistantserver.utils;
 
 import java.util.HashMap;
 import java.util.regex.Pattern;
-
-import com.alibaba.fastjson2.JSONObject;
-
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class SageActionHelper {
-
-    public enum MsgTyp {
-        RESULT(0),
-        INFO(1),
-        QUESTION(2),
-        WARN(3),
-        ERROR(4);
-
-        private Integer value;
-
-        MsgTyp(Integer value) {
-            this.value = value;
-        }
-
-        public Integer getValue() {
-            return value;
-        }
-    }
 
     public enum Action {
         SELECT(1051),
@@ -74,7 +53,7 @@ public class SageActionHelper {
     /**
      * Only for act, such as click some button
      * If want to change/select before this action, consider use `sel`/`set`
-     * 
+     *
      * @param act
      * @return
      */
@@ -87,9 +66,9 @@ public class SageActionHelper {
     /**
      * Set target data, then Tab
      */
-    public static String tabSet(String win, String xid, Integer nl, String val) {
+    public static String setThenTab(String win, String xid, Integer nl, String val) {
         return String.format(
-                """
+            """
                         {
                             "act":%d,
                             "fld":{
@@ -100,15 +79,23 @@ public class SageActionHelper {
                             "tech":{}
                         }
                         """,
-                Action.INPUT_TAB.value, win, xid, nl, val, win, xid, nl);
+            Action.INPUT_TAB.value,
+            win,
+            xid,
+            nl,
+            val,
+            win,
+            xid,
+            nl
+        );
     }
 
     /**
      * Set target data, then tab
      */
-    public static String tabSet(String win, String xid, Integer nl, Integer val) {
+    public static String setThenTab(String win, String xid, Integer nl, Integer val) {
         return String.format(
-                """
+            """
                         {
                             "act":%d,
                             "fld":{
@@ -119,7 +106,12 @@ public class SageActionHelper {
                             "tech":{}
                         }
                         """,
-                Action.INPUT_TAB.value, win, xid, nl, val);
+            Action.INPUT_TAB.value,
+            win,
+            xid,
+            nl,
+            val
+        );
     }
 
     /**
@@ -127,7 +119,7 @@ public class SageActionHelper {
      */
     public static String save(String win, String xid, Integer nl, String val) {
         return String.format(
-                """
+            """
                         {
                             "act":%d,
                             "fld":{
@@ -138,7 +130,12 @@ public class SageActionHelper {
                             "tech":{}
                         }
                         """,
-                Action.SAVE.value, win, xid, nl, val);
+            Action.SAVE.value,
+            win,
+            xid,
+            nl,
+            val
+        );
     }
 
     /**
@@ -146,7 +143,7 @@ public class SageActionHelper {
      */
     public static String save(String win, String xid, Integer nl, Integer val) {
         return String.format(
-                """
+            """
                         {
                             "act":%d,
                             "fld":{
@@ -157,15 +154,21 @@ public class SageActionHelper {
                             "tech":{}
                         }
                         """,
-                Action.SAVE.value, win, xid, nl, val);
+            Action.SAVE.value,
+            win,
+            xid,
+            nl,
+            val
+        );
     }
 
     /**
      * Select pop list target
      */
-    public static String popSel(String win, String xid, Integer nl, String val) {
+    public static String selectAfterPop(String win, String xid, Integer nl, String val) {
         // ACT.SEARCH 782, sudo: [["v1","v2"],null]
-        String s = """
+        String s =
+            """
                 {
                     "act":%d,
                     "param":{
@@ -182,9 +185,10 @@ public class SageActionHelper {
     /**
      * Search list target, then select
      */
-    public static String search(String win, String xid, Integer nl, String val) {
+    public static String searchAndSelect(String win, String xid, Integer nl, String val) {
         // ACT.SEARCH 782, sudo: [["v1","v2"],null]
-        String s = """
+        String s =
+            """
                 {
                     "act":%d,
                     "fld": {
@@ -207,9 +211,10 @@ public class SageActionHelper {
     /**
      * Select value after search
      */
-    public static String searchSelect(String win, String xid, Integer nl, String val) {
+    public static String selectAfterSearch(String win, String xid, Integer nl, String val) {
         // ACT.SELECT 1051, sudo: [["v1","v2"],null]
-        String s = """
+        String s =
+            """
                 {
                     "act":%d,
                     "param":{
@@ -228,7 +233,8 @@ public class SageActionHelper {
      */
     public static String select(String win, String xid, Integer nl, String val) {
         // ACT.SELECT 1051, sudo: [["v1","v2"],null]
-        String s = """
+        String s =
+            """
                 {
                     "act":%d,
                     "param":{
@@ -243,7 +249,8 @@ public class SageActionHelper {
     }
 
     public static String goTo(String win, String xid, Integer nl) {
-        String s = """
+        String s =
+            """
                 {
                     "act":%d,
                     "fld":{"ist":null,"fmtKind":"ROUGH","notModified":false,"v":4},
@@ -255,7 +262,8 @@ public class SageActionHelper {
     }
 
     public static String noRevise() {
-        String s = """
+        String s =
+            """
                 {
                     "act":%d,
                     "fld":{"ist":null,"fmtKind":"SHOW","notModified":false,"v":3},
@@ -267,7 +275,8 @@ public class SageActionHelper {
     }
 
     public static String warnOK() {
-        String s = """
+        String s =
+            """
                 {
                     "act":%d,
                     "fld":{"ist":null,"fmtKind":"SHOW","notModified":false,"v":5},
@@ -299,38 +308,7 @@ public class SageActionHelper {
         Pattern reg2 = Pattern.compile("[A-Z]CG.*");
         Pattern reg3 = Pattern.compile("[A-Z]CT.*");
         return reg1.matcher(purchaseNO).find()
-                ? "2~1"
-                : reg2.matcher(purchaseNO).find() ? "2~2" : reg3.matcher(purchaseNO).find() ? "2~3" : "2~1";
-    }
-
-    public static JSONObject rtnObj(Boolean success, MsgTyp msgTyp, String msg) {
-        switch (msgTyp) {
-            case RESULT:
-                break;
-            case INFO:
-                log.info(msg);
-                break;
-            case WARN:
-                log.warn(msg);
-                break;
-            case ERROR:
-                log.error(msg);
-                break;
-            default:
-                break;
-        }
-        JSONObject rtn = new JSONObject();
-        rtn.put("success", success);
-        rtn.put("msgTyp", msgTyp);
-        rtn.put("msg", msg);
-        return rtn;
-    }
-
-    public static JSONObject missingAuth() {
-        return rtnObj(false, MsgTyp.ERROR, "Authorization is required.");
-    }
-
-    public static JSONObject paraRequired(String name) {
-        return rtnObj(false, MsgTyp.ERROR, name + " is required.");
+            ? "2~1"
+            : reg2.matcher(purchaseNO).find() ? "2~2" : reg3.matcher(purchaseNO).find() ? "2~3" : "2~1";
     }
 }

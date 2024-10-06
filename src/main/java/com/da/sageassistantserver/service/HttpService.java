@@ -1,13 +1,15 @@
-/*****************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                    *
- * @CreatedDate           : 2022-03-26 17:57:07                              *
- * @LastEditors           : Robert Huang<56649783@qq.com>                    *
- * @LastEditDate          : 2024-07-17 00:22:43                              *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                  *
- ****************************************************************************/
+/**********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                             *
+ * @CreatedDate           : 2022-03-26 17:57:07                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
+ * @LastEditDate          : 2024-12-08 09:15:21                                                                       *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ *********************************************************************************************************************/
 
 package com.da.sageassistantserver.service;
 
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -25,18 +27,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.TimeUnit;
-
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
-
-import org.springframework.stereotype.Service;
-
-import com.da.sageassistantserver.utils.Utils;
-import com.github.benmanes.caffeine.cache.Cache;
-import com.github.benmanes.caffeine.cache.Caffeine;
-
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 @Slf4j
 @Service
@@ -46,32 +42,28 @@ public class HttpService {
      * Caffeine cache
      */
     private static Cache<String, String> cache = Caffeine
-            .newBuilder()
-            .expireAfterAccess(5, TimeUnit.MINUTES)
-            .maximumSize(10000)
-            .build();
+        .newBuilder()
+        .expireAfterAccess(5, TimeUnit.MINUTES)
+        .maximumSize(10000)
+        .build();
 
     private static HttpClient client = null;
 
     private static SSLContext getSSLContext() {
         try {
             TrustManager[] trustAllCertificates = new TrustManager[] {
-                    new X509TrustManager() {
-                        @Override
-                        public X509Certificate[] getAcceptedIssuers() {
-                            return null;
-                        }
-
-                        @Override
-                        public void checkClientTrusted(X509Certificate[] arg0, String arg1)
-                                throws CertificateException {
-                        }
-
-                        @Override
-                        public void checkServerTrusted(X509Certificate[] arg0, String arg1)
-                                throws CertificateException {
-                        }
+                new X509TrustManager() {
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return null;
                     }
+
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {}
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] arg0, String arg1) throws CertificateException {}
+                }
             };
 
             SSLContext sc = SSLContext.getInstance("TLS");
@@ -106,16 +98,16 @@ public class HttpService {
             }
 
             Builder reqBuilder = HttpRequest
-                    .newBuilder()
-                    .uri(URI.create(url))
-                    .setHeader("Content-Type", "application/json")
-                    .setHeader("Accept", "application/json");
+                .newBuilder()
+                .uri(URI.create(url))
+                .setHeader("Content-Type", "application/json")
+                .setHeader("Accept", "application/json");
 
-            if (!Utils.isNullOrEmpty(auth)) {
+            if (StringUtils.hasText(auth)) {
                 reqBuilder.header("authorization", auth);
             }
             // Cookie
-            if (!Utils.isNullOrEmpty(auth)) {
+            if (StringUtils.hasText(auth)) {
                 if (cache.getIfPresent(auth) != null) {
                     reqBuilder.header("Cookie", cache.getIfPresent(auth));
                 }
@@ -157,7 +149,7 @@ public class HttpService {
             for (String cookie : cookieResponse) {
                 cookieCache.add(cookie.split(";")[0]);
             }
-            if (!Utils.isNullOrEmpty(auth)) {
+            if (StringUtils.hasText(auth)) {
                 String cookieStr = String.join(";", cookieCache);
                 cache.put(auth, cookieStr);
                 log.debug("cookie:{}", cookieStr);
