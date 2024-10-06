@@ -1,11 +1,6 @@
 {
   "properties": [
     {
-      "name": "spring.boot.version",
-      "type": "java.lang.String",
-      "description": "A description for 'spring.boot.version'"
-    },
-    {
       "name": "project.name",
       "type": "java.lang.String",
       "description": "A description for 'project.name'"
@@ -21,39 +16,114 @@
       "description": "A description for 'project.dependencies'"
     },
     {
-      "name": "currency.from",
+      "name": "project.parentVersion",
       "type": "java.lang.String",
-      "description": "A description for 'currency.from'"
+      "description": "A description for 'project.parentVersion'"
     },
     {
-      "name": "attachment.path.linux",
+      "name": "spring.dynamic.primary",
       "type": "java.lang.String",
-      "description": "A description for 'attachment.path.linux'"
+      "description": "A description for 'spring.dynamic.primary'"
     },
     {
-      "name": "attachment.path.windows",
+      "name": "spring.dynamic.datasource.master.url",
       "type": "java.lang.String",
-      "description": "A description for 'attachment.path.windows'"
+      "description": "A description for 'spring.dynamic.datasource.master.url'"
     },
     {
-      "name": "attachment.path.folder.len",
-      "type": "java.lang.Integer",
-      "description": "A description for 'attachment.path.folder.len'"
+      "name": "spring.dynamic.strict",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.strict'"
     },
     {
-      "name": "attachment.path.folder.deep",
-      "type": "java.lang.Integer",
-      "description": "A description for 'attachment.path.folder.deep'"
+      "name": "spring.dynamic.datasource.master.driver-class-name",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.master.driver-class-name'"
     },
     {
-      "name": "attachment.info.build.delay",
-      "type": "java.lang.Integer",
-      "description": "A description for 'attachment.info.build.delay'"
+      "name": "spring.dynamic.datasource.master.username",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.master.username'"
     },
     {
-      "name": "attachment.info.build.repeat",
-      "type": "java.lang.Integer",
-      "description": "A description for 'attachment.info.build.repeat'"
+      "name": "spring.dynamic.datasource.master.password",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.master.password'"
+    },
+    {
+      "name": "spring.dynamic.datasource.master.hikari.maximum-pool-size",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.master.hikari.maximum-pool-size'"
+    },
+    {
+      "name": "spring.dynamic.datasource.master.hikari.minimum-idle",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.master.hikari.minimum-idle'"
+    },
+    {
+      "name": "spring.dynamic.datasource.master.hikari.idle-timeout",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.master.hikari.idle-timeout'"
+    },
+    {
+      "name": "spring.dynamic.datasource.slave.hikari.idle-timeout",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.slave.hikari.idle-timeout'"
+    },
+    {
+      "name": "spring.dynamic.datasource.slave.hikari.minimum-idle",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.slave.hikari.minimum-idle'"
+    },
+    {
+      "name": "spring.dynamic.datasource.slave.driver-class-name",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.slave.driver-class-name'"
+    },
+    {
+      "name": "spring.dynamic.datasource.slave.url",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.slave.url'"
+    },
+    {
+      "name": "spring.dynamic.datasource.slave.password",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.slave.password'"
+    },
+    {
+      "name": "spring.dynamic.datasource.slave.username",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.slave.username'"
+    },
+    {
+      "name": "spring.dynamic.datasource.slave.hikari.maximum-pool-size",
+      "type": "java.lang.String",
+      "description": "A description for 'spring.dynamic.datasource.slave.hikari.maximum-pool-size'"
+    },
+    {
+      "name": "ad.server",
+      "type": "java.lang.String",
+      "description": "A description for 'ad.server'"
+    },
+    {
+      "name": "ad.ou",
+      "type": "java.lang.String",
+      "description": "A description for 'ad.ou'"
+    },
+    {
+      "name": "ad-server.url",
+      "type": "java.lang.String",
+      "description": "A description for 'ad-server.url'"
+    },
+    {
+      "name": "ad-server.domain",
+      "type": "java.lang.String",
+      "description": "A description for 'ad-server.domain'"
+    },
+    {
+      "name": "ad-server.search-base",
+      "type": "java.lang.String",
+      "description": "A description for 'ad-server.search-base'"
     }
   ]
 }

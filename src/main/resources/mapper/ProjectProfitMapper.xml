@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.da.sage.assistant.dao.ProjectProfitMapper">
+  <!-- Open L2 Cache under Names pace: 1 Hour -->
+  <cache eviction="FIFO" flushInterval="3600000" readOnly="true" size="1024" />
+  <select id="getProjectProfit" resultType="com.da.sage.assistant.model.ProjectProfit">
+  WITH  
+  T01 AS (
+    SELECT DISTINCT
+      OPPOR.SALFCY_0 Site,
+      OPPOR.OPPNUM_0 ProjectNO,
+      OPPOR.OPPEXTNUM_0 PN,
+      OPPOR.CREDAT_0 ProjectDate
+    FROM EXPLOIT.OPPOR OPPOR
+    WHERE 1=1
+    <choose>
+    <when test=' Site == "ALL" '>
+    </when>
+    <when test=' Site == "CHINA" '>
+      AND OPPOR.SALFCY_0 IN ('ZHU','HKG','YSH')
+    </when>
+    <otherwise>
+      AND OPPOR.SALFCY_0 = #{Site}
+    </otherwise>
+    </choose>
+       -- CDE: Order project
+       -- ART: Stock project
+       AND OPPOR.OPPTYP_0 IN ('CDE','ART')
+       AND (OPPOR.CREDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+  ),  
+  T02 AS (
+    SELECT DISTINCT
+      OPPOR.SALFCY_0 Site,
+      OPPOR.ZOPPNUMORI_0 ProjectNO,
+      OPPOR.OPPEXTNUM_0 PN,
+      OPPOR.CREDAT_0 ProjectDate
+    FROM EXPLOIT.OPPOR OPPOR
+    WHERE 1=1
+    <choose>
+    <when test=' Site == "ALL" '>
+    </when>
+    <when test=' Site == "CHINA" '>
+      AND OPPOR.SALFCY_0 IN ('ZHU','HKG','YSH')
+    </when>
+    <otherwise>
+      AND OPPOR.SALFCY_0 = #{Site}
+    </otherwise>
+    </choose>
+      AND OPPOR.ZOPPNUMORI_0 != ''
+       -- CDE: Order project
+       -- ART: Stock project
+       AND OPPOR.OPPTYP_0 IN ('CDE','ART')
+       AND (OPPOR.CREDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+  ),
+  T03 AS (
+   SELECT 
+     *
+   FROM T01
+
+   UNION
+   SELECT 
+    *
+   FROM T02
+  ),
+  T1 AS ( ---- Project sales line price include tax
+    SELECT DISTINCT
+      SORDERQ.SALFCY_0 AS Site,
+      IIF(SORDERQ.YSOQ_PJTORI_0 = '', SORDERQ.YSOH_PJT_0, SORDERQ.YSOQ_PJTORI_0) AS ProjectNO,
+      SORDERQ.SOHNUM_0 AS OrderNO,
+      SORDERQ.SOPLIN_0 AS OrderLine,
+      SORDERP.ITMREF_0 AS PN,
+      SORDERQ.QTY_0 AS QTY,
+      SORDERP.NETPRIATI_0,
+      SORDER.CUR_0 AS Currency,
+      SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 AS ProjectSalesPrice,
+      SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0) AS ProjectSalesLocalPrice
+    FROM T03
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON T03.Site = SORDERQ.SALFCY_0
+          AND (T03.ProjectNO = SORDERQ.YSOH_PJT_0 OR T03.ProjectNO = SORDERQ.YSOQ_PJTORI_0)
+      INNER JOIN EXPLOIT.SORDERP SORDERP
+        ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+          AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+          AND SORDERQ.SALFCY_0 = #{Site}
+          AND SORDERP.SALFCY_0 = #{Site}
+          AND SORDERP.NETPRIATI_0 > 0
+      INNER JOIN EXPLOIT.SORDER SORDER
+          ON SORDERQ.SOHNUM_0 = SORDER.SOHNUM_0
+  ),
+  T2 AS (
+    SELECT DISTINCT
+          PORDERP.PRHFCY_0 AS Site,
+          PORDERP.PJT_0 AS ProjectNO,
+          PORDERQ.CPRCUR_0 AS LocalCurrency,
+          Sum(PORDERQ.LINAMTCPR_0 + PORDERQ.AMTTAXLIN1_0 + PORDERQ.AMTTAXLIN2_0 + PORDERQ.AMTTAXLIN3_0) OVER (PARTITION BY PORDERP.PJT_0) AS ProjectLocalCost
+    FROM T03
+      INNER JOIN EXPLOIT.PORDERP AS PORDERP
+          ON T03.ProjectNO = PORDERP.PJT_0 
+             AND T03.Site = PORDERP.PRHFCY_0
+    INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+          ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+             AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+    WHERE 1=1
+      AND PORDERQ.PRHFCY_0 = #{Site}
+      AND PORDERP.PRHFCY_0 = #{Site}
+  )
+
+  SELECT
+     T03.Site,
+     T03.ProjectNO,
+     T03.PN,
+     RTRIM(ITMMASTER.ITMDES1_0 +' '+ ITMMASTER.ITMDES2_0 +' '+ ITMMASTER.ITMDES3_0) AS Description,
+     ITMMASTER.TSICOD_1 AS ProductFamily,
+     T03.ProjectDate,
+     T1.OrderNO,
+     T1.OrderLine,
+     T1.QTY,
+     T1.Currency,
+     T1.ProjectSalesPrice,
+     T1.ProjectSalesLocalPrice,
+     T2.LocalCurrency,
+     T2.ProjectLocalCost,
+     T1.ProjectSalesLocalPrice - T2.ProjectLocalCost AS Profit,
+     T1.ProjectSalesLocalPrice / T2.ProjectLocalCost AS ProfitRate
+  FROM T03
+    LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER 
+      ON T03.PN = ITMMASTER.ITMREF_0
+    INNER JOIN T1 
+      ON T1.ProjectNO = T03.ProjectNO 
+       AND T1.Site = T03.Site
+    LEFT JOIN T2 
+      ON T2.ProjectNO = T03.ProjectNO 
+       AND T2.Site = T03.Site
+  ORDER BY T03.ProjectDate ASC
+  </select>
+</mapper>

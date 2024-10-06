@@ -1,0 +1,66 @@
+project:
+  name: "@project.name@"
+  version: "@project.version@"
+  dependencies: "@project.dependencies@"
+  parentVersion: "@project.parent.version@"
+
+logging:
+  level:
+   web: INFO
+   io: 
+     undertow: INFO
+   org:
+     mybatis: INFO
+   com:
+     da:
+       sage:
+         assistant:
+           dao: INFO
+
+# server configuration will ignore when deploy with war, only works when deploy with jar and during dev env
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 900
+      cookie:
+        maxAge: 900
+
+# mybatis-plus could find ("classpath*:mapper/*.xml")) automatically.
+# ❗️❗️❗️Important! don't delete `map-underscore-to-camel-case`❗️❗️❗️
+# mybatis-plus auto mapper ignore case, but will delete underscore, so we need to set it to false.
+# Due to reports mapper have many ITMREF_0 style field. It will cause the field Null Error.
+mybatis-plus:
+  configuration:
+    map-underscore-to-camel-case: false
+    cache-enabled: true
+
+spring:
+  profiles:
+    active: prod
+  datasource:
+    dynamic: 
+      primary: master
+      strict: false
+      datasource:
+        master:
+          url: jdbc:sqlserver://127.0.0.1;DatabaseName=sage;TrustServerCertificate=true
+          driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+          username:
+          password:
+          hikari: 
+            maximum-pool-size: 10
+            minimum-idle: 1
+        slave:
+          url: jdbc:mysql://localhost:3306/sageassistant
+          driver-class-name: com.mysql.cj.jdbc.Driver
+          username:
+          password:
+          hikari: 
+            maximum-pool-size: 10
+            minimum-idle: 1
+
+ad:
+  url: ldap://127.0.0.1:389
+  domain: example.lan
+  search-base: OU=Your Company,DC=example,DC=lan

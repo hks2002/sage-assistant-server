@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.da.sage.assistant.dao.BatchMapper">
+  <!-- Open L2 Cache under Names pace: 1 Hour -->
+  <cache eviction="FIFO" flushInterval="3600000" readOnly="true" size="102400" />
+  <select id="getSales" resultType="com.da.sage.assistant.model.BatchSales">
+  WITH  Sales AS (
+  SELECT DISTINCT TOP ${LastN}
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDER.BPCORD_0 AS CustomerCode,
+      SORDER.BPCNAM_0 AS CustomerName,
+      SORDERQ.QTY_0 AS QTY,
+      SORDERP.NETPRI_0 AS NetPrice,
+      SORDER.CUR_0 AS Currency,
+      ROW_NUMBER() OVER (ORDER BY SORDERQ.CREDAT_0 DESC, SORDERP.SOHNUM_0 DESC) AS ROWNUM
+  FROM SORDERP
+    INNER JOIN SORDERQ
+      ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+        AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+    LEFT JOIN SORDER
+      ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+  WHERE
+    SORDERP.NETPRI_0 > 0
+    AND SORDERP.ITMREF_0 = #{PnRoot}
+    AND SORDERQ.ITMREF_0 = #{PnRoot}
+    AND SORDERP.SALFCY_0 = #{Site}
+    AND SORDERQ.SALFCY_0 = #{Site}
+    AND SORDER.SALFCY_0 = #{Site}
+  ORDER BY ROWNUM ASC
+  )
+
+  SELECT * FROM Sales
+  WHERE Sales.ROWNUM = #{LastN}
+  </select>
+  <select id="getQuote" resultType="com.da.sage.assistant.model.BatchQuote">
+  WITH Quote AS (
+  SELECT DISTINCT TOP ${LastN}
+    SQUOTED.SQHNUM_0 AS QuoteNO,
+    SQUOTED.QUODAT_0 AS QuoteDate,
+    SQUOTE.BPCORD_0 AS CustomerCode,
+    SQUOTE.BPCNAM_0 AS CustomerName,
+    SQUOTED.QTY_0 AS QTY,
+    SQUOTED.NETPRI_0 AS NetPrice,
+    SQUOTE.CUR_0 AS Currency,
+    SQUOTED.ORDFLG_0 AS OrderFlag,
+    SQUOTED.SOHNUM_0 AS OrderNO,
+    ROW_NUMBER() OVER (ORDER BY SQUOTED.CREDAT_0 DESC, SQUOTED.SQHNUM_0 DESC) AS ROWNUM
+  FROM SQUOTE
+  LEFT JOIN SQUOTED
+    ON SQUOTED.SQHNUM_0=SQUOTE.SQHNUM_0
+  WHERE
+    SQUOTED.NETPRI_0 > 0
+    AND SQUOTED.ITMREF_0 = #{PnRoot}
+    AND SQUOTED.SALFCY_0 = #{Site}
+    AND SQUOTE.SALFCY_0 = #{Site}
+  ORDER BY ROWNUM ASC
+  )
+
+  SELECT * FROM Quote
+  WHERE Quote.ROWNUM = #{LastN}
+  </select>
+  <select id="getPurchase" resultType="com.da.sage.assistant.model.BatchPurchase">
+  WITH T0 AS (
+    SELECT DISTINCT TOP ${LastN}
+      OPPOR.OPPNUM_0 AS ProjectNO,
+      OPPOR.ZOPPNUMORI_0 AS ProjectOriNO,
+      OPPOR.OPPEXTNUM_0 AS ProjectPN,
+      OPPOR.CREDAT_0 AS ProjectDate,
+      ROW_NUMBER() OVER (ORDER BY OPPOR.CREDAT_0 DESC) AS ROWNUM0
+    FROM EXPLOIT.OPPOR OPPOR
+    WHERE 
+       OPPOR.SALFCY_0 = #{Site}
+       -- CDE: Order project
+       -- ART: Stock project
+       AND OPPOR.OPPTYP_0 IN ('CDE','ART')
+       AND OPPOR.OPPEXTNUM_0  = #{PnRoot}
+       ORDER BY OPPOR.CREDAT_0 DESC
+  ),
+  T1 AS (
+    SELECT * FROM T0
+    WHERE T0.ROWNUM0 = #{LastN}
+  ),
+  T2 AS (
+    SELECT DISTINCT 
+      T1.*,
+      Sum(PORDERQ.LINAMTCPR_0) OVER (PARTITION BY PORDERP.PJT_0) AS LocalCostNoTax,
+      Sum(PORDERQ.LINAMTCPR_0 + PORDERQ.AMTTAXLIN1_0 + PORDERQ.AMTTAXLIN2_0 + PORDERQ.AMTTAXLIN3_0) OVER (PARTITION BY PORDERP.PJT_0) AS LocalCostWithTax,
+      PORDERQ.QTYPUU_0 AS Qty,
+      PORDERQ.CPRCUR_0 AS Currency,
+      ROW_NUMBER() OVER (ORDER BY PORDERQ.LINAMTCPR_0 DESC) AS ROWNUM2
+    FROM EXPLOIT.PORDERP PORDERP
+      INNER JOIN EXPLOIT.PORDERQ PORDERQ
+          ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN T1
+          ON PORDERP.PJT_0 = T1.ProjectNO OR PORDERP.PJT_0 =T1.ProjectOriNO
+    WHERE 
+       PORDERP.PJT_0 != ''
+       AND PORDERP.PRHFCY_0 = #{Site}
+       AND PORDERP.NETPRI_0 > 0
+  )
+
+  SELECT 
+    T2.ProjectNO,
+    T2.ProjectOriNO,
+    T2.ProjectPN,
+    T2.ProjectDate,
+    T2.LocalCostNoTax/T2.Qty LocalCostNoTax,
+    T2.LocalCostWithTax/T2.Qty LocalCostWithTax,
+    T2.Currency
+  FROM T2
+  WHERE T2.ROWNUM2 = 1
+  </select>
+</mapper>

@@ -1,29 +1,66 @@
 {
-    "editor.codeActionsOnSave": { 
-        "source.organizeImports": true 
+  "[java]": {
+    "editor.defaultFormatter": "redhat.java"
+  },
+  "auto-header-plus.commentElements": [
+    "Author",
+    "CopyRight",
+    "CreatedDate",
+    "LastEditDate",
+    "LastEditors"
+  ],
+  "auto-header-plus.commentElementsValue": {
+    "CopyRight": "Dedienne Aerospace China ZhuHai"
+  },
+  "auto-header-plus.pathContainsWorkspaceFolder": false,
+  "auto-header-plus.style.0": {
+    "lineWidth": 120
+  },
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "editor.detectIndentation": false,
+  "editor.stickyTabStops": true,
+  "editor.tabSize": 2,
+  "editor.useTabStops": false,
+  "editor.formatOnSave": true,
+  "editor.renderControlCharacters": true,
+  "editor.renderWhitespace": "all",
+  "editor.rulers": [
+    {
+      "color": "#4000ff",
+      "column": 80
     },
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "boot-java.change-detection.on": true,
-    "[java]": {
-        "editor.defaultFormatter": "redhat.java"
-    },
-    "cSpell.customDictionaries": {
-        "project-words": {
-            "name": "project-words",
-            "path": "${workspaceRoot}/project-words.txt",
-            "description": "Words used in this project",
-            "addWords": true
-        },
-        "custom": true, // Enable the `custom` dictionary
-        "internal-terms": false // Disable the `internal-terms` dictionary
-    },
-    "java.compile.nullAnalysis.mode": "automatic",
-    "auto-header-plus.pathContainsWorkspaceFolder": false,
-    "auto-header-plus.commentElementsValue": {
-        "CopyRight": "Dedienne Aerospace China ZhuHai"
-    },
-    "auto-header-plus.style.1": {
-        "lineWidth": 120
+    {
+      "color": "#d6225e",
+      "column": 120
     }
-
+  ],
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.format.enabled": true,
+  "java.format.settings.url": "${workspaceRoot}/eclipse-formatter.xml",
+  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable -Xshare:off",
+  "java.test.config": {
+    "args": [
+      "-Dlog4j.skipJansi=false"
+    ]
+  },
+  "xml.format.preserveSpace": [
+    "xsl:text",
+    "xsl:comment",
+    "xsl:processing-instruction",
+    "literallayout",
+    "programlisting",
+    "screen",
+    "synopsis",
+    "pre",
+    "xd:pre",
+    "select",
+    "if",
+    "when",
+    "otherwise",
+    "choose"
+  ],
+  "xml.format.maxLineWidth": 120
 }

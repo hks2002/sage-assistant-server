@@ -1,15 +1,15 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
-    "configurations": [
-        {
-            "type": "java",
-            "name": "Sage Assistant Server",
-            "request": "launch",
-            "mainClass": "com.da.sageassistantserver.SageAssistantServerApplication",
-            "projectName": "sage-assistant-server"
-        }
-    ]
+  // Use IntelliSense to learn about possible attributes.
+  // Hover to view descriptions of existing attributes.
+  // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "java",
+      "name": "Sage Assistant Server",
+      "request": "launch",
+      "mainClass": "com.da.sage.assistant.SageAssistantApplication",
+      "vmArgs": "-Dlog4j.skipJansi=false"
+    }
+  ]
 }

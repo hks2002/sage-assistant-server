@@ -1,6 +1,7 @@
 target/
 !.mvn/wrapper/maven-wrapper.jar
-src/main/resources/application-prod.properties
-src/main/resources/application-test.properties
+src/main/resources/application-prod.yml
+src/main/resources/application-test.yml
 src/test/resources/auth.txt
-src/test/resources/application-test.properties
+src/test/resources/application-test.yml
+.classpath

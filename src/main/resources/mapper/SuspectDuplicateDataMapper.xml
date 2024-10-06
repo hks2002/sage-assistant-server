@@ -1,0 +1,199 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.da.sage.assistant.dao.SuspectDuplicateDataMapper">
+  <!-- Open L2 Cache under Names pace: 10 Min-->
+  <cache eviction="LRU" flushInterval="600000" readOnly="true" size="512" />
+  <select id="findDuplicatedPOBySite" resultType="com.da.sage.assistant.model.SuspectDuplicatedPO">
+  WITH  
+  T01 AS (
+    SELECT DISTINCT
+      OPPOR.SALFCY_0 Site,
+      OPPOR.OPPNUM_0 ProjectNO,
+      OPPOR.OPPEXTNUM_0 PN,
+      OPPOR.CREDAT_0 ProjectDate
+    FROM EXPLOIT.OPPOR OPPOR
+    WHERE 1=1
+    <choose>
+    <when test=' Site == "ALL" '>
+    </when>
+    <when test=' Site == "CHINA" '>
+      AND OPPOR.SALFCY_0 IN ('ZHU','HKG','YSH')
+    </when>
+    <otherwise>
+      AND OPPOR.SALFCY_0 = #{Site}
+    </otherwise>
+    </choose>
+       -- CDE: Order project
+       -- ART: Stock project
+       AND OPPOR.OPPTYP_0 IN ('CDE')
+       AND (OPPOR.CREDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+  ),  
+  T02 AS (
+    SELECT DISTINCT
+      OPPOR.SALFCY_0 Site,
+      OPPOR.ZOPPNUMORI_0 ProjectNO,
+      OPPOR.OPPEXTNUM_0 PN,
+      OPPOR.CREDAT_0 ProjectDate
+    FROM EXPLOIT.OPPOR OPPOR
+    WHERE 1=1
+    <choose>
+    <when test=' Site == "ALL" '>
+    </when>
+    <when test=' Site == "CHINA" '>
+      AND OPPOR.SALFCY_0 IN ('ZHU','HKG','YSH')
+    </when>
+    <otherwise>
+      AND OPPOR.SALFCY_0 = #{Site}
+    </otherwise>
+    </choose>
+      AND OPPOR.ZOPPNUMORI_0 != ''
+       -- CDE: Order project
+       -- ART: Stock project
+       AND OPPOR.OPPTYP_0 IN ('CDE')
+       AND (OPPOR.CREDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+  ),
+  T03 AS (
+   SELECT 
+     *
+   FROM T01
+
+   UNION
+   SELECT 
+    *
+   FROM T02
+  ),
+  T0 AS (      -- find project with seq
+    SELECT
+      PORDERP.PRHFCY_0,
+      PORDERP.PJT_0,
+      PORDERP.ITMREF_0,
+      DENSE_RANK() OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDERP.ITMREF_0 ORDER BY PORDERP.ROWID) AS SEQ
+    FROM 
+      T03
+    INNER JOIN EXPLOIT.PORDERP AS PORDERP
+        ON T03.ProjectNO = PORDERP.PJT_0
+           AND T03.Site = PORDERP.PRHFCY_0
+    WHERE
+      AND RIGHT(PORDERP.PJT_0, 4) != '0001'
+      AND RIGHT(PORDERP.PJT_0, 8) != 'ZLOGISTIC'
+      AND PORDERP.PJT_0 != 'TQUALITE'
+      ---FACHDIV0001:   PURCHASE VARIOUS
+      ---FACHTRADRTD:   INBOUND CUSTOM FEES
+      ---FVENTRAAUT:    OUTBOUND SHIPMENT FEES
+      ---FACHTRAAUT:    INBOUND SHIPMENT FEES
+      AND PORDERP.ITMREF_0 NOT IN ('FACHDIV0001', 'FACHTRADRTD', 'FVENTRAAUT','FACHTRAAUT')
+  ),
+  T1 AS (    -- find project which has more than one seq
+      SELECT DISTINCT 
+        T0.PRHFCY_0,
+        T0.PJT_0,
+        T0.ITMREF_0
+      FROM
+        T0
+      WHERE
+        T0.SEQ &gt; 1
+  ),
+  T2 AS (   -- find purchase line for sales order line
+      SELECT DISTINCT
+          PORDERP.PJT_0,
+          PORDERP.ITMREF_0,
+          PORDERP.POHNUM_0,
+          PORDERP.POPLIN_0,
+          PORDERP.CREDAT_0,
+          PORDERP.CREDATTIM_0,
+          PORDERQ.QTYSTU_0,
+          PORDERQ.LINATIAMT_0,
+          PORDERQ.NETCUR_0,
+          PORDERP.CREUSR_0,
+          DENSE_RANK() OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDERP.ITMREF_0 ORDER BY PORDERP.ROWID ) AS SEQ,
+          SUM(PORDERQ.QTYSTU_0) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.ITMREF_0, PORDERP.PJT_0 ) AS PQTY,
+          SORDERQ.QTYSTU_0 AS SQTY
+      FROM  T1
+      INNER JOIN EXPLOIT.PORDERP AS PORDERP
+          ON T1.PJT_0 = PORDERP.PJT_0
+          AND T1.ITMREF_0 = PORDERP.ITMREF_0
+          AND T1.PRHFCY_0 = PORDERP.PRHFCY_0
+      INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+          ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+          ON (SORDERQ.YSOH_PJT_0 = T1.PJT_0 OR SORDERQ.YSOQ_PJTORI_0 = T1.PJT_0)
+  ),
+    T3 AS (    -- find purchase line for stock project
+        SELECT DISTINCT
+            PORDERP.PJT_0,
+            PORDERP.ITMREF_0,
+            PORDERP.POHNUM_0,
+            PORDERP.POPLIN_0,
+            PORDERP.CREDAT_0,
+            PORDERP.CREDATTIM_0,
+            PORDERQ.QTYSTU_0,
+            PORDERQ.LINATIAMT_0,
+            PORDERQ.NETCUR_0,
+            PORDERP.CREUSR_0,
+            DENSE_RANK() OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.PJT_0, PORDERP.ITMREF_0 ORDER BY PORDERP.ROWID ) AS SEQ,
+            SUM(PORDERQ.QTYSTU_0) OVER (PARTITION BY PORDERP.PRHFCY_0, PORDERP.ITMREF_0, PORDERP.PJT_0 ) AS PQTY,
+            SUM(MFGITM.EXTQTY_0) OVER (PARTITION BY MFGITM.PJT_0 ) AS SQTY
+        FROM  T1
+        INNER JOIN EXPLOIT.PORDERP AS PORDERP
+            ON T1.PJT_0 = PORDERP.PJT_0
+            AND T1.ITMREF_0 = PORDERP.ITMREF_0
+            AND T1.PRHFCY_0 = PORDERP.PRHFCY_0
+        INNER JOIN EXPLOIT.PORDERQ AS PORDERQ
+            ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+            AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+        INNER JOIN EXPLOIT.MFGITM MFGITM
+            ON MFGITM.PJT_0 = PORDERP.PJT_0
+            AND MFGITM.MFGFCY_0 = T1.PRHFCY_0
+        WHERE
+            SUBSTRING(PORDERP.PJT_0,6,1) = '-'              --- ProjectNO is not Sales projectno
+            OR SUBSTRING(PORDERP.PJT_0,7,1) = '-'
+            OR SUBSTRING(PORDERP.PJT_0,8,1) = '-'
+    )
+    
+    SELECT
+        T2.PJT_0 AS ProjectNO,
+        T2.ITMREF_0 AS PN,
+        T2.POHNUM_0 AS PurchaseNO,
+        T2.POPLIN_0 AS PurchaseLine,
+        T2.QTYSTU_0 AS PurchaseQty,
+        T2.LINATIAMT_0 AS Cost,      
+        T2.NETCUR_0 AS Currency,
+        T2.CREDAT_0 AS PurchaseDate,
+        T2.PQTY AS TotalPurchaseQty,
+        T2.SQTY  AS TotalSalesQty,
+        T2.CREUSR_0 AS Purchaser,
+        T2.SEQ AS Seq
+    FROM
+        T2
+    INNER JOIN T2 AS T4
+        ON T2.PJT_0 = T4.PJT_0
+           AND T2.ITMREF_0 = T4.ITMREF_0
+    WHERE
+        T2.PQTY &gt; T2.SQTY
+
+    UNION
+
+    SELECT
+        T3.PJT_0 AS ProjectNO,
+        T3.ITMREF_0 AS PN,
+        T3.POHNUM_0 AS PurchaseNO,
+        T3.POPLIN_0 AS PurchaseLine,
+        T3.QTYSTU_0 AS PurchaseQty,
+        T3.LINATIAMT_0 AS Cost,      
+        T3.NETCUR_0 AS Currency,
+        T3.CREDAT_0 AS PurchaseDate,
+        T3.PQTY AS TotalPurchaseQty,
+        T3.SQTY  AS TotalSalesQty,
+        T3.CREUSR_0 AS Purchaser,
+        T3.SEQ AS Seq
+    FROM
+        T3
+    INNER JOIN T3 AS T5
+        ON T3.PJT_0 = T5.PJT_0
+           AND T3.ITMREF_0 = T5.ITMREF_0
+    WHERE
+      T3.PQTY &gt; T3.SQTY
+  </select>
+</mapper>
