@@ -1,0 +1,519 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.da.sageassistantserver.dao.DeliveryMapper">
+  <!--Open L2 Cache under Names pace: 1 Min-->
+  <cache eviction="LRU" flushInterval="60000" readOnly="true" size="256" />
+  <select id="findDeliverySumAmount" resultType="com.da.sageassistantserver.model.CustomerSummaryAmount">
+  WITH 
+  T0 AS (
+      SELECT DISTINCT 
+        SDELIVERYD.STOFCY_0 AS Site,
+        SDELIVERY.BPCORD_0 AS CustomerCode,
+        BPCUSTOMER.BPCSHO_0 AS CustomerName,
+        SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+        SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+        SDELIVERYD.SOHNUM_0 AS OrderNO,
+        SDELIVERYD.SOPLIN_0 AS OrderLine,
+        SDELIVERYD.ITMREF_0 AS PN,
+        RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
+        SDELIVERYD.NETPRIATI_0 AS Price,
+        IIF(SDELIVERY.DLVATI_0 =0, 0, SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS LocalPrice,
+        SDELIVERYD.QTY_0 AS Qty,
+        SDELIVERY.CUR_0 AS Currency,
+        COMPANY.ACCCUR_0 AS LocalCurrency,
+        SDELIVERYD.SHIDAT_0 AS DeliveryDate
+      FROM 
+        EXPLOIT.SDELIVERYD SDELIVERYD
+      LEFT JOIN EXPLOIT.SDELIVERY SDELIVERY
+        ON SDELIVERYD.SDHNUM_0 = SDELIVERY.SDHNUM_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0 
+           AND SORDERQ.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER
+        ON  SORDER.SOHNUM_0 = SDELIVERYD.SOHNUM_0 
+      INNER JOIN EXPLOIT.COMPANY
+        ON COMPANY.MAIFCY_0 = SDELIVERY.SALFCY_0 
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER
+        ON SDELIVERY.BPCORD_0 = BPCUSTOMER.BPCNUM_0
+      WHERE 1=1
+      AND (SDELIVERY.SHIDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SDELIVERY.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' OrderType ==  "ALL" '>
+      </when>
+      <when test=' OrderType ==  "DEDIENNE" '>
+        AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
+      </when>
+      <when test=' OrderType ==  "NORM" '>
+        AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <when test=' OrderType ==  "SERVICES" '>
+        AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      AND
+      CASE 
+        WHEN SORDER.SALFCY_0 IN ('ZHU','HKG','YSH') THEN 'CHINA' ELSE 'OTHER-SITE'
+      END !=
+      CASE 
+        WHEN SORDER.BPCORD_0 IN ('00870', '00871', '03167') THEN 'CHINA' ELSE 'OTHER-CUSTOMER'
+      END
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SORDER.SALFCY_0 IN ('ZHU','HKG','YSH')
+      AND SORDER.BPCORD_0 NOT IN ('00870', '00871', '03167')
+      </when>
+      <otherwise>
+        AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+  T2 AS (
+    SELECT 
+    T0.Site,
+    T0.CustomerCode,
+    T0.DeliveryNO,
+    T0.DeliveryDate,
+    IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
+    T0.LocalPrice,
+    T0.LocalCurrency
+    FROM T0
+    LEFT JOIN T1
+        ON  T1.Dest = 'USD'
+           AND T1.Sour = T0.Currency
+           AND T0.DeliveryDate >= T1.StartDate 
+           AND T1.EndDate > T0.DeliveryDate
+ )
+ 
+  SELECT DISTINCT
+    T2.Site,
+    <if test=' CustomerCode != "ALL" '>
+    T2.CustomerCode,
+    </if>
+    <choose>
+      <when test=' Interval == "Month" and CustomerCode !="ALL" '>
+      FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00') AS Target,
+      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumLocalTarget,
+      </when>
+      <when test=' Interval == "Month" and CustomerCode =="ALL" '>
+      FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00') AS Target,
+      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumLocalTarget,
+      </when>
+      <when test=' Interval == "Year" and CustomerCode !="ALL" '>
+      FORMAT(Year(T2.DeliveryDate), '0000') AS Target,
+      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumLocalTarget,
+      </when>
+      <when test=' Interval == "Year" and CustomerCode =="ALL" '>
+      FORMAT(Year(T2.DeliveryDate), '0000') AS Target,
+      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumLocalTarget,
+      </when>
+      <otherwise>
+      </otherwise>
+    </choose>
+    T2.LocalCurrency
+  FROM T2
+  ORDER BY 
+     Target ASC
+  </select>
+  <select id="findDeliverySumAmountTopByCustomer" resultType="com.da.sageassistantserver.model.CustomerSummaryAmountTopByCustomer">
+  WITH 
+  T0 AS (
+      SELECT DISTINCT 
+        SDELIVERYD.STOFCY_0 AS Site,
+        SDELIVERY.BPCORD_0 AS CustomerCode,
+        BPCUSTOMER.BPCSHO_0 AS CustomerName,
+        SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+        SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+        SDELIVERYD.SOHNUM_0 AS OrderNO,
+        SDELIVERYD.SOPLIN_0 AS OrderLine,
+        SDELIVERYD.ITMREF_0 AS PN,
+        RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
+        SDELIVERYD.NETPRIATI_0 AS Price,
+        IIF(SDELIVERY.DLVATI_0 =0, 0, SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS LocalPrice,
+        SDELIVERYD.QTY_0 AS Qty,
+        SDELIVERY.CUR_0 AS Currency,
+        COMPANY.ACCCUR_0 AS LocalCurrency,
+        SDELIVERYD.SHIDAT_0 AS DeliveryDate
+      FROM 
+        EXPLOIT.SDELIVERYD SDELIVERYD
+      LEFT JOIN EXPLOIT.SDELIVERY SDELIVERY
+        ON SDELIVERYD.SDHNUM_0 = SDELIVERY.SDHNUM_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0 
+           AND SORDERQ.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER
+        ON  SORDER.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      INNER JOIN EXPLOIT.COMPANY
+        ON COMPANY.MAIFCY_0 = SDELIVERY.SALFCY_0 
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER
+        ON SDELIVERY.BPCORD_0 = BPCUSTOMER.BPCNUM_0
+      WHERE 1=1
+      AND (SDELIVERY.SHIDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SDELIVERY.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' OrderType ==  "ALL" '>
+      </when>
+      <when test=' OrderType ==  "DEDIENNE" '>
+        AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
+      </when>
+      <when test=' OrderType ==  "NORM" '>
+        AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <when test=' OrderType ==  "SERVICES" '>
+        AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      AND
+      CASE 
+        WHEN SORDER.SALFCY_0 IN ('ZHU','HKG','YSH') THEN 'CHINA' ELSE 'OTHER-SITE'
+      END !=
+      CASE 
+        WHEN SORDER.BPCORD_0 IN ('00870', '00871', '03167') THEN 'CHINA' ELSE 'OTHER-CUSTOMER'
+      END
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SORDER.SALFCY_0 IN ('ZHU','HKG','YSH')
+      AND SORDER.BPCORD_0 NOT IN ('00870', '00871', '03167')
+      </when>
+      <otherwise>
+        AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+  T2 AS (
+    SELECT 
+    T0.Site,
+    T0.CustomerCode,
+    T0.CustomerName,
+    T0.DeliveryNO,
+    T0.DeliveryDate,
+    IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
+    T0.LocalPrice,
+    T0.LocalCurrency
+    FROM T0
+    LEFT JOIN T1
+        ON  T1.Dest = 'USD'
+           AND T1.Sour = T0.Currency
+           AND T0.DeliveryDate >= T1.StartDate 
+           AND T1.EndDate > T0.DeliveryDate
+  )
+ 
+  SELECT DISTINCT
+    T2.Site,
+    T2.CustomerCode,
+    T2.CustomerName,
+    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSD,
+    ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocal,
+    T2.LocalCurrency
+  FROM T2
+  ORDER BY 
+     SumUSD DESC  
+  OFFSET 0 ROWS
+  FETCH NEXT #{Limit} ROWS ONLY
+  </select>
+  <select id="findDeliverySumAmountTopByPNFamily" resultType="com.da.sageassistantserver.model.CustomerSummaryAmountTopByPNFamily">
+  WITH 
+  T0 AS (
+      SELECT DISTINCT 
+        SDELIVERYD.STOFCY_0 AS Site,
+        SDELIVERY.BPCORD_0 AS CustomerCode,
+        BPCUSTOMER.BPCSHO_0 AS CustomerName,
+        SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+        SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+        SDELIVERYD.SOHNUM_0 AS OrderNO,
+        SDELIVERYD.SOPLIN_0 AS OrderLine,
+        SDELIVERYD.ITMREF_0 AS PN,
+        ITMMASTER.CCE_1 AS PNFamily,
+        RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
+        SDELIVERYD.NETPRIATI_0 AS Price,
+        IIF(SDELIVERY.DLVATI_0 =0, 0, SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS LocalPrice,
+        SDELIVERYD.QTY_0 AS Qty,
+        SDELIVERY.CUR_0 AS Currency,
+        COMPANY.ACCCUR_0 AS LocalCurrency,
+        SDELIVERYD.SHIDAT_0 AS DeliveryDate
+      FROM 
+        EXPLOIT.SDELIVERYD SDELIVERYD
+      LEFT JOIN EXPLOIT.SDELIVERY SDELIVERY
+        ON SDELIVERYD.SDHNUM_0 = SDELIVERY.SDHNUM_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0 
+           AND SORDERQ.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER
+        ON  SORDER.SOHNUM_0 = SDELIVERYD.SOHNUM_0 
+      INNER JOIN EXPLOIT.ITMMASTER ITMMASTER
+        ON ITMMASTER.ITMREF_0 = SDELIVERYD.ITMREF_0
+      INNER JOIN EXPLOIT.COMPANY
+        ON COMPANY.MAIFCY_0 = SDELIVERY.SALFCY_0 
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER
+        ON SDELIVERY.BPCORD_0 = BPCUSTOMER.BPCNUM_0
+      WHERE 1=1
+      AND (SDELIVERY.SHIDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SDELIVERY.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' OrderType ==  "ALL" '>
+      </when>
+      <when test=' OrderType ==  "DEDIENNE" '>
+        AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
+      </when>
+      <when test=' OrderType ==  "NORM" '>
+        AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <when test=' OrderType ==  "SERVICES" '>
+        AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      AND
+      CASE 
+        WHEN SORDER.SALFCY_0 IN ('ZHU','HKG','YSH') THEN 'CHINA' ELSE 'OTHER-SITE'
+      END !=
+      CASE 
+        WHEN SORDER.BPCORD_0 IN ('00870', '00871', '03167') THEN 'CHINA' ELSE 'OTHER-CUSTOMER'
+      END
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SORDER.SALFCY_0 IN ('ZHU','HKG','YSH')
+      AND SORDER.BPCORD_0 NOT IN ('00870', '00871', '03167')
+      </when>
+      <otherwise>
+        AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+  T2 AS (
+    SELECT 
+    T0.Site,
+    T0.CustomerCode,
+    T0.DeliveryNO,
+    T0.PNFamily,
+    T0.DeliveryDate,
+    IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
+    T0.LocalPrice,
+    T0.LocalCurrency
+    FROM T0
+    LEFT JOIN T1
+        ON  T1.Dest = 'USD'
+           AND T1.Sour = T0.Currency
+           AND T0.DeliveryDate >= T1.StartDate 
+           AND T1.EndDate > T0.DeliveryDate
+  )
+ 
+  SELECT DISTINCT
+    T2.Site,
+    T2.PNFamily,
+    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSD,
+    ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocal,
+    T2.LocalCurrency
+  FROM T2
+  ORDER BY 
+     SumUSD DESC  
+  OFFSET 0 ROWS
+  FETCH NEXT #{Limit} ROWS ONLY
+  </select>
+  <select id="findDeliveryLinesCnt" resultType="java.lang.Integer">
+  WITH 
+  T0 AS (
+      SELECT DISTINCT 
+        SDELIVERYD.STOFCY_0 AS Site,
+        SDELIVERY.BPCORD_0 AS CustomerCode,
+        BPCUSTOMER.BPCSHO_0 AS CustomerName,
+        SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+        SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+        SDELIVERYD.SOHNUM_0 AS OrderNO,
+        SDELIVERYD.SOPLIN_0 AS OrderLine,
+        SDELIVERYD.ITMREF_0 AS PN,
+        RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
+        SDELIVERYD.NETPRIATI_0 AS Price,
+        IIF(SDELIVERY.DLVATI_0=0, 0, SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS LocalPrice,
+        SDELIVERYD.QTY_0 AS Qty,
+        SDELIVERY.CUR_0 AS Currency,
+        COMPANY.ACCCUR_0 AS LocalCurrency,
+        SDELIVERYD.SHIDAT_0 AS DeliveryDate
+      FROM 
+        EXPLOIT.SDELIVERYD SDELIVERYD
+      LEFT JOIN EXPLOIT.SDELIVERY SDELIVERY
+        ON SDELIVERYD.SDHNUM_0 = SDELIVERY.SDHNUM_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0 
+           AND SORDERQ.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER
+        ON  SORDER.SOHNUM_0 = SDELIVERYD.SOHNUM_0 
+      INNER JOIN EXPLOIT.COMPANY
+        ON COMPANY.MAIFCY_0 = SDELIVERY.SALFCY_0 
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER
+        ON SDELIVERY.BPCORD_0 = BPCUSTOMER.BPCNUM_0
+      WHERE 1=1
+      AND (SDELIVERY.SHIDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SDELIVERY.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SORDER.SALFCY_0 IN ('ZHU','HKG','YSH')
+      </when>
+      <otherwise>
+      AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    )
+
+    SELECT COUNT(1) FROM T0
+   </select>
+  <select id="findDeliveryLines" resultType="com.da.sageassistantserver.model.DeliveryLines">
+  WITH 
+  T0 AS (
+      SELECT DISTINCT 
+        ROW_NUMBER() OVER (ORDER BY SDELIVERYD.SHIDAT_0 ASC) AS ItemNO,
+        SDELIVERYD.STOFCY_0 AS Site,
+        SDELIVERY.BPCORD_0 AS CustomerCode,
+        BPCUSTOMER.BPCSHO_0 AS CustomerName,
+        SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+        SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+        (CASE WHEN SORDERQ.YSOQ_STA_0 =1 THEN SORDER.SOHTYP_0 + '-Methods'
+          WHEN SORDERQ.YSOQ_STA_0 =2 THEN SORDER.SOHTYP_0 + '-InteralProd'
+          WHEN SORDERQ.YSOQ_STA_0 =3 THEN SORDER.SOHTYP_0 + '-ExternalProd'
+          WHEN SORDERQ.YSOQ_STA_0 =4 THEN SORDER.SOHTYP_0 + '-Design'
+          WHEN SORDERQ.YSOQ_STA_0 =5 THEN SORDER.SOHTYP_0 + '-Stock'
+          WHEN SORDERQ.YSOQ_STA_0 =6 THEN SORDER.SOHTYP_0 + '-Trading'
+          WHEN SORDERQ.YSOQ_STA_0 =7 THEN SORDER.SOHTYP_0 + '-Services'
+          WHEN SORDERQ.YSOQ_STA_0 =8 THEN SORDER.SOHTYP_0 + '-SalesAdmin'
+          ELSE SORDER.SOHTYP_0 + '-UNK' END) AS OrderType,
+        SORDERQ.SOHNUM_0 AS OrderNO,
+        SORDERQ.SOPLIN_0 AS OrderLine,
+        SORDERQ.YSOH_PJT_0 AS ProjectNO,
+        SDELIVERYD.ITMREF_0 AS PN,
+        RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
+        SDELIVERYD.NETPRIATI_0 AS Price,
+        SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0) AS LocalPrice,
+        SDELIVERYD.QTY_0 AS Qty,
+        SDELIVERY.CUR_0 AS Currency,
+        COMPANY.ACCCUR_0 AS LocalCurrency,
+        SDELIVERYD.SHIDAT_0 AS DeliveryDate,
+        SORDERQ.YSOQ_DLIVP_0 AS OrderPlanedDate
+      FROM 
+        EXPLOIT.SDELIVERYD SDELIVERYD
+      LEFT JOIN EXPLOIT.SDELIVERY SDELIVERY
+        ON SDELIVERYD.SDHNUM_0 = SDELIVERY.SDHNUM_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0 
+           AND SORDERQ.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER
+        ON  SORDER.SOHNUM_0 = SDELIVERYD.SOHNUM_0 
+      INNER JOIN EXPLOIT.COMPANY
+        ON COMPANY.MAIFCY_0 = SDELIVERY.SALFCY_0 
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER
+        ON SDELIVERY.BPCORD_0 = BPCUSTOMER.BPCNUM_0
+      WHERE 1=1
+      AND (SDELIVERY.SHIDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SDELIVERY.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SORDER.SALFCY_0 IN ('ZHU','HKG','YSH')
+      </when>
+      <otherwise>
+      AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+
+     ORDER BY 
+     ItemNO ASC 
+     OFFSET #{Offset} ROWS
+     FETCH NEXT #{Limit} ROWS ONLY
+    )
+
+  SELECT 
+    T0.*,
+    DATEDIFF(day, T0.OrderPlanedDate, T0.DeliveryDate)
+     AS DaysDelay
+  FROM T0
+
+  </select>
+</mapper>

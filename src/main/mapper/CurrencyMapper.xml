@@ -3,8 +3,7 @@
 
 <mapper namespace="com.da.sageassistantserver.dao.CurrencyMapper">
 	<!--Open L2 Cache under Names pace: 1 day -->
-	<cache eviction="FIFO" flushInterval="86400000" readOnly="true" size="1024" />
-
+	<cache eviction="FIFO" flushInterval="86400000" readOnly="true" size="512" />
 	<select id="findCurrencyRate" resultType="com.da.sageassistantserver.model.CurrencyHistory">
 	SELECT * FROM (
 		SELECT 

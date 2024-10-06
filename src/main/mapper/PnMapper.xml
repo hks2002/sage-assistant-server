@@ -7,6 +7,8 @@
 	<select id="findPnByLike" resultType="com.da.sageassistantserver.model.PnRootPn">
 		SELECT DISTINCT
 		    ITMMASTER.ITMREF_0 AS PNROOT,
+				ITMMASTER.ITMREF_0 AS PN
+				/*
 		    IIF(ECCSTA.ITMREF_0 IS NULL,
 				ITMMASTER.ITMREF_0,
 				IIF(ECCSTA.ECCVALMAJ_0='#',
@@ -16,7 +18,8 @@
 					    ECCSTA.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0
 				    )
 				)
-			) AS PN
+			  ) AS PN
+				*/
 		FROM ITMMASTER
 		LEFT JOIN ECCSTA
 		     ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
@@ -216,6 +219,15 @@
 		LEFT JOIN EXPLOIT.ITMMASTER AS ITMMASTER ON ITMMASTER.ITMREF_0 = SORDERQ.ITMREF_0
 	WHERE SORDERQ.SOQSTA_0 != 3
 		AND ITMMASTER.ITMSTA_0 != 1
-		AND SORDERQ.SALFCY_0 = #{Site}
+    <choose>
+    <when test=' Site == "ALL" '>
+    </when>
+    <when test=' Site == "CHINA" '>
+      AND SORDERQ.SALFCY_0 IN ('ZHU','HKG','YSH')
+    </when>
+    <otherwise>
+      AND SORDERQ.SALFCY_0 = #{Site}
+    </otherwise>
+    </choose>
     </select>
 </mapper>

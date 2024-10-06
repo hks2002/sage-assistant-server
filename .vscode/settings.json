@@ -1,29 +1,44 @@
 {
-    "editor.codeActionsOnSave": { 
-        "source.organizeImports": true 
-    },
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "boot-java.change-detection.on": true,
-    "[java]": {
-        "editor.defaultFormatter": "redhat.java"
-    },
-    "cSpell.customDictionaries": {
-        "project-words": {
-            "name": "project-words",
-            "path": "${workspaceRoot}/project-words.txt",
-            "description": "Words used in this project",
-            "addWords": true
-        },
-        "custom": true, // Enable the `custom` dictionary
-        "internal-terms": false // Disable the `internal-terms` dictionary
-    },
-    "java.compile.nullAnalysis.mode": "automatic",
-    "auto-header-plus.pathContainsWorkspaceFolder": false,
-    "auto-header-plus.commentElementsValue": {
-        "CopyRight": "Dedienne Aerospace China ZhuHai"
-    },
-    "auto-header-plus.style.1": {
-        "lineWidth": 120
+  "auto-header-plus.commentElements": [
+    "Author",
+    "CreatedDate",
+    "LastEditors",
+    "LastEditDate",
+    "CopyRight"
+  ],
+  "auto-header-plus.commentElementsValue": {
+    "CopyRight": "Dedienne Aerospace China ZhuHai"
+  },
+  "auto-header-plus.pathContainsWorkspaceFolder": false,
+  "auto-header-plus.style.0": {
+    "lineWidth": 120
+  },
+  "boot-java.change-detection.on": true,
+  "cSpell.customDictionaries": {
+    "custom": true, // Enable the `custom` dictionary
+    "internal-terms": false, // Disable the `internal-terms` dictionary
+    "project-words": {
+      "addWords": true,
+      "description": "Words used in this project",
+      "name": "project-words",
+      "path": "${workspaceRoot}/project-words.txt"
     }
-
+  },
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "explicit"
+  },
+  "editor.detectIndentation": false,
+  "editor.formatOnSave": true,
+  "editor.rulers": [
+    {
+      "color": "#4000ff",
+      "column": 80
+    },
+    {
+      "color": "#d6225e",
+      "column": 120
+    }
+  ],
+  "editor.stickyTabStops": true,
+  "editor.tabSize": 2
 }
