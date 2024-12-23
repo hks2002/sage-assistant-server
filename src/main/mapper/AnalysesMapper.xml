@@ -412,7 +412,7 @@
     T0.ProjectSalesPrice,
     SORDER.CUR_0 AS SalesCurrency,
     SORDER.CHGRAT_0 AS Rate,
-    SORDER.ORDINVATIL_0 * (T0.ProjectSalesPrice / SORDER.ORDINVATI_0) AS ProjectSalesLocalPrice
+    T0.ProjectSalesPrice * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0) AS ProjectSalesLocalPrice
   FROM
     T0
   INNER JOIN EXPLOIT.SORDER SORDER
