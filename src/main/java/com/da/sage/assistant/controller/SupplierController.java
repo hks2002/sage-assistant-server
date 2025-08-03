@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-26 21:35:00                                                                      *
- * @LastEditDate          : 2025-07-29 19:23:04                                                                      *
+ * @LastEditDate          : 2025-07-30 18:27:24                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
 
@@ -17,16 +17,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.da.sage.assistant.model.SupplierDOD;
 import com.da.sage.assistant.model.SupplierDetails;
-import com.da.sage.assistant.model.SupplierNCHistory;
-import com.da.sage.assistant.model.SupplierNCHistoryTiny;
-import com.da.sage.assistant.model.SupplierNCSummary;
 import com.da.sage.assistant.model.SupplierName;
 import com.da.sage.assistant.model.SupplierOTD;
 import com.da.sage.assistant.model.SupplierOTDTop;
 import com.da.sage.assistant.model.SupplierOrder;
-import com.da.sage.assistant.model.SupplierQPY;
-import com.da.sage.assistant.model.SupplierQPYTop;
-import com.da.sage.assistant.model.SupplierSummaryAmount;
+import com.da.sage.assistant.model.SupplierSummaryAmountByTarget;
 import com.da.sage.assistant.model.SupplierSummaryAmountTop;
 import com.da.sage.assistant.service.SupplierService;
 
@@ -64,8 +59,8 @@ public class SupplierController {
     return (SupplierService.getSupplierDetails(SupplierCode));
   }
 
-  @GetMapping("/SupplierSummaryAmount")
-  public List<SupplierSummaryAmount> getSupplierSummaryAmount(
+  @GetMapping("/SupplierSummaryAmountByTarget")
+  public List<SupplierSummaryAmountByTarget> getSupplierSummaryAmount(
       @RequestParam(value = "Site", required = true) String Site,
       @RequestParam(value = "SupplierType", required = true) String SupplierType,
       @RequestParam(value = "SupplierCode", required = true) String SupplierCode,
@@ -119,6 +114,25 @@ public class SupplierController {
         Interval));
   }
 
+  @GetMapping("/SupplierOTDTop")
+  public List<SupplierOTDTop> getSupplierOTDTop(
+      @RequestParam(value = "Site", required = true) String Site,
+      @RequestParam(value = "SupplierType", required = true) String SupplierType,
+      @RequestParam(value = "OrderType", required = true) String OrderType,
+      @RequestParam(value = "DateFrom", required = true) String DateFrom,
+      @RequestParam(value = "DateTo", required = true) String DateTo,
+      @RequestParam(value = "Sort", required = true) String Sort,
+      @RequestParam(value = "Limit", required = true) String Limit) {
+    return (SupplierService.getSupplierOTDTop(
+        Site,
+        SupplierType,
+        OrderType,
+        DateFrom,
+        DateTo + " 23:59:59",
+        Sort,
+        Integer.parseInt(Limit)));
+  }
+
   @GetMapping("/SupplierDOD")
   public List<SupplierDOD> getSupplierDOD(
       @RequestParam(value = "Site", required = true) String Site,
@@ -134,80 +148,6 @@ public class SupplierController {
         OrderType,
         DateFrom,
         DateTo + " 23:59:59"));
-  }
-
-  @GetMapping("/SupplierOTDTop")
-  public List<SupplierOTDTop> getSupplierOTDTop(
-      @RequestParam(value = "Site", required = true) String Site,
-      @RequestParam(value = "SupplierType", required = true) String SupplierType,
-      @RequestParam(value = "OrderType", required = true) String OrderType,
-      @RequestParam(value = "DateFrom", required = true) String DateFrom,
-      @RequestParam(value = "DateTo", required = true) String DateTo,
-      @RequestParam(value = "Limit", required = true) String Limit,
-      @RequestParam(value = "Sort", required = true) String Sort) {
-    return (SupplierService.getSupplierOTDTop(
-        Site,
-        SupplierType,
-        OrderType,
-        DateFrom,
-        DateTo + " 23:59:59",
-        Integer.parseInt(Limit),
-        Sort));
-  }
-
-  @GetMapping("/SupplierQPY")
-  public List<SupplierQPY> getSupplierQPY(
-      @RequestParam(value = "Site", required = true) String Site,
-      @RequestParam(value = "SupplierType", required = true) String SupplierType,
-      @RequestParam(value = "SupplierCode", required = true) String SupplierCode,
-      @RequestParam(value = "OrderType", required = true) String OrderType,
-      @RequestParam(value = "DateFrom", required = true) String DateFrom,
-      @RequestParam(value = "DateTo", required = true) String DateTo,
-      @RequestParam(value = "Interval", required = true) String Interval) {
-    return (SupplierService.getSupplierQPY(
-        Site,
-        SupplierType,
-        SupplierCode,
-        OrderType,
-        DateFrom,
-        DateTo + " 23:59:59",
-        Interval));
-  }
-
-  @GetMapping("/SupplierQPYTop")
-  public List<SupplierQPYTop> getSupplierQPYTop(
-      @RequestParam(value = "Site", required = true) String Site,
-      @RequestParam(value = "SupplierType", required = true) String SupplierType,
-      @RequestParam(value = "OrderType", required = true) String OrderType,
-      @RequestParam(value = "DateFrom", required = true) String DateFrom,
-      @RequestParam(value = "DateTo", required = true) String DateTo,
-      @RequestParam(value = "Limit", required = true) String Limit,
-      @RequestParam(value = "Sort", required = true) String Sort) {
-    return (SupplierService.getSupplierQPYTop(
-        Site,
-        SupplierType,
-        OrderType,
-        DateFrom,
-        DateTo + " 23:59:59",
-        Integer.parseInt(Limit),
-        Sort));
-  }
-
-  @GetMapping("/SupplierNCSummary")
-  public List<SupplierNCSummary> getSupplierNCSummary(
-      @RequestParam(value = "Site", required = true) String Site,
-      @RequestParam(value = "SupplierCode", required = true) String SupplierCode,
-      @RequestParam(value = "NCCatCode", required = true) String NCCatCode,
-      @RequestParam(value = "DateFrom", required = true) String DateFrom,
-      @RequestParam(value = "DateTo", required = true) String DateTo,
-      @RequestParam(value = "Interval", required = true) String Interval) {
-    return (SupplierService.getSupplierNCSummary(
-        Site,
-        SupplierCode,
-        NCCatCode,
-        DateFrom,
-        DateTo + " 23:59:59",
-        Interval));
   }
 
   @GetMapping("/SupplierOrdersCnt")
@@ -256,56 +196,4 @@ public class SupplierController {
         Integer.parseInt(Limit)));
   }
 
-  @GetMapping("/SupplierNCHistoryCnt")
-  public Integer getSupplierNCHistoryCnt(
-      @RequestParam(value = "Site", required = true) String Site,
-      @RequestParam(value = "NCCatCode", required = true) String NCCatCode,
-      @RequestParam(value = "SupplierCode", required = true) String SupplierCode,
-      @RequestParam(value = "DateFrom", required = true) String DateFrom,
-      @RequestParam(value = "DateTo", required = true) String DateTo) {
-    return (SupplierService.getSupplierNCHistoryCnt(
-        Site,
-        SupplierCode,
-        NCCatCode,
-        DateFrom,
-        DateTo + " 23:59:59"));
-  }
-
-  @GetMapping("/SupplierNCHistory")
-  public List<SupplierNCHistory> getSupplierNCHistory(
-      @RequestParam(value = "Site", required = true) String Site,
-      @RequestParam(value = "NCCatCode", required = true) String NCCatCode,
-      @RequestParam(value = "SupplierCode", required = true) String SupplierCode,
-      @RequestParam(value = "DateFrom", required = true) String DateFrom,
-      @RequestParam(value = "DateTo", required = true) String DateTo,
-      @RequestParam(value = "Offset", required = true) String Offset,
-      @RequestParam(value = "Limit", required = true) String Limit) {
-    return (SupplierService.getSupplierNCHistory(
-        Site,
-        SupplierCode,
-        NCCatCode,
-        DateFrom,
-        DateTo + " 23:59:59",
-        Integer.parseInt(Offset),
-        Integer.parseInt(Limit)));
-  }
-
-  @GetMapping("/SupplierNCHistoryTiny")
-  public List<SupplierNCHistoryTiny> getSupplierNCHistoryTiny(
-      @RequestParam(value = "Site", required = true) String Site,
-      @RequestParam(value = "NCCatCode", required = true) String NCCatCode,
-      @RequestParam(value = "SupplierCode", required = true) String SupplierCode,
-      @RequestParam(value = "DateFrom", required = true) String DateFrom,
-      @RequestParam(value = "DateTo", required = true) String DateTo,
-      @RequestParam(value = "Offset", required = true) String Offset,
-      @RequestParam(value = "Limit", required = true) String Limit) {
-    return (SupplierService.getSupplierNCHistoryTiny(
-        Site,
-        SupplierCode,
-        NCCatCode,
-        DateFrom,
-        DateTo + " 23:59:59",
-        Integer.parseInt(Offset),
-        Integer.parseInt(Limit)));
-  }
 }

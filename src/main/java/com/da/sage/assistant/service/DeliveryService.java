@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:27:00                                                                      *
- * @LastEditDate          : 2025-07-27 09:08:57                                                                      *
+ * @LastEditDate          : 2025-08-07 00:16:01                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
 
@@ -13,7 +13,7 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 
 import com.da.sage.assistant.dao.DeliveryMapper;
-import com.da.sage.assistant.model.CustomerSummaryAmount;
+import com.da.sage.assistant.model.CustomerSummaryAmountByTarget;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily;
 import com.da.sage.assistant.model.DeliveryLines;
@@ -28,7 +28,39 @@ public class DeliveryService {
 
   private final DeliveryMapper deliveryMapper;
 
-  public List<CustomerSummaryAmount> getDeliverySummaryAmount(
+  public List<CustomerSummaryAmountByTarget> getDeliveryPlanSummaryAmount(
+      String Site,
+      String OrderType,
+      String CustomerCode,
+      String DateFrom,
+      String DateTo,
+      String Interval) {
+    return deliveryMapper.findDeliveryPlanSumAmount(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo,
+        Interval);
+  }
+
+  public List<CustomerSummaryAmountTopByCustomer> getDeliveryPlanSummaryAmountTopByCustomer(
+      String Site,
+      String OrderType,
+      String CustomerCode,
+      String DateFrom,
+      String DateTo,
+      Integer Limit) {
+    return deliveryMapper.findDeliveryPlanSumAmountTopByCustomer(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo,
+        Limit);
+  }
+
+  public List<CustomerSummaryAmountByTarget> getDeliverySummaryAmount(
       String Site,
       String OrderType,
       String CustomerCode,
@@ -42,20 +74,6 @@ public class DeliveryService {
         DateFrom,
         DateTo,
         Interval);
-  }
-
-  public Integer getDeliverySummaryAmountTotalUSD(
-      String Site,
-      String OrderType,
-      String CustomerCode,
-      String DateFrom,
-      String DateTo) {
-    return deliveryMapper.findDeliverySumAmountTotalUSD(
-        Site,
-        OrderType,
-        CustomerCode,
-        DateFrom,
-        DateTo);
   }
 
   public List<CustomerSummaryAmountTopByCustomer> getDeliverySummaryAmountTopByCustomer(

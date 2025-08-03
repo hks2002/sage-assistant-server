@@ -4,7 +4,280 @@
 <mapper namespace="com.da.sage.assistant.dao.DeliveryMapper">
   <!-- Open L2 Cache under Names pace: 30 Min-->
   <cache eviction="LRU" flushInterval="1800000" readOnly="true" size="8192" />
-  <select id="findDeliverySumAmount" resultType="com.da.sage.assistant.model.CustomerSummaryAmount">
+  <select id="findDeliveryPlanSumAmount" resultType="com.da.sage.assistant.model.CustomerSummaryAmountByTarget">
+  WITH 
+  T0 AS (
+      SELECT DISTINCT
+        SORDER.SALFCY_0 AS Site,
+        SORDER.SOHTYP_0 AS Type,
+        SORDERQ.YSOQ_STA_0 AS Status,
+        SORDER.SOHNUM_0 AS OrderNO,
+        SORDER.BPCORD_0 AS CustomerCode,
+        SORDER.ORDDAT_0 AS OrderDate,
+        SORDERQ.YSOQ_DLIVP_0 AS DeliveryPlanDate,
+        SORDER.ORDNOT_0 AS Amount,
+	      SORDER.ORDATI_0 AS AmountWithTax,
+	      SORDER.CUR_0 AS Currency,
+	      SORDER.ORDNOTL_0 AS LocalAmount,
+	      SORDER.ORDATIL_0 AS LocalAmountWithTax,
+        COMPANY.ACCCUR_0 AS LocalCurrency
+      FROM 
+        EXPLOIT.SORDER SORDER
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON SORDER.SOHNUM_0 = SORDERQ.SOHNUM_0
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER
+        ON BPCUSTOMER.BPCNUM_0 = SORDER.BPCORD_0 
+      INNER JOIN EXPLOIT.COMPANY COMPANY
+        ON COMPANY.MAIFCY_0 = SORDER.SALFCY_0 
+      WHERE 1=1
+      AND (SORDERQ.YSOQ_DLIVP_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SORDER.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' OrderType ==  "ALL" '>
+      </when>
+      <when test=' OrderType ==  "DEDIENNE" '>
+        AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
+      </when>
+      <when test=' OrderType ==  "NORM" '>
+        AND SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES') AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <when test=' OrderType ==  "SERVICES" '>
+        AND ( (SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES', 'LOC','LOC3') AND SORDERQ.YSOQ_STA_0 = 7)  OR SORDER.SOHTYP_0 IN ('REP', 'REP3'))
+      </when>
+      <when test=' OrderType ==  "RENT" '>
+        AND SORDER.SOHTYP_0 IN ('LOC','LOC3') AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      AND
+      CASE 
+        WHEN SORDER.SALFCY_0 IN ('ZHU','HKG','YSH') THEN 'CHINA' ELSE 'OTHER-SITE'
+      END !=
+      CASE 
+        WHEN SORDER.BPCORD_0 IN ('00870', '00871', '03167') THEN 'CHINA' ELSE 'OTHER-CUSTOMER'
+      END
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SORDER.SALFCY_0 IN ('ZHU','HKG','YSH')
+      AND SORDER.BPCORD_0 NOT IN ('00870', '00871', '03167')
+      </when>
+      <otherwise>
+        AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+  T2 AS (
+    SELECT 
+      T0.Site,
+      T0.Type,
+      T0.Status,
+      T0.CustomerCode,
+      T0.OrderNO,
+      T0.OrderDate,
+      T0.DeliveryPlanDate,
+      IIF(T0.Currency = 'USD', T0.Amount, T0.Amount/T1.Rate) AS USD,
+      IIF(T0.Currency = 'USD', T0.AmountWithTax, T0.AmountWithTax/T1.Rate) AS USDWithTax,
+      T0.LocalAmount,
+      T0.LocalAmountWithTax,
+      T0.LocalCurrency
+    FROM T0
+    LEFT JOIN T1
+        ON  T1.Dest = 'USD'
+           AND T1.Sour = T0.Currency
+           AND T0.OrderDate >= T1.StartDate 
+           AND T1.EndDate > T0.OrderDate
+ )
+ 
+  SELECT DISTINCT
+    T2.Site,
+    <if test=' CustomerCode != "ALL" '>
+    T2.CustomerCode,
+    </if>
+    <choose>
+      <when test=' Interval == "Month" and CustomerCode != "ALL" '>
+      FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00') AS Target,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00')), 0) AS SumLocalWithTaxTarget,
+      </when>
+      <when test=' Interval == "Month" and CustomerCode == "ALL" '>
+      FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00') AS Target,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryPlanDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryPlanDate), '00')), 0) AS SumLocalWithTaxTarget,
+      </when>
+      <when test=' Interval == "Year" and CustomerCode != "ALL" '>
+      FORMAT(Year(T2.DeliveryPlanDate), '0000') AS Target,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryPlanDate), '0000')),0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryPlanDate), '0000')),0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryPlanDate), '0000')),0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryPlanDate), '0000')),0) AS SumLocalWithTaxTarget,
+      </when>
+      <when test=' Interval == "Year" and CustomerCode == "ALL" '>
+      FORMAT(Year(T2.DeliveryPlanDate), '0000') AS Target,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryPlanDate), '0000')),0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryPlanDate), '0000')),0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryPlanDate), '0000')),0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryPlanDate), '0000')),0) AS SumLocalWithTaxTarget,
+      </when>
+      <otherwise>
+      </otherwise>
+    </choose>
+    T2.LocalCurrency
+  FROM T2
+  ORDER BY 
+     Target ASC
+  </select>
+  <select id="findDeliveryPlanSumAmountTopByCustomer"
+    resultType="com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer">
+  WITH 
+  T0 AS (
+    	SELECT DISTINCT
+	      SORDER.SALFCY_0 AS Site,
+        SORDER.SOHTYP_0 AS Type,
+        SORDERQ.YSOQ_STA_0 AS Status,
+	      SORDER.SOHNUM_0 AS OrderNO,
+	      SORDER.BPCORD_0 AS CustomerCode,
+	      SORDER.BPCNAM_0 AS CustomerName,
+	      SORDER.ORDDAT_0 AS OrderDate,
+        SORDERQ.YSOQ_DLIVP_0 AS DeliveryPlanDate,
+        SORDER.ORDNOT_0 AS Amount,
+	      SORDER.ORDATI_0 AS AmountWithTax,
+	      SORDER.CUR_0 AS Currency,
+	      SORDER.ORDNOTL_0 AS LocalAmount,
+	      SORDER.ORDATIL_0 AS LocalAmountWithTax,
+	      COMPANY.ACCCUR_0 AS LocalCurrency
+      FROM 
+        EXPLOIT.SORDER SORDER
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON SORDER.SOHNUM_0 = SORDERQ.SOHNUM_0
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER
+        ON BPCUSTOMER.BPCNUM_0 = SORDER.BPCORD_0 
+      INNER JOIN EXPLOIT.COMPANY COMPANY
+        ON COMPANY.MAIFCY_0 = SORDER.SALFCY_0 
+      WHERE 1=1
+      AND (SORDERQ.YSOQ_DLIVP_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SORDER.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' OrderType ==  "ALL" '>
+      </when>
+      <when test=' OrderType ==  "DEDIENNE" '>
+        AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
+      </when>
+      <when test=' OrderType ==  "NORM" '>
+        AND SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES') AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <when test=' OrderType ==  "SERVICES" '>
+        AND ( (SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES', 'LOC','LOC3') AND SORDERQ.YSOQ_STA_0 = 7)  OR SORDER.SOHTYP_0 IN ('REP', 'REP3'))
+      </when>
+      <when test=' OrderType ==  "RENT" '>
+        AND SORDER.SOHTYP_0 IN ('LOC','LOC3') AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      AND
+      CASE 
+        WHEN SORDER.SALFCY_0 IN ('ZHU','HKG','YSH') THEN 'CHINA' ELSE 'OTHER-SITE'
+      END !=
+      CASE 
+        WHEN SORDER.BPCORD_0 IN ('00870', '00871', '03167') THEN 'CHINA' ELSE 'OTHER-CUSTOMER'
+      END
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SORDER.SALFCY_0 IN ('ZHU','HKG','YSH')
+      AND SORDER.BPCORD_0 NOT IN ('00870', '00871', '03167')
+      </when>
+      <otherwise>
+        AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+  T2 AS (
+    SELECT 
+      T0.Site,
+      T0.Type,
+      T0.Status,
+      T0.CustomerCode,
+      T0.CustomerName,
+      T0.OrderNO,
+      T0.OrderDate,
+      IIF(T0.Currency = 'USD', T0.Amount, T0.Amount/T1.Rate) AS USD,
+      IIF(T0.Currency = 'USD', T0.AmountWithTax, T0.AmountWithTax/T1.Rate) AS USDWithTax,
+      T0.LocalAmount,
+      T0.LocalAmountWithTax,
+      T0.LocalCurrency
+    FROM T0
+    LEFT JOIN T1
+        ON  T1.Dest = 'USD'
+           AND T1.Sour = T0.Currency
+           AND T0.OrderDate >= T1.StartDate 
+           AND T1.EndDate > T0.OrderDate
+ )
+ 
+  SELECT DISTINCT
+    T2.Site,
+    T2.CustomerCode,
+    T2.CustomerName,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site), 0) AS SiteAllUSDWithTax,
+    ROUND(SUM(T2.TotalLocalAmount)        OVER(PARTITION BY T2.Site), 0) AS SiteAllLocal,
+    ROUND(SUM(T2.TotalLocalAmountWithTax) OVER(PARTITION BY T2.Site), 0) AS SiteAllLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocalWithTax,
+    T2.LocalCurrency
+  FROM T2
+  ORDER BY 
+     SumUSD DESC  
+  OFFSET 0 ROWS
+  FETCH NEXT #{Limit} ROWS ONLY
+  </select>
+  <select id="findDeliverySumAmount" resultType="com.da.sage.assistant.model.CustomerSummaryAmountByTarget">
   WITH 
   T0 AS (
       SELECT DISTINCT 
@@ -17,9 +290,13 @@
         SDELIVERYD.SOPLIN_0 AS OrderLine,
         SDELIVERYD.ITMREF_0 AS PN,
         RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
-        SDELIVERYD.NETPRIATI_0 AS Price,
-        IIF(SDELIVERY.DLVATI_0 =0, 0, SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS LocalPrice,
         SDELIVERYD.QTY_0 AS Qty,
+        SDELIVERYD.NETPRI_0 AS NetPrice,
+        SDELIVERYD.NETPRIATI_0 AS NetPriceWithTax,
+        SDELIVERYD.QTY_0*SDELIVERYD.NETPRI_0 AS TotalAmount,
+        SDELIVERYD.QTY_0*SDELIVERYD.NETPRIATI_0 AS TotalAmountWithTax,
+        IIF(SDELIVERY.DLVATI_0 = 0, 0, SDELIVERYD.QTY_0*SDELIVERYD.NETPRI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS TotalLocalAmount,
+        IIF(SDELIVERY.DLVATI_0 = 0, 0, SDELIVERYD.QTY_0*SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS TotalLocalAmountWithTax,
         SDELIVERY.CUR_0 AS Currency,
         COMPANY.ACCCUR_0 AS LocalCurrency,
         SDELIVERYD.SHIDAT_0 AS DeliveryDate
@@ -53,10 +330,13 @@
         AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
       </when>
       <when test=' OrderType ==  "NORM" '>
-        AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 != 7
+        AND SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES') AND SORDERQ.YSOQ_STA_0 != 7
       </when>
       <when test=' OrderType ==  "SERVICES" '>
-        AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
+        AND ( (SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES', 'LOC','LOC3') AND SORDERQ.YSOQ_STA_0 = 7)  OR SORDER.SOHTYP_0 IN ('REP', 'REP3'))
+      </when>
+      <when test=' OrderType ==  "RENT" '>
+        AND SORDER.SOHTYP_0 IN ('LOC','LOC3') AND SORDERQ.YSOQ_STA_0 != 7
       </when>
       <otherwise>
         AND 1=2
@@ -93,13 +373,15 @@
   ),
   T2 AS (
     SELECT 
-    T0.Site,
-    T0.CustomerCode,
-    T0.DeliveryNO,
-    T0.DeliveryDate,
-    IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
-    T0.LocalPrice,
-    T0.LocalCurrency
+      T0.Site,
+      T0.CustomerCode,
+      T0.DeliveryNO,
+      T0.DeliveryDate,
+      IIF(T0.Currency = 'USD', T0.TotalAmount, T0.TotalAmount/T1.Rate) AS USD,
+      IIF(T0.Currency = 'USD', T0.TotalAmountWithTax, T0.TotalAmountWithTax/T1.Rate) AS USDWithTax,
+      T0.TotalLocalAmount,
+      T0.TotalLocalAmountWithTax,
+      T0.LocalCurrency
     FROM T0
     LEFT JOIN T1
         ON  T1.Dest = 'USD'
@@ -116,23 +398,31 @@
     <choose>
       <when test=' Interval == "Month" and CustomerCode !="ALL" '>
       FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00') AS Target,
-      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumUSDTarget,
-      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.TotalLocalAmount)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.TotalLocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumLocalWithTaxTarget,
       </when>
       <when test=' Interval == "Month" and CustomerCode =="ALL" '>
       FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00') AS Target,
-      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumUSDTarget,
-      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.TotalLocalAmount)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.TotalLocalAmountWithTax) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000') + '-' + FORMAT(MONTH(T2.DeliveryDate), '00')), 0) AS SumLocalWithTaxTarget,
       </when>
       <when test=' Interval == "Year" and CustomerCode !="ALL" '>
       FORMAT(Year(T2.DeliveryDate), '0000') AS Target,
-      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumUSDTarget,
-      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.TotalLocalAmount)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.TotalLocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumLocalWithTaxTarget,
       </when>
       <when test=' Interval == "Year" and CustomerCode =="ALL" '>
       FORMAT(Year(T2.DeliveryDate), '0000') AS Target,
-      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumUSDTarget,
-      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.TotalLocalAmount)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.TotalLocalAmountWithTax) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.DeliveryDate), '0000')), 0) AS SumLocalWithTaxTarget,
       </when>
       <otherwise>
       </otherwise>
@@ -156,9 +446,13 @@
         SDELIVERYD.SOPLIN_0 AS OrderLine,
         SDELIVERYD.ITMREF_0 AS PN,
         RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
-        SDELIVERYD.NETPRIATI_0 AS Price,
-        IIF(SDELIVERY.DLVATI_0 =0, 0, SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS LocalPrice,
         SDELIVERYD.QTY_0 AS Qty,
+        SDELIVERYD.NETPRI_0 AS NetPrice,
+        SDELIVERYD.NETPRIATI_0 AS NetPriceWithTax,
+        SDELIVERYD.QTY_0*SDELIVERYD.NETPRI_0 AS TotalAmount,
+        SDELIVERYD.QTY_0*SDELIVERYD.NETPRIATI_0 AS TotalAmountWithTax,
+        IIF(SDELIVERY.DLVATI_0 = 0, 0, SDELIVERYD.QTY_0*SDELIVERYD.NETPRI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS TotalLocalAmount,
+        IIF(SDELIVERY.DLVATI_0 = 0, 0, SDELIVERYD.QTY_0*SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS TotalLocalAmountWithTax,
         SDELIVERY.CUR_0 AS Currency,
         COMPANY.ACCCUR_0 AS LocalCurrency,
         SDELIVERYD.SHIDAT_0 AS DeliveryDate
@@ -192,10 +486,13 @@
         AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
       </when>
       <when test=' OrderType ==  "NORM" '>
-        AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 != 7
+        AND SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES') AND SORDERQ.YSOQ_STA_0 != 7
       </when>
       <when test=' OrderType ==  "SERVICES" '>
-        AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
+        AND ( (SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES', 'LOC','LOC3') AND SORDERQ.YSOQ_STA_0 = 7)  OR SORDER.SOHTYP_0 IN ('REP', 'REP3'))
+      </when>
+      <when test=' OrderType ==  "RENT" '>
+        AND SORDER.SOHTYP_0 IN ('LOC','LOC3') AND SORDERQ.YSOQ_STA_0 != 7
       </when>
       <otherwise>
         AND 1=2
@@ -232,14 +529,16 @@
   ),
   T2 AS (
     SELECT 
-    T0.Site,
-    T0.CustomerCode,
-    T0.CustomerName,
-    T0.DeliveryNO,
-    T0.DeliveryDate,
-    IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
-    T0.LocalPrice,
-    T0.LocalCurrency
+      T0.Site,
+      T0.CustomerCode,
+      T0.CustomerName,
+      T0.DeliveryNO,
+      T0.DeliveryDate,
+      IIF(T0.Currency = 'USD', T0.TotalAmount, T0.TotalAmount/T1.Rate) AS USD,
+      IIF(T0.Currency = 'USD', T0.TotalAmountWithTax, T0.TotalAmountWithTax/T1.Rate) AS USDWithTax,
+      T0.TotalLocalAmount,
+      T0.TotalLocalAmountWithTax,
+      T0.LocalCurrency
     FROM T0
     LEFT JOIN T1
         ON  T1.Dest = 'USD'
@@ -252,9 +551,14 @@
     T2.Site,
     T2.CustomerCode,
     T2.CustomerName,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSD,
-    ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocal,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site), 0) AS SiteAllUSDWithTax,
+    ROUND(SUM(T2.TotalLocalAmount)        OVER(PARTITION BY T2.Site), 0) AS SiteAllLocal,
+    ROUND(SUM(T2.TotalLocalAmountWithTax) OVER(PARTITION BY T2.Site), 0) AS SiteAllLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSDWithTax,
+    ROUND(SUM(T2.TotalLocalAmount)        OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocal,
+    ROUND(SUM(T2.TotalLocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocalWithTax,
     T2.LocalCurrency
   FROM T2
   ORDER BY 
@@ -277,9 +581,13 @@
         SDELIVERYD.ITMREF_0 AS PN,
         ITMMASTER.CCE_1 AS PNFamily,
         RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
-        SDELIVERYD.NETPRIATI_0 AS Price,
-        IIF(SDELIVERY.DLVATI_0 =0, 0, SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS LocalPrice,
         SDELIVERYD.QTY_0 AS Qty,
+        SDELIVERYD.NETPRI_0 AS NetPrice,
+        SDELIVERYD.NETPRIATI_0 AS NetPriceWithTax,
+        SDELIVERYD.QTY_0*SDELIVERYD.NETPRI_0 AS TotalAmount,
+        SDELIVERYD.QTY_0*SDELIVERYD.NETPRIATI_0 AS TotalAmountWithTax,
+        IIF(SDELIVERY.DLVATI_0 = 0, 0, SDELIVERYD.QTY_0*SDELIVERYD.NETPRI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS TotalLocalAmount,
+        IIF(SDELIVERY.DLVATI_0 = 0, 0, SDELIVERYD.QTY_0*SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS TotalLocalAmountWithTax,
         SDELIVERY.CUR_0 AS Currency,
         COMPANY.ACCCUR_0 AS LocalCurrency,
         SDELIVERYD.SHIDAT_0 AS DeliveryDate
@@ -315,10 +623,13 @@
         AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
       </when>
       <when test=' OrderType ==  "NORM" '>
-        AND SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 != 7
+        AND SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES') AND SORDERQ.YSOQ_STA_0 != 7
       </when>
       <when test=' OrderType ==  "SERVICES" '>
-        AND ( (SORDER.SOHTYP_0 = 'NOR' AND SORDERQ.YSOQ_STA_0 =7)  OR SORDER.SOHTYP_0 != 'NOR')
+        AND ( (SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES', 'LOC','LOC3') AND SORDERQ.YSOQ_STA_0 = 7)  OR SORDER.SOHTYP_0 IN ('REP', 'REP3'))
+      </when>
+      <when test=' OrderType ==  "RENT" '>
+        AND SORDER.SOHTYP_0 IN ('LOC','LOC3') AND SORDERQ.YSOQ_STA_0 != 7
       </when>
       <otherwise>
         AND 1=2
@@ -355,14 +666,16 @@
   ),
   T2 AS (
     SELECT 
-    T0.Site,
-    T0.CustomerCode,
-    T0.DeliveryNO,
-    T0.PNFamily,
-    T0.DeliveryDate,
-    IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
-    T0.LocalPrice,
-    T0.LocalCurrency
+      T0.Site,
+      T0.CustomerCode,
+      T0.DeliveryNO,
+      T0.PNFamily,
+      T0.DeliveryDate,
+      IIF(T0.Currency = 'USD', T0.TotalAmount, T0.TotalAmount/T1.Rate) AS USD,
+      IIF(T0.Currency = 'USD', T0.TotalAmountWithTax, T0.TotalAmountWithTax/T1.Rate) AS USDWithTax,
+      T0.TotalLocalAmount,
+      T0.TotalLocalAmountWithTax,
+      T0.LocalCurrency
     FROM T0
     LEFT JOIN T1
         ON  T1.Dest = 'USD'
@@ -374,9 +687,14 @@
   SELECT DISTINCT
     T2.Site,
     T2.PNFamily,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSD,
-    ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocal,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site), 0) AS SiteAllUSDWithTax,
+    ROUND(SUM(T2.TotalLocalAmount)        OVER(PARTITION BY T2.Site), 0) AS SiteAllLocal,
+    ROUND(SUM(T2.TotalLocalAmountWithTax) OVER(PARTITION BY T2.Site), 0) AS SiteAllLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSDWithTax,
+    ROUND(SUM(T2.TotalLocalAmount)        OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocal,
+    ROUND(SUM(T2.TotalLocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocalWithTax,
     T2.LocalCurrency
   FROM T2
   ORDER BY 
@@ -395,14 +713,7 @@
         SDELIVERYD.SDDLIN_0 AS DeliveryLine,
         SDELIVERYD.SOHNUM_0 AS OrderNO,
         SDELIVERYD.SOPLIN_0 AS OrderLine,
-        SDELIVERYD.ITMREF_0 AS PN,
-        RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
-        SDELIVERYD.NETPRIATI_0 AS Price,
-        IIF(SDELIVERY.DLVATI_0=0, 0, SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS LocalPrice,
-        SDELIVERYD.QTY_0 AS Qty,
-        SDELIVERY.CUR_0 AS Currency,
-        COMPANY.ACCCUR_0 AS LocalCurrency,
-        SDELIVERYD.SHIDAT_0 AS DeliveryDate
+        SDELIVERYD.ITMREF_0 AS PN
       FROM 
         EXPLOIT.SDELIVERYD SDELIVERYD
       LEFT JOIN EXPLOIT.SDELIVERY SDELIVERY
@@ -464,9 +775,13 @@
         SORDERQ.YSOH_PJT_0 AS ProjectNO,
         SDELIVERYD.ITMREF_0 AS PN,
         RTRIM(SDELIVERYD.ITMDES1_0 + ' ' + SDELIVERYD.ITMDES2_0) AS Description,
-        SDELIVERYD.NETPRIATI_0 AS Price,
-        SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0) AS LocalPrice,
         SDELIVERYD.QTY_0 AS Qty,
+        SDELIVERYD.NETPRI_0 AS NetPrice,
+        SDELIVERYD.NETPRIATI_0 AS NetPriceWithTax,
+        SDELIVERYD.QTY_0*SDELIVERYD.NETPRI_0 AS TotalAmount,
+        SDELIVERYD.QTY_0*SDELIVERYD.NETPRIATI_0 AS TotalAmountWithTax,
+        IIF(SDELIVERY.DLVATI_0 = 0, 0, SDELIVERYD.QTY_0*SDELIVERYD.NETPRI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS TotalLocalAmount,
+        IIF(SDELIVERY.DLVATI_0 = 0, 0, SDELIVERYD.QTY_0*SDELIVERYD.NETPRIATI_0*(SDELIVERY.DLVATIL_0/SDELIVERY.DLVATI_0)) AS TotalLocalAmountWithTax,
         SDELIVERY.CUR_0 AS Currency,
         COMPANY.ACCCUR_0 AS LocalCurrency,
         SDELIVERYD.SHIDAT_0 AS DeliveryDate,

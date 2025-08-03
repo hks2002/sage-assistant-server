@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:25:00                                                                      *
- * @LastEditDate          : 2025-07-27 09:02:44                                                                      *
+ * @LastEditDate          : 2025-08-07 00:16:12                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
 
@@ -13,14 +13,14 @@ import java.util.List;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 
-import com.da.sage.assistant.model.CustomerSummaryAmount;
+import com.da.sage.assistant.model.CustomerSummaryAmountByTarget;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily;
 import com.da.sage.assistant.model.DeliveryLines;
 
 @Mapper
 public interface DeliveryMapper {
-  List<CustomerSummaryAmount> findDeliverySumAmount(
+  List<CustomerSummaryAmountByTarget> findDeliveryPlanSumAmount(
       @Param("Site") String Site,
       @Param("OrderType") String OrderType,
       @Param("CustomerCode") String CustomerCode,
@@ -28,12 +28,21 @@ public interface DeliveryMapper {
       @Param("DateTo") String DateTo,
       @Param("Interval") String Interval);
 
-  Integer findDeliverySumAmountTotalUSD(
+  List<CustomerSummaryAmountTopByCustomer> findDeliveryPlanSumAmountTopByCustomer(
       @Param("Site") String Site,
       @Param("OrderType") String OrderType,
       @Param("CustomerCode") String CustomerCode,
       @Param("DateFrom") String DateFrom,
-      @Param("DateTo") String DateTo);
+      @Param("DateTo") String DateTo,
+      @Param("Limit") Integer Limit);
+
+  List<CustomerSummaryAmountByTarget> findDeliverySumAmount(
+      @Param("Site") String Site,
+      @Param("OrderType") String OrderType,
+      @Param("CustomerCode") String CustomerCode,
+      @Param("DateFrom") String DateFrom,
+      @Param("DateTo") String DateTo,
+      @Param("Interval") String Interval);
 
   List<CustomerSummaryAmountTopByCustomer> findDeliverySumAmountTopByCustomer(
       @Param("Site") String Site,

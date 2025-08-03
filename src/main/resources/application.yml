@@ -20,17 +20,14 @@ logging:
 # server configuration will ignore when deploy with war, only works when deploy with jar and during dev env
 server:
   port: 8080
-  servlet:
-    session:
-      timeout: 900
-      cookie:
-        maxAge: 900
 
 # mybatis-plus could find ("classpath*:mapper/*.xml")) automatically.
 # ❗️❗️❗️Important! don't delete `map-underscore-to-camel-case`❗️❗️❗️
 # mybatis-plus auto mapper ignore case, but will delete underscore, so we need to set it to false.
 # Due to reports mapper have many ITMREF_0 style field. It will cause the field Null Error.
 mybatis-plus:
+  global-config:
+    banner: false
   configuration:
     map-underscore-to-camel-case: false
     cache-enabled: true
@@ -38,29 +35,24 @@ mybatis-plus:
 spring:
   profiles:
     active: prod
+  application:
+    admin:
+      # allow to support systemd service
+      enabled: true
   datasource:
-    dynamic: 
-      primary: master
-      strict: false
-      datasource:
-        master:
-          url: jdbc:sqlserver://127.0.0.1;DatabaseName=sage;TrustServerCertificate=true
-          driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
-          username:
-          password:
-          hikari: 
-            maximum-pool-size: 10
-            minimum-idle: 1
-        slave:
-          url: jdbc:mysql://localhost:3306/sageassistant
-          driver-class-name: com.mysql.cj.jdbc.Driver
-          username:
-          password:
-          hikari: 
-            maximum-pool-size: 10
-            minimum-idle: 1
+    url: jdbc:sqlserver://127.0.0.1;DatabaseName=sage;TrustServerCertificate=true
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+    username:
+    password:
+    hikari: 
+      maximum-pool-size: 10
+      minimum-idle: 1
 
 ad:
+  #ldap by ip or ldaps by full hostname, multiple ldap servers can be separated by space
+  #ldap: ldap://127.0.0.1:389
+  #ldap: ldap://ldap.example.com:389
+  #ldaps: ldaps://ldap.example.com:636
   url: ldap://127.0.0.1:389
   domain: example.lan
   search-base: OU=Your Company,DC=example,DC=lan

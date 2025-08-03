@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
  * @CreatedDate           : 2022-11-23 20:45:00                                                                       *
- * @LastEditDate          : 2025-07-21 23:20:58                                                                       *
+ * @LastEditDate          : 2025-08-06 10:53:35                                                                       *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
 
@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 import org.springframework.stereotype.Service;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.da.sage.assistant.config.ADProperties;
 import com.da.sage.assistant.utils.ResponseJson;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -28,12 +27,12 @@ import lombok.extern.log4j.Log4j2;
 @RequiredArgsConstructor
 public class LoginService {
 
-  private final ADProperties adProperties;
-  private static ADProperties adStaticProperties;
+  private final ADServices adServices;
+  private static ADServices staticAdServices;
 
   @PostConstruct
   public void init() {
-    adStaticProperties = adProperties;
+    staticAdServices = adServices;
   }
 
   /**
@@ -44,19 +43,14 @@ public class LoginService {
    * If failed, return null, will throw InvalidCacheLoadException
    *
    */
-  private static LoadingCache<String, JSONObject> authCache = Caffeine
+  public static LoadingCache<String, JSONObject> authCache = Caffeine
       .newBuilder()
       .expireAfterAccess(15, TimeUnit.MINUTES)
       .build(
           new CacheLoader<String, JSONObject>() {
             @Override
             public JSONObject load(String auth) {
-              ADServices adServices = new ADServices();
-              String url = adStaticProperties.getUrl();
-              String domain = adStaticProperties.getDomain();
-              String searchBase = adStaticProperties.getSearchBase();
-
-              return adServices.adAuthorization(url, domain, searchBase, auth);
+              return staticAdServices.adAuthorization(auth);
             }
           });
 
@@ -78,14 +72,18 @@ public class LoginService {
       }
 
     } catch (Exception e) {
+      log.error("Login failed: {}", e.getMessage());
       return ResponseJson.unauthorized("Login failed");
     }
 
   }
 
   public static JSONObject doLogout(String auth) {
-    JSONObject user = authCache.getIfPresent(auth);
+    if (auth == null) {
+      return ResponseJson.success("Logout success");
+    }
 
+    JSONObject user = authCache.getIfPresent(auth);
     if (user == null) {
       return ResponseJson.success("Logout success");
     } else {

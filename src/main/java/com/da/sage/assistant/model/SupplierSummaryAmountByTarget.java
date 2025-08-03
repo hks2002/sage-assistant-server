@@ -1,9 +1,9 @@
 /**********************************************************************************************************************
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CreatedDate           : 2022-03-26 17:01:00                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2024-11-27 09:38:19                                                                       *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ * @CreatedDate           : 2022-03-26 17:01:00                                                                       *
+ * @LastEditDate          : 2025-08-07 15:01:17                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
 
 package com.da.sage.assistant.model;
@@ -14,12 +14,14 @@ import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
-public class SupplierSummaryAmount {
+public class SupplierSummaryAmountByTarget {
 
   private String Site;
   private String SupplierCode;
   private String Target;
   private Float SumUSDTarget;
+  private Float SumUSDWithTaxTarget;
   private Float SumLocalTarget;
+  private Float SumLocalWithTaxTarget;
   private String LocalCurrency;
 }

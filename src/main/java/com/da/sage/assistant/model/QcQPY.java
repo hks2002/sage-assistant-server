@@ -1,9 +1,9 @@
 /**********************************************************************************************************************
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CreatedDate           : 2022-03-26 17:01:00                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2024-12-25 14:41:12                                                                       *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ * @CreatedDate           : 2022-03-26 17:01:00                                                                       *
+ * @LastEditDate          : 2025-07-30 16:49:51                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
 
 package com.da.sage.assistant.model;
@@ -14,13 +14,13 @@ import lombok.Data;
 
 @Data
 @JSONType(alphabetic = false)
-public class SupplierNCSummary {
+public class QcQPY {
 
   private String Site;
   private String SupplierCode;
   private String Target;
-  private String NCCAT;
-  private Integer CatCnt;
+  private Integer NcCntByProject;
+  private Integer SameCnt;
   private Integer AllCnt;
   private Double PCT;
 }

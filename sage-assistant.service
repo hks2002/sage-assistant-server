@@ -1,0 +1,20 @@
+[Unit]
+Description=Sage Assistant
+Wants=network.target
+After=network.target
+
+[Service]
+Type=notify
+TimeoutStartSec=300
+Restart=on-failure
+RestartSec=10
+
+WorkingDirectory=/usr/share/java/sage-assistant
+ExecStart=/usr/share/java/sage-assistant/startup.sh
+ExecStop=/usr/share/java/sage-assistant/shutdown.sh
+
+User=rhuang
+Group=rhuang
+
+[Install]
+WantedBy=multi-user.target

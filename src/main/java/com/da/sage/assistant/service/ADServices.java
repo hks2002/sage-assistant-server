@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
  * @CreatedDate           : 2025-03-28 00:03:05                                                                       *
- * @LastEditDate          : 2025-07-21 13:42:27                                                                       *
+ * @LastEditDate          : 2025-08-06 12:49:44                                                                       *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
 
@@ -21,38 +21,42 @@ import javax.naming.directory.InitialDirContext;
 import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
+import org.springframework.stereotype.Service;
+
 import com.alibaba.fastjson2.JSONObject;
+import com.da.sage.assistant.config.ADProperties;
 import com.da.sage.assistant.utils.CommonUtils;
 
 import lombok.extern.log4j.Log4j2;
 
 @Log4j2
+@Service
 public class ADServices {
+
+  private ADProperties adProperties = null;
+
+  public ADServices(ADProperties adProperties) {
+    log.info("ADServices init:{}", adProperties);
+    this.adProperties = adProperties;
+  }
+
   /**
    * Authenticates a user against an Active Directory server and retrieves user
    * information.
    *
-   * @param adServerUrl    The URL of the AD server (LDAP URL)
-   * @param adServerDomain The domain name of the AD server
-   * @param searchBase     The base DN for searching users in AD
-   * @param Auth           The authentication token
-   * @return A Future containing a JsonObject with user details (login_name,
-   *         first_name, last_name, email, full_name)
-   *         if authentication succeeds, or a failed Future if authentication
-   *         fails
+   * @param Auth The authentication token
+   * @return A JsonObject with user details (login_name, first_name, last_name,
+   *         email, full_name) if authentication succeeds, or a failed Future if
+   *         authentication fails
    */
-  public JSONObject adAuthorization(
-      String adServerUrl,
-      String adServerDomain,
-      String searchBase,
-      String Auth) {
+  public JSONObject adAuthorization(String Auth) {
     try {
       String plantUserPassword = CommonUtils.decodeBasicAuth(Auth);
       String[] userPassword = plantUserPassword.split(":");
       String username = userPassword[0];
       String password = userPassword[1];
 
-      return adAuthorization(adServerUrl, adServerDomain, searchBase, username, password);
+      return adAuthorization(username, password);
     } catch (Exception e) {
       log.error("adAuthorization error: ", e);
       return null;
@@ -63,40 +67,32 @@ public class ADServices {
    * Authenticates a user against an Active Directory server and retrieves user
    * information.
    *
-   * @param adServerUrl    The URL of the AD server (LDAP URL)
-   * @param adServerDomain The domain name of the AD server
-   * @param searchBase     The base DN for searching users in AD
-   * @param username       The username to authenticate
-   * @param password       The password for authentication
-   * @return A Future containing a JsonObject with user details (login_name,
-   *         first_name, last_name, email, full_name)
-   *         if authentication succeeds, or a failed Future if authentication
-   *         fails
+   * @param username The username to authenticate
+   * @param password The password for authentication
+   * @return A JsonObject with user details (login_name, first_name, last_name,
+   *         email, full_name) if authentication succeeds, or a failed Future if
+   *         authentication fails
    */
-  public JSONObject adAuthorization(
-      String adServerUrl,
-      String adServerDomain,
-      String searchBase,
-      String username,
-      String password) {
+  public JSONObject adAuthorization(String username, String password) {
 
     Hashtable<String, String> env = new Hashtable<>();
     env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
     env.put(Context.SECURITY_AUTHENTICATION, "simple");
-    env.put(Context.PROVIDER_URL, adServerUrl);
-    env.put(Context.SECURITY_PRINCIPAL, username + "@" + adServerDomain);
+    env.put(Context.PROVIDER_URL, adProperties.getUrl());
+    env.put(Context.SECURITY_PRINCIPAL, username + "@" + adProperties.getDomain());
     env.put(Context.SECURITY_CREDENTIALS, password);
 
-    // Set the keystore for SSL connection
-    // System.setProperty("javax.net.ssl.trustStore", keystore);
-    // env.put("java.naming.ldap.factory.socket",
-    // "com.da.docs.ssl.MySocketFactory");
-    // env.put(Context.SECURITY_PROTOCOL, "ssl");
+    // Skip SSL verification if using LDAPS
+    // hostname verification still works, so must using a valid full hostname
+    if (adProperties.getUrl().toLowerCase().startsWith("ldaps")) {
+      env.put("java.naming.ldap.factory.socket", "com.da.sage.assistant.utils.TrustAllSSLSocketFactory");
+    }
 
     DirContext dirCtx = null;
     JSONObject user = null;
 
     try {
+      // dirCtx = new InitialDirContext(env);
       dirCtx = new InitialDirContext(env);
 
       SearchControls searchControls = new SearchControls();
@@ -105,7 +101,8 @@ public class ADServices {
       searchControls.setTimeLimit(10000);
       String searchFilter = "(&(objectCategory=person)(objectClass=user)(sAMAccountName=" + username + "))";
 
-      NamingEnumeration<SearchResult> results = dirCtx.search(searchBase, searchFilter, searchControls);
+      NamingEnumeration<SearchResult> results = dirCtx.search(adProperties.getSearchBase(), searchFilter,
+          searchControls);
 
       if (results.hasMore()) {
         SearchResult searchResult = results.next();
@@ -137,9 +134,11 @@ public class ADServices {
         user.put("full_name", user.getString("first_name") + " " + user.getString("last_name"));
       }
     } catch (AuthenticationException e) {
-      log.info("AuthenticationException: {} {}", username, e.getMessage());
+      log.info("Login failed for user {}", username);
+      log.info("AuthenticationException:", e.getCause());
     } catch (NamingException e) {
-      log.error("NamingException: {} {}", username, e.getMessage());
+      log.error("Login failed for user {}", username);
+      log.error("NamingException:", e.getCause());
     } finally {
       if (dirCtx != null) {
         try {

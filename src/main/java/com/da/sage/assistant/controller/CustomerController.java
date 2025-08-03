@@ -20,7 +20,7 @@ import com.da.sage.assistant.model.CustomerDetails;
 import com.da.sage.assistant.model.CustomerName;
 import com.da.sage.assistant.model.CustomerOTD;
 import com.da.sage.assistant.model.CustomerOrder;
-import com.da.sage.assistant.model.CustomerSummaryAmount;
+import com.da.sage.assistant.model.CustomerSummaryAmountByTarget;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByRepresentative;
@@ -54,8 +54,8 @@ public class CustomerController {
     return (customerService.getCustomerDetails(CustomerCode));
   }
 
-  @GetMapping("/CustomerSummaryAmount")
-  public List<CustomerSummaryAmount> getCustomerSummaryAmount(
+  @GetMapping("/CustomerSummaryAmountByTarget")
+  public List<CustomerSummaryAmountByTarget> getCustomerSummaryAmount(
       @RequestParam(value = "Site", required = true) String Site,
       @RequestParam(value = "OrderType", required = true) String OrderType,
       @RequestParam(value = "CustomerCode", required = true) String CustomerCode,

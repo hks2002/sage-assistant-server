@@ -48,7 +48,7 @@
          ON BPARTNER.BPRNUM_0 = BPADDRESS.BPANUM_0
     WHERE BPARTNER.BPRNUM_0 = #{CustomerCode}
   </select>
-  <select id="findCustomerSumAmount" resultType="com.da.sage.assistant.model.CustomerSummaryAmount">
+  <select id="findCustomerSumAmount" resultType="com.da.sage.assistant.model.CustomerSummaryAmountByTarget">
   WITH 
   T0 AS (
     	SELECT DISTINCT
@@ -58,9 +58,11 @@
 	      SORDER.SOHNUM_0 AS OrderNO,
 	      SORDER.BPCORD_0 AS CustomerCode,
 	      SORDER.ORDDAT_0 AS OrderDate,
-	      SORDER.ORDATI_0 AS Price,
+        SORDER.ORDNOT_0 AS Amount,
+	      SORDER.ORDATI_0 AS AmountWithTax,
 	      SORDER.CUR_0 AS Currency,
-	      SORDER.ORDATIL_0 AS LocalPrice,
+	      SORDER.ORDNOTL_0 AS LocalAmount,
+	      SORDER.ORDATIL_0 AS LocalAmountWithTax,
 	      COMPANY.ACCCUR_0 AS LocalCurrency
       FROM 
         EXPLOIT.SORDER SORDER
@@ -136,8 +138,10 @@
     T0.CustomerCode,
     T0.OrderNO,
     T0.OrderDate,
-    IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
-    T0.LocalPrice,
+    IIF(T0.Currency = 'USD', T0.Amount, T0.Amount/T1.Rate) AS USD,
+    IIF(T0.Currency = 'USD', T0.AmountWithTax, T0.AmountWithTax/T1.Rate) AS USDWithTax,
+    T0.LocalAmount,
+    T0.LocalAmountWithTax,
     T0.LocalCurrency
     FROM T0
     LEFT JOIN T1
@@ -155,23 +159,31 @@
     <choose>
       <when test=' Interval == "Month" and CustomerCode != "ALL" '>
       FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00') AS Target,
-      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumUSDTarget,
-      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumLocalWithTaxTarget,
       </when>
       <when test=' Interval == "Month" and CustomerCode == "ALL" '>
       FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00') AS Target,
-      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumUSDTarget,
-      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000') + '-' + FORMAT(MONTH(T2.OrderDate), '00')), 0) AS SumLocalWithTaxTarget,
       </when>
       <when test=' Interval == "Year" and CustomerCode != "ALL" '>
       FORMAT(Year(T2.OrderDate), '0000') AS Target,
-      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumUSDTarget,
-      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumLocalTarget,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumLocalWithTaxTarget,
       </when>
       <when test=' Interval == "Year" and CustomerCode == "ALL" '>
       FORMAT(Year(T2.OrderDate), '0000') AS Target,
-      ROUND(SUM(T2.USD)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumUSDTarget,
-      ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumLocalTarget,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.OrderDate), '0000')),0) AS SumLocalWithTaxTarget,
       </when>
       <otherwise>
       </otherwise>
@@ -193,9 +205,11 @@
 	      SORDER.BPCORD_0 AS CustomerCode,
 	      SORDER.BPCNAM_0 AS CustomerName,
 	      SORDER.ORDDAT_0 AS OrderDate,
-	      SORDER.ORDATI_0 AS Price,
+        SORDER.ORDNOT_0 AS Amount,
+	      SORDER.ORDATI_0 AS AmountWithTax,
 	      SORDER.CUR_0 AS Currency,
-	      SORDER.ORDATIL_0 AS LocalPrice,
+	      SORDER.ORDNOTL_0 AS LocalAmount,
+	      SORDER.ORDATIL_0 AS LocalAmountWithTax,
 	      COMPANY.ACCCUR_0 AS LocalCurrency
       FROM 
         EXPLOIT.SORDER SORDER
@@ -272,8 +286,10 @@
       T0.CustomerName,
       T0.OrderNO,
       T0.OrderDate,
-      IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
-      T0.LocalPrice,
+      IIF(T0.Currency = 'USD', T0.Amount, T0.Amount/T1.Rate) AS USD,
+      IIF(T0.Currency = 'USD', T0.AmountWithTax, T0.AmountWithTax/T1.Rate) AS USDWithTax,
+      T0.LocalAmount,
+      T0.LocalAmountWithTax,
       T0.LocalCurrency
     FROM T0
     LEFT JOIN T1
@@ -287,9 +303,14 @@
     T2.Site,
     T2.CustomerCode,
     T2.CustomerName,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSD,
-    ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocal,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site), 0) AS SiteAllUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site), 0) AS SiteAllLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site), 0) AS SiteAllLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocalWithTax,
     T2.LocalCurrency
   FROM T2
   ORDER BY 
@@ -309,9 +330,11 @@
         SORDER.REP_0 AS SalesManCode,
 	      SALESREP.REPNAM_0 AS Representative,
 	      SORDER.ORDDAT_0 AS OrderDate,
-	      SORDER.ORDATI_0 AS Price,
+        SORDER.ORDNOT_0 AS Amount,
+	      SORDER.ORDATI_0 AS AmountWithTax,
 	      SORDER.CUR_0 AS Currency,
-	      SORDER.ORDATIL_0 AS LocalPrice,
+	      SORDER.ORDNOTL_0 AS LocalAmount,
+	      SORDER.ORDATIL_0 AS LocalAmountWithTax,
 	      COMPANY.ACCCUR_0 AS LocalCurrency
       FROM 
         EXPLOIT.SORDER SORDER
@@ -390,8 +413,10 @@
       T0.Representative,
       T0.OrderNO,
       T0.OrderDate,
-      IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
-      T0.LocalPrice,
+      IIF(T0.Currency = 'USD', T0.Amount, T0.Amount/T1.Rate) AS USD,
+      IIF(T0.Currency = 'USD', T0.AmountWithTax, T0.AmountWithTax/T1.Rate) AS USDWithTax,
+      T0.LocalAmount,
+      T0.LocalAmountWithTax,
       T0.LocalCurrency
     FROM T0
     LEFT JOIN T1
@@ -405,9 +430,14 @@
     T2.Site,
     T2.SalesManCode,
     T2.Representative,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.SalesManCode), 0) AS SumUSD,
-    ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.SalesManCode), 0) AS SumLocal,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site), 0) AS SiteAllUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site), 0) AS SiteAllLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site), 0) AS SiteAllLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.SalesManCode), 0) AS SumUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.SalesManCode), 0) AS SumUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site, T2.SalesManCode), 0) AS SumLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site, T2.SalesManCode), 0) AS SumLocalWithTax,
     T2.LocalCurrency
   FROM T2
   ORDER BY 
@@ -427,11 +457,13 @@
       IIF(SORDERQ.YSOQ_PJTORI_0 = '', SORDERQ.YSOH_PJT_0, SORDERQ.YSOQ_PJTORI_0) AS ProjectNO,
       SORDERP.ITMREF_0 AS PN,
       ITMMASTER.CCE_1 AS PNFamily,
-      SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 AS Price,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 AS Amount,
+      SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 AS AmountWithTax,
       SORDER.CUR_0 AS Currency,
-      SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0) AS LocalPrice,
-      COMPANY.ACCCUR_0 AS LocalCurrency,
-      SORDER.ORDDAT_0 AS OrderDate
+      IIF(SORDER.ORDINVATI_0=0, 0,SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0)) AS LocalAmount,
+      IIF(SORDER.ORDINVATI_0=0, 0,SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0)) AS LocalAmountWithTax,
+      COMPANY.ACCCUR_0 AS LocalCurrency
     FROM 
       EXPLOIT.SORDER SORDER
     INNER JOIN EXPLOIT.SORDERQ SORDERQ
@@ -515,8 +547,10 @@
       T0.PN,
       T0.PNFamily,
       T0.OrderDate,
-      IIF(T0.Currency = 'USD', T0.Price, T0.Price/T1.Rate) AS USD,
-      T0.LocalPrice,
+      IIF(T0.Currency = 'USD', T0.Amount, T0.Amount/T1.Rate) AS USD,
+      IIF(T0.Currency = 'USD', T0.AmountWithTax, T0.AmountWithTax/T1.Rate) AS USDWithTax,
+      T0.LocalAmount,
+      T0.LocalAmountWithTax,
       T0.LocalCurrency
     FROM T0
     LEFT JOIN T1
@@ -529,9 +563,14 @@
   SELECT DISTINCT
     T2.Site,
     T2.PNFamily,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
-    ROUND(SUM(T2.USD) OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSD,
-    ROUND(SUM(T2.LocalPrice) OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocal,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site), 0) AS SiteAllUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site), 0) AS SiteAllLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site), 0) AS SiteAllLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocalWithTax,
     T2.LocalCurrency
   FROM T2
   ORDER BY 
@@ -876,12 +915,12 @@
     RTRIM(SORDERP.ITMDES1_0 +' '+ SORDERP.ITMDES2_0 +' '+ SORDERP.ITMDES3_0) AS Description,
     SORDERQ.QTYSTU_0 AS Qty,
     SORDERP.NETPRI_0 AS NetPrice,
-    IIF(SORDERP.NETPRIATI_0 = 0, SORDERP.NETPRINOT_0, SORDERP.NETPRIATI_0) AS Price,
+    SORDERP.NETPRIATI_0 AS NetPriceWithTax,
+    SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 AS TotalAmount,
+    SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 AS TotalAmountWithTax,
+    IIF(SORDER.ORDINVATI_0=0, 0, SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0)) AS TotalLocalAmount,
+    IIF(SORDER.ORDINVATI_0=0, 0, SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0)) AS TotalLocalAmountWithTax,
     SORDER.CUR_0 AS Currency,
-    IIF(SORDERP.NETPRIATI_0 = 0, 
-       IIF(SORDER.ORDATI_0 = 0, 0, SORDERP.NETPRINOT_0*(SORDER.ORDATIL_0/SORDER.ORDATI_0)), 
-       IIF(SORDER.ORDATI_0 = 0, 0, SORDERP.NETPRIATI_0*(SORDER.ORDATIL_0/SORDER.ORDATI_0))
-    ) AS LocalPrice,
 	  COMPANY.ACCCUR_0 AS LocalCurrency,
     SORDERQ.ORDDAT_0 AS OrderDate,
     SORDERQ.DEMDLVDAT_0 AS OrderRequestDate,
@@ -890,15 +929,15 @@
     SUM(SDELIVERYD.QTYSTU_0) OVER (PARTITION BY SORDERQ.SOHNUM_0, SORDERQ.SOPLIN_0) AS TotalDeliveryQty,
     MAX(SDELIVERYD.SHIDAT_0) OVER (PARTITION BY SORDERQ.SOHNUM_0, SORDERQ.SOPLIN_0) AS LastShipDate
   FROM EXPLOIT.SORDERQ AS SORDERQ
-     LEFT JOIN EXPLOIT.SORDER AS SORDER
+     INNER JOIN EXPLOIT.SORDER AS SORDER
         ON SORDER.SOHNUM_0 = SORDERQ.SOHNUM_0
-     LEFT JOIN EXPLOIT.SORDERP AS SORDERP
+     INNER JOIN EXPLOIT.SORDERP AS SORDERP
         ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
           AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
      LEFT JOIN EXPLOIT.SDELIVERYD SDELIVERYD
         ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0
           AND SDELIVERYD.SOPLIN_0 = SORDERQ.SOPLIN_0
-      INNER JOIN COMPANY
+     INNER JOIN COMPANY
         ON COMPANY.MAIFCY_0 = SORDER.SALFCY_0 
   WHERE 1=1
     <choose>

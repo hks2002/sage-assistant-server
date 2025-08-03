@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
  * @CreatedDate           : 2022-03-25 15:19:00                                                                       *
- * @LastEditDate          : 2025-07-18 19:35:56                                                                       *
+ * @LastEditDate          : 2025-07-31 23:10:49                                                                       *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
 
@@ -33,7 +33,7 @@ public class LoginController {
   }
 
   @PostMapping("/Logout")
-  public JSONObject doLogout(@RequestHeader(value = "Authorization") String Auth,
+  public JSONObject doLogout(@RequestHeader(value = "Authorization", required = false) String Auth,
       HttpServletRequest request) {
     return LoginService.doLogout(Auth);
   }
