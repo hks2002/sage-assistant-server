@@ -1,10 +1,11 @@
 /**********************************************************************************************************************
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CreatedDate           : 2022-03-26 17:01:00                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- * @LastEditDate          : 2024-12-25 14:41:24                                                                       *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
+ * @CreatedDate           : 2022-03-26 17:01:00                                                                       *
+ * @LastEditDate          : 2025-08-22 18:20:22                                                                       *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
+
 
 package com.da.sage.assistant.model;
 
@@ -22,4 +23,7 @@ public class SupplierOTDTop {
   private Integer OTCnt;
   private Integer AllCnt;
   private Float OTD;
+  private Integer OTTotalCnt;
+  private Integer AllTotalCnt;
+  private Float OTDTotal;
 }

@@ -2,9 +2,10 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-26 17:55:00                                                                      *
- * @LastEditDate          : 2025-08-07 00:15:33                                                                      *
+ * @LastEditDate          : 2025-08-22 14:34:46                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
+
 
 package com.da.sage.assistant.dao;
 
@@ -22,6 +23,7 @@ import com.da.sage.assistant.model.SupplierOTDTop;
 import com.da.sage.assistant.model.SupplierOrder;
 import com.da.sage.assistant.model.SupplierSummaryAmountByTarget;
 import com.da.sage.assistant.model.SupplierSummaryAmountTop;
+import com.da.sage.assistant.model.SupplierSummaryCountByTarget;
 
 @Mapper
 public interface SupplierMapper {
@@ -36,6 +38,15 @@ public interface SupplierMapper {
       @Param("SupplierCode") String SupplierCode);
 
   List<SupplierSummaryAmountByTarget> findSupplierSumAmount(
+      @Param("Site") String Site,
+      @Param("SupplierType") String SupplierType,
+      @Param("SupplierCode") String SupplierCode,
+      @Param("OrderType") String OrderType,
+      @Param("DateFrom") String DateFrom,
+      @Param("DateTo") String DateTo,
+      @Param("Interval") String Interval);
+
+  List<SupplierSummaryCountByTarget> findSupplierSumCount(
       @Param("Site") String Site,
       @Param("SupplierType") String SupplierType,
       @Param("SupplierCode") String SupplierCode,

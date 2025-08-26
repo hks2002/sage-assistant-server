@@ -2,9 +2,10 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-26 21:35:00                                                                      *
- * @LastEditDate          : 2025-07-30 18:27:24                                                                      *
+ * @LastEditDate          : 2025-08-22 14:36:58                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
+
 
 package com.da.sage.assistant.controller;
 
@@ -23,6 +24,7 @@ import com.da.sage.assistant.model.SupplierOTDTop;
 import com.da.sage.assistant.model.SupplierOrder;
 import com.da.sage.assistant.model.SupplierSummaryAmountByTarget;
 import com.da.sage.assistant.model.SupplierSummaryAmountTop;
+import com.da.sage.assistant.model.SupplierSummaryCountByTarget;
 import com.da.sage.assistant.service.SupplierService;
 
 import lombok.RequiredArgsConstructor;
@@ -69,6 +71,25 @@ public class SupplierController {
       @RequestParam(value = "DateTo", required = true) String DateTo,
       @RequestParam(value = "Interval", required = true) String Interval) {
     return (SupplierService.getSupplierSummaryAmount(
+        Site,
+        SupplierType,
+        SupplierCode,
+        OrderType,
+        DateFrom,
+        DateTo + " 23:59:59",
+        Interval));
+  }
+
+  @GetMapping("/SupplierSummaryCountByTarget")
+  public List<SupplierSummaryCountByTarget> getSupplierSummaryCount(
+      @RequestParam(value = "Site", required = true) String Site,
+      @RequestParam(value = "SupplierType", required = true) String SupplierType,
+      @RequestParam(value = "SupplierCode", required = true) String SupplierCode,
+      @RequestParam(value = "OrderType", required = true) String OrderType,
+      @RequestParam(value = "DateFrom", required = true) String DateFrom,
+      @RequestParam(value = "DateTo", required = true) String DateTo,
+      @RequestParam(value = "Interval", required = true) String Interval) {
+    return (SupplierService.getSupplierSummaryCount(
         Site,
         SupplierType,
         SupplierCode,
