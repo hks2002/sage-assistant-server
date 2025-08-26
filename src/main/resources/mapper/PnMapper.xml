@@ -326,7 +326,10 @@
      -- ART: Stock project
      AND OPPOR.OPPTYP_0 IN ('CDE','ART')
      AND OPPOR.OPPEXTNUM_0 = #{PnRoot} AND PORDERP.NETPRI_0 > 0
-  ORDER BY OrderDate DESC,
+  ORDER BY 
+         PurchaseSite ASC,
+         ProjectNO DESC,
+         OrderDate DESC,
          PurchaseNO ASC,
          Line ASC
   </select>

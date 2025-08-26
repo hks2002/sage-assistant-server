@@ -2,9 +2,10 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:25:00                                                                      *
- * @LastEditDate          : 2025-08-07 00:15:44                                                                      *
+ * @LastEditDate          : 2025-08-25 19:10:14                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
+
 
 package com.da.sage.assistant.dao;
 
@@ -22,6 +23,7 @@ import com.da.sage.assistant.model.CustomerSummaryAmountByTarget;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByRepresentative;
+import com.da.sage.assistant.model.CustomerSummaryCountByTarget;
 
 @Mapper
 public interface CustomerMapper {
@@ -33,6 +35,14 @@ public interface CustomerMapper {
       @Param("Count") Integer Count);
 
   List<CustomerSummaryAmountByTarget> findCustomerSumAmount(
+      @Param("Site") String Site,
+      @Param("OrderType") String OrderType,
+      @Param("CustomerCode") String CustomerCode,
+      @Param("DateFrom") String DateFrom,
+      @Param("DateTo") String DateTo,
+      @Param("Interval") String Interval);
+
+  List<CustomerSummaryCountByTarget> findCustomerSumCount(
       @Param("Site") String Site,
       @Param("OrderType") String OrderType,
       @Param("CustomerCode") String CustomerCode,

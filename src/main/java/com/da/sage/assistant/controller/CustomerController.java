@@ -2,9 +2,10 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:29:00                                                                      *
- * @LastEditDate          : 2025-07-28 21:05:48                                                                      *
+ * @LastEditDate          : 2025-08-25 19:11:27                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
+
 
 package com.da.sage.assistant.controller;
 
@@ -24,6 +25,7 @@ import com.da.sage.assistant.model.CustomerSummaryAmountByTarget;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByRepresentative;
+import com.da.sage.assistant.model.CustomerSummaryCountByTarget;
 import com.da.sage.assistant.service.CustomerService;
 
 import lombok.RequiredArgsConstructor;
@@ -63,6 +65,23 @@ public class CustomerController {
       @RequestParam(value = "DateTo", required = true) String DateTo,
       @RequestParam(value = "Interval", required = true) String Interval) {
     return (customerService.getCustomerSummaryAmount(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo + " 23:59:59",
+        Interval));
+  }
+
+  @GetMapping("/CustomerSummaryCountByTarget")
+  public List<CustomerSummaryCountByTarget> getCustomerSummaryCount(
+      @RequestParam(value = "Site", required = true) String Site,
+      @RequestParam(value = "OrderType", required = true) String OrderType,
+      @RequestParam(value = "CustomerCode", required = true) String CustomerCode,
+      @RequestParam(value = "DateFrom", required = true) String DateFrom,
+      @RequestParam(value = "DateTo", required = true) String DateTo,
+      @RequestParam(value = "Interval", required = true) String Interval) {
+    return (customerService.getCustomerSummaryCount(
         Site,
         OrderType,
         CustomerCode,

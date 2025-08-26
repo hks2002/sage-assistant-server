@@ -2,9 +2,10 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:27:00                                                                      *
- * @LastEditDate          : 2025-08-07 00:15:40                                                                      *
+ * @LastEditDate          : 2025-08-25 19:10:26                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
+
 
 package com.da.sage.assistant.service;
 
@@ -24,6 +25,7 @@ import com.da.sage.assistant.model.CustomerSummaryAmountByTarget;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByRepresentative;
+import com.da.sage.assistant.model.CustomerSummaryCountByTarget;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -68,6 +70,22 @@ public class CustomerService {
       String DateTo,
       String Interval) {
     return customerMapper.findCustomerSumAmount(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo,
+        Interval);
+  }
+
+  public List<CustomerSummaryCountByTarget> getCustomerSummaryCount(
+      String Site,
+      String OrderType,
+      String CustomerCode,
+      String DateFrom,
+      String DateTo,
+      String Interval) {
+    return customerMapper.findCustomerSumCount(
         Site,
         OrderType,
         CustomerCode,

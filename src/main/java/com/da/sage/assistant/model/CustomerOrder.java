@@ -2,9 +2,10 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
  * @CreatedDate           : 2022-03-31 16:19:00                                                                       *
- * @LastEditDate          : 2025-08-07 09:39:13                                                                       *
+ * @LastEditDate          : 2025-08-23 19:08:26                                                                       *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
+
 
 package com.da.sage.assistant.model;
 
@@ -20,6 +21,7 @@ public class CustomerOrder {
 
   private Integer ItemNO;
   private String Site;
+  private String Representative;
   private String CustomerCode;
   private String CustomerName;
   private String OrderType;

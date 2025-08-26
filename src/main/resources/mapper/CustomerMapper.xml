@@ -193,6 +193,105 @@
   ORDER BY 
      Target ASC
   </select>
+  <select id="findCustomerSumCount" resultType="com.da.sage.assistant.model.CustomerSummaryCountByTarget">
+  WITH 
+  T0 AS (
+    	SELECT DISTINCT
+	      SORDER.SALFCY_0 AS Site,
+        SORDER.SOHTYP_0 AS Type,
+	      SORDER.BPCORD_0 AS CustomerCode,
+	      SORDER.ORDDAT_0 AS OrderDate,
+        SORDERQ.YSOQ_STA_0 AS Status,
+        SORDERQ.SOHNUM_0 AS OrderNO,
+        SORDERQ.SOPLIN_0 AS OrderLine,
+        SORDERQ.YSOH_PJT_0 AS ProjectNO
+      FROM 
+        EXPLOIT.SORDER SORDER
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON SORDER.SOHNUM_0 = SORDERQ.SOHNUM_0
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER
+        ON BPCUSTOMER.BPCNUM_0 = SORDER.BPCORD_0 
+      INNER JOIN EXPLOIT.COMPANY COMPANY
+        ON COMPANY.MAIFCY_0 = SORDER.SALFCY_0 
+      WHERE 1=1
+      AND (SORDER.ORDDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SORDER.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' OrderType ==  "ALL" '>
+      </when>
+      <when test=' OrderType ==  "DEDIENNE" '>
+        AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
+      </when>
+      <when test=' OrderType ==  "NORM" '>
+        AND SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES') AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <when test=' OrderType ==  "SERVICES" '>
+        AND ( (SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES', 'LOC','LOC3') AND SORDERQ.YSOQ_STA_0 = 7)  OR SORDER.SOHTYP_0 IN ('REP', 'REP3'))
+      </when>
+      <when test=' OrderType ==  "RENT" '>
+        AND SORDER.SOHTYP_0 IN ('LOC','LOC3') AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      AND
+      CASE 
+        WHEN SORDER.SALFCY_0 IN ('ZHU','HKG','YSH') THEN 'CHINA' ELSE 'OTHER-SITE'
+      END !=
+      CASE 
+        WHEN SORDER.BPCORD_0 IN ('00870', '00871', '03167') THEN 'CHINA' ELSE 'OTHER-CUSTOMER'
+      END
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SORDER.SALFCY_0 IN ('ZHU','HKG','YSH')
+      AND SORDER.BPCORD_0 NOT IN ('00870', '00871', '03167')
+      </when>
+      <otherwise>
+        AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    )
+ 
+  SELECT DISTINCT
+    T0.Site,
+    <if test=' CustomerCode != "ALL" '>
+    T0.CustomerCode,
+    </if>
+    <choose>
+      <when test=' Interval == "Month" and CustomerCode != "ALL" '>
+      FORMAT(Year(T0.OrderDate), '0000') + '-' + FORMAT(MONTH(T0.OrderDate), '00') AS Target,
+      COUNT(1)                OVER(PARTITION BY T0.Site, T0.CustomerCode, FORMAT(Year(T0.OrderDate), '0000') + '-' + FORMAT(MONTH(T0.OrderDate), '00')) AS SumCountTarget
+      </when>
+      <when test=' Interval == "Month" and CustomerCode == "ALL" '>
+      FORMAT(Year(T0.OrderDate), '0000') + '-' + FORMAT(MONTH(T0.OrderDate), '00') AS Target,
+      COUNT(1)                OVER(PARTITION BY T0.Site, FORMAT(Year(T0.OrderDate), '0000') + '-' + FORMAT(MONTH(T0.OrderDate), '00')) AS SumCountTarget
+      </when>
+      <when test=' Interval == "Year" and CustomerCode != "ALL" '>
+      FORMAT(Year(T0.OrderDate), '0000') AS Target,
+      COUNT(1)                OVER(PARTITION BY T0.Site, T0.CustomerCode, FORMAT(Year(T0.OrderDate), '0000')) AS SumCountTarget
+      </when>
+      <when test=' Interval == "Year" and CustomerCode == "ALL" '>
+      FORMAT(Year(T0.OrderDate), '0000') AS Target,
+      COUNT(1)                OVER(PARTITION BY T0.Site, FORMAT(Year(T0.OrderDate), '0000')) AS SumCountTarget
+      </when>
+      <otherwise>
+      </otherwise>
+    </choose>
+  FROM T0
+  ORDER BY 
+     Target ASC
+  </select>
   <select id="findCustomerSumAmountTopByCustomer"
     resultType="com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer">
   WITH 
@@ -297,8 +396,8 @@
            AND T1.Sour = T0.Currency
            AND T0.OrderDate >= T1.StartDate 
            AND T1.EndDate > T0.OrderDate
- )
- 
+ ),
+ T3 AS (
   SELECT DISTINCT
     T2.Site,
     T2.CustomerCode,
@@ -311,12 +410,28 @@
     ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumUSDWithTax,
     ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocal,
     ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site, T2.CustomerCode), 0) AS SumLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.CustomerCode), 0) AS TargetAllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.CustomerCode), 0) AS TargetAllUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.CustomerCode), 0) AS TargetAllLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.CustomerCode), 0) AS TargetAllLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(), 0) AS AllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(), 0) AS AllUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(), 0) AS AllLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(), 0) AS AllLocalWithTax,
     T2.LocalCurrency
   FROM T2
-  ORDER BY 
-     SumUSD DESC  
-  OFFSET 0 ROWS
-  FETCH NEXT #{Limit} ROWS ONLY
+  ),
+  T4 AS (
+   SELECT TOP 99999    ------- limit the result to 99999
+     T3.*,
+     DENSE_RANK() OVER(ORDER BY T3.TargetAllUSD DESC) AS RankNum
+   FROM T3
+   ORDER BY 
+     T3.TargetAllUSD DESC
+   )
+   
+   SELECT * FROM T4
+   WHERE #{Limit} >=  T4.RankNum
   </select>
   <select id="findCustomerSumAmountTopByRepresentative"
     resultType="com.da.sage.assistant.model.CustomerSummaryAmountTopByRepresentative">
@@ -424,8 +539,8 @@
            AND T1.Sour = T0.Currency
            AND T0.OrderDate >= T1.StartDate 
            AND T1.EndDate > T0.OrderDate
-  )
- 
+  ),
+ T3 AS (
   SELECT DISTINCT
     T2.Site,
     T2.SalesManCode,
@@ -438,12 +553,27 @@
     ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.SalesManCode), 0) AS SumUSDWithTax,
     ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site, T2.SalesManCode), 0) AS SumLocal,
     ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site, T2.SalesManCode), 0) AS SumLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.SalesManCode), 0) AS TargetAllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.SalesManCode), 0) AS TargetAllUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.SalesManCode), 0) AS TargetAllLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.SalesManCode), 0) AS TargetAllLocalWithTax,
+    ROUND(SUM(T2.USD)                     OVER(), 0) AS AllUSD,
+    ROUND(SUM(T2.USDWithTax)              OVER(), 0) AS AllUSDWithTax,
+    ROUND(SUM(T2.LocalAmount)             OVER(), 0) AS AllLocal,
+    ROUND(SUM(T2.LocalAmountWithTax)      OVER(), 0) AS AllLocalWithTax,
     T2.LocalCurrency
   FROM T2
-  ORDER BY 
-     SumUSD DESC  
-  OFFSET 0 ROWS
-  FETCH NEXT #{Limit} ROWS ONLY
+ ),
+ T4 AS (
+   SELECT TOP 99999    ------- limit the result to 99999
+     T3.*,
+     DENSE_RANK() OVER(ORDER BY T3.TargetAllUSD DESC) AS RankNum
+   FROM T3
+   ORDER BY T3.TargetAllUSD DESC
+  )
+   
+  SELECT * FROM T4
+  WHERE #{Limit} >=  T4.RankNum
   </select>
   <select id="findCustomerSumAmountTopByPNFamily"
     resultType="com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily">
@@ -558,25 +688,41 @@
            AND T1.Sour = T0.Currency
            AND T0.OrderDate >= T1.StartDate 
            AND T1.EndDate > T0.OrderDate
-  )
- 
-  SELECT DISTINCT
-    T2.Site,
-    T2.PNFamily,
-    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
-    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site), 0) AS SiteAllUSDWithTax,
-    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site), 0) AS SiteAllLocal,
-    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site), 0) AS SiteAllLocalWithTax,
-    ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSD,
-    ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSDWithTax,
-    ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocal,
-    ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocalWithTax,
-    T2.LocalCurrency
-  FROM T2
-  ORDER BY 
-     SumUSD DESC  
-  OFFSET 0 ROWS
-  FETCH NEXT #{Limit} ROWS ONLY
+  ),
+   T3 AS (
+    SELECT DISTINCT
+      T2.Site,
+      T2.PNFamily,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site), 0) AS SiteAllUSDWithTax,
+      ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site), 0) AS SiteAllLocal,
+      ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site), 0) AS SiteAllLocalWithTax,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSD,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumUSDWithTax,
+      ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocal,
+      ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site, T2.PNFamily), 0) AS SumLocalWithTax,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.PNFamily), 0) AS TargetAllUSD,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.PNFamily), 0) AS TargetAllUSDWithTax,
+      ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.PNFamily), 0) AS TargetAllLocal,
+      ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.PNFamily), 0) AS TargetAllLocalWithTax,
+      ROUND(SUM(T2.USD)                     OVER(), 0) AS AllUSD,
+      ROUND(SUM(T2.USDWithTax)              OVER(), 0) AS AllUSDWithTax,
+      ROUND(SUM(T2.LocalAmount)             OVER(), 0) AS AllLocal,
+      ROUND(SUM(T2.LocalAmountWithTax)      OVER(), 0) AS AllLocalWithTax,
+      T2.LocalCurrency
+    FROM T2
+   ),
+   T4 AS (
+     SELECT TOP 99999    ------- limit the result to 99999
+       T3.*,
+       DENSE_RANK() OVER(ORDER BY T3.TargetAllUSD DESC) AS RankNum
+     FROM T3
+     ORDER BY
+     T3.TargetAllUSD DESC
+    )
+     
+    SELECT * FROM T4
+    WHERE #{Limit} >=  T4.RankNum
   </select>
   <select id="findCustomerOTD" resultType="com.da.sage.assistant.model.CustomerOTD">
   WITH 
@@ -897,6 +1043,7 @@
     </otherwise>
     </choose>
     SORDER.SALFCY_0 AS Site,
+    SALESREP.REPNAM_0 AS Representative,
     SORDER.BPCORD_0 AS CustomerCode,
     SORDER.BPCNAM_0 AS CustomerName,
     (CASE WHEN SORDERQ.YSOQ_STA_0 =1 THEN SORDER.SOHTYP_0 + '-Methods'
@@ -934,6 +1081,8 @@
      INNER JOIN EXPLOIT.SORDERP AS SORDERP
         ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
           AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+     INNER JOIN EXPLOIT.SALESREP SALESREP
+        ON SORDER.REP_0 = SALESREP.REPNUM_0
      LEFT JOIN EXPLOIT.SDELIVERYD SDELIVERYD
         ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0
           AND SDELIVERYD.SOPLIN_0 = SORDERQ.SOPLIN_0
