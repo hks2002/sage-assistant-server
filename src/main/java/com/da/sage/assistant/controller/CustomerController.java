@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:29:00                                                                      *
- * @LastEditDate          : 2025-08-25 19:11:27                                                                      *
+ * @LastEditDate          : 2025-08-26 15:40:50                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
 
@@ -73,6 +73,23 @@ public class CustomerController {
         Interval));
   }
 
+  @GetMapping("/CustomerQuoteSummaryAmountByTarget")
+  public List<CustomerSummaryAmountByTarget> getCustomerQuoteSummaryAmount(
+      @RequestParam(value = "Site", required = true) String Site,
+      @RequestParam(value = "OrderType", required = true) String OrderType,
+      @RequestParam(value = "CustomerCode", required = true) String CustomerCode,
+      @RequestParam(value = "DateFrom", required = true) String DateFrom,
+      @RequestParam(value = "DateTo", required = true) String DateTo,
+      @RequestParam(value = "Interval", required = true) String Interval) {
+    return (customerService.getCustomerQuoteSummaryAmount(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo + " 23:59:59",
+        Interval));
+  }
+
   @GetMapping("/CustomerSummaryCountByTarget")
   public List<CustomerSummaryCountByTarget> getCustomerSummaryCount(
       @RequestParam(value = "Site", required = true) String Site,
@@ -82,6 +99,23 @@ public class CustomerController {
       @RequestParam(value = "DateTo", required = true) String DateTo,
       @RequestParam(value = "Interval", required = true) String Interval) {
     return (customerService.getCustomerSummaryCount(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo + " 23:59:59",
+        Interval));
+  }
+
+  @GetMapping("/CustomerQuoteSummaryCountByTarget")
+  public List<CustomerSummaryCountByTarget> getCustomerQuoteSummaryCount(
+      @RequestParam(value = "Site", required = true) String Site,
+      @RequestParam(value = "OrderType", required = true) String OrderType,
+      @RequestParam(value = "CustomerCode", required = true) String CustomerCode,
+      @RequestParam(value = "DateFrom", required = true) String DateFrom,
+      @RequestParam(value = "DateTo", required = true) String DateTo,
+      @RequestParam(value = "Interval", required = true) String Interval) {
+    return (customerService.getCustomerQuoteSummaryCount(
         Site,
         OrderType,
         CustomerCode,

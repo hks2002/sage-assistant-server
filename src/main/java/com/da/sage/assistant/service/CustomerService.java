@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:27:00                                                                      *
- * @LastEditDate          : 2025-08-25 19:10:26                                                                      *
+ * @LastEditDate          : 2025-08-26 15:30:08                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
 
@@ -78,6 +78,22 @@ public class CustomerService {
         Interval);
   }
 
+  public List<CustomerSummaryAmountByTarget> getCustomerQuoteSummaryAmount(
+      String Site,
+      String OrderType,
+      String CustomerCode,
+      String DateFrom,
+      String DateTo,
+      String Interval) {
+    return customerMapper.findCustomerQuoteSumAmount(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo,
+        Interval);
+  }
+
   public List<CustomerSummaryCountByTarget> getCustomerSummaryCount(
       String Site,
       String OrderType,
@@ -86,6 +102,22 @@ public class CustomerService {
       String DateTo,
       String Interval) {
     return customerMapper.findCustomerSumCount(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo,
+        Interval);
+  }
+
+  public List<CustomerSummaryCountByTarget> getCustomerQuoteSummaryCount(
+      String Site,
+      String OrderType,
+      String CustomerCode,
+      String DateFrom,
+      String DateTo,
+      String Interval) {
+    return customerMapper.findCustomerQuoteSumCount(
         Site,
         OrderType,
         CustomerCode,

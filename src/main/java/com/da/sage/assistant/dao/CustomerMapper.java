@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:25:00                                                                      *
- * @LastEditDate          : 2025-08-25 19:10:14                                                                      *
+ * @LastEditDate          : 2025-08-26 15:27:55                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
 
@@ -35,6 +35,22 @@ public interface CustomerMapper {
       @Param("Count") Integer Count);
 
   List<CustomerSummaryAmountByTarget> findCustomerSumAmount(
+      @Param("Site") String Site,
+      @Param("OrderType") String OrderType,
+      @Param("CustomerCode") String CustomerCode,
+      @Param("DateFrom") String DateFrom,
+      @Param("DateTo") String DateTo,
+      @Param("Interval") String Interval);
+
+  List<CustomerSummaryAmountByTarget> findCustomerQuoteSumAmount(
+      @Param("Site") String Site,
+      @Param("OrderType") String OrderType,
+      @Param("CustomerCode") String CustomerCode,
+      @Param("DateFrom") String DateFrom,
+      @Param("DateTo") String DateTo,
+      @Param("Interval") String Interval);
+
+  List<CustomerSummaryCountByTarget> findCustomerQuoteSumCount(
       @Param("Site") String Site,
       @Param("OrderType") String OrderType,
       @Param("CustomerCode") String CustomerCode,

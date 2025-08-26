@@ -193,6 +193,142 @@
   ORDER BY 
      Target ASC
   </select>
+  <select id="findCustomerQuoteSumAmount" resultType="com.da.sage.assistant.model.CustomerSummaryAmountByTarget">
+  WITH 
+  T0 AS (
+    	SELECT DISTINCT
+	      SQUOTE.SALFCY_0 AS Site,
+        SQUOTE.SOHTYP_0 AS Type,
+	      SQUOTE.SQHNUM_0 AS QuoteNO,
+	      SQUOTE.BPCORD_0 AS CustomerCode,
+	      SQUOTE.QUODAT_0 AS QuoteDate,
+        SQUOTE.QUONOT_0 AS Amount,
+	      SQUOTE.QUOATI_0 AS AmountWithTax,
+	      SQUOTE.CUR_0 AS Currency,
+	      SQUOTE.QUONOTL_0 AS LocalAmount,
+	      SQUOTE.QUOATIL_0 AS LocalAmountWithTax,
+	      COMPANY.ACCCUR_0 AS LocalCurrency
+      FROM 
+        EXPLOIT.SQUOTE SQUOTE
+      INNER JOIN EXPLOIT.COMPANY COMPANY
+        ON COMPANY.MAIFCY_0 = SQUOTE.SALFCY_0 
+      WHERE 1=1
+      AND (SQUOTE.QUODAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SQUOTE.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' OrderType ==  "ALL" '>
+      </when>
+      <when test=' OrderType ==  "NORM" '>
+        AND SQUOTE.SOHTYP_0 IN ('NOR','NOR3','YGES')
+      </when>
+      <when test=' OrderType ==  "SERVICES" '>
+        AND SQUOTE.SOHTYP_0 IN ('REP', 'REP3')
+      </when>
+      <when test=' OrderType ==  "RENT" '>
+        AND SQUOTE.SOHTYP_0 IN ('LOC','LOC3')
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      AND
+      CASE 
+        WHEN SQUOTE.SALFCY_0 IN ('ZHU','HKG','YSH') THEN 'CHINA' ELSE 'OTHER-SITE'
+      END !=
+      CASE 
+        WHEN SQUOTE.BPCORD_0 IN ('00870', '00871', '03167') THEN 'CHINA' ELSE 'OTHER-CUSTOMER'
+      END
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SQUOTE.SALFCY_0 IN ('ZHU','HKG','YSH')
+      AND SQUOTE.BPCORD_0 NOT IN ('00870', '00871', '03167')
+      </when>
+      <otherwise>
+        AND SQUOTE.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+  T2 AS (
+    SELECT 
+    T0.Site,
+    T0.Type,
+    T0.CustomerCode,
+    T0.QuoteNO,
+    T0.QuoteDate,
+    IIF(T0.Currency = 'USD', T0.Amount, T0.Amount/T1.Rate) AS USD,
+    IIF(T0.Currency = 'USD', T0.AmountWithTax, T0.AmountWithTax/T1.Rate) AS USDWithTax,
+    T0.LocalAmount,
+    T0.LocalAmountWithTax,
+    T0.LocalCurrency
+    FROM T0
+    LEFT JOIN T1
+        ON  T1.Dest = 'USD'
+           AND T1.Sour = T0.Currency
+           AND T0.QuoteDate >= T1.StartDate 
+           AND T1.EndDate > T0.QuoteDate
+ )
+ 
+  SELECT DISTINCT
+    T2.Site,
+    <if test=' CustomerCode != "ALL" '>
+    T2.CustomerCode,
+    </if>
+    <choose>
+      <when test=' Interval == "Month" and CustomerCode != "ALL" '>
+      FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00') AS Target,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00')), 0) AS SumLocalWithTaxTarget,
+      </when>
+      <when test=' Interval == "Month" and CustomerCode == "ALL" '>
+      FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00') AS Target,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00')), 0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00')), 0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00')), 0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.QuoteDate), '0000') + '-' + FORMAT(MONTH(T2.QuoteDate), '00')), 0) AS SumLocalWithTaxTarget,
+      </when>
+      <when test=' Interval == "Year" and CustomerCode != "ALL" '>
+      FORMAT(Year(T2.QuoteDate), '0000') AS Target,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.QuoteDate), '0000')),0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.QuoteDate), '0000')),0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.QuoteDate), '0000')),0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, T2.CustomerCode, FORMAT(Year(T2.QuoteDate), '0000')),0) AS SumLocalWithTaxTarget,
+      </when>
+      <when test=' Interval == "Year" and CustomerCode == "ALL" '>
+      FORMAT(Year(T2.QuoteDate), '0000') AS Target,
+      ROUND(SUM(T2.USD)                OVER(PARTITION BY T2.Site, FORMAT(Year(T2.QuoteDate), '0000')),0) AS SumUSDTarget,
+      ROUND(SUM(T2.USDWithTax)         OVER(PARTITION BY T2.Site, FORMAT(Year(T2.QuoteDate), '0000')),0) AS SumUSDWithTaxTarget,
+      ROUND(SUM(T2.LocalAmount)        OVER(PARTITION BY T2.Site, FORMAT(Year(T2.QuoteDate), '0000')),0) AS SumLocalTarget,
+      ROUND(SUM(T2.LocalAmountWithTax) OVER(PARTITION BY T2.Site, FORMAT(Year(T2.QuoteDate), '0000')),0) AS SumLocalWithTaxTarget,
+      </when>
+      <otherwise>
+      </otherwise>
+    </choose>
+    T2.LocalCurrency
+  FROM T2
+  ORDER BY 
+     Target ASC
+  </select>
   <select id="findCustomerSumCount" resultType="com.da.sage.assistant.model.CustomerSummaryCountByTarget">
   WITH 
   T0 AS (
@@ -284,6 +420,96 @@
       <when test=' Interval == "Year" and CustomerCode == "ALL" '>
       FORMAT(Year(T0.OrderDate), '0000') AS Target,
       COUNT(1)                OVER(PARTITION BY T0.Site, FORMAT(Year(T0.OrderDate), '0000')) AS SumCountTarget
+      </when>
+      <otherwise>
+      </otherwise>
+    </choose>
+  FROM T0
+  ORDER BY 
+     Target ASC
+  </select>
+  <select id="findCustomerQuoteSumCount" resultType="com.da.sage.assistant.model.CustomerSummaryCountByTarget">
+  WITH 
+  T0 AS (
+    	SELECT DISTINCT
+	      SQUOTE.SALFCY_0 AS Site,
+        SQUOTE.SOHTYP_0 AS Type,
+	      SQUOTE.BPCORD_0 AS CustomerCode,
+	      SQUOTE.QUODAT_0 AS QuoteDate,
+        SQUOTED.SQHNUM_0 AS QuoteNO,
+        SQUOTED.SQDLIN_0 AS QuoteLine
+      FROM 
+        EXPLOIT.SQUOTE SQUOTE
+      INNER JOIN EXPLOIT.SQUOTED SQUOTED
+        ON SQUOTE.SQHNUM_0 = SQUOTED.SQHNUM_0
+      WHERE 1=1
+      AND (SQUOTE.QUODAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SQUOTE.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' OrderType ==  "ALL" '>
+      </when>
+      <when test=' OrderType ==  "NORM" '>
+        AND SQUOTE.SOHTYP_0 IN ('NOR','NOR3','YGES')
+      </when>
+      <when test=' OrderType ==  "SERVICES" '>
+        AND SQUOTE.SOHTYP_0 IN ('REP', 'REP3')
+      </when>
+      <when test=' OrderType ==  "RENT" '>
+        AND SQUOTE.SOHTYP_0 IN ('LOC','LOC3')
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      AND
+      CASE 
+        WHEN SQUOTE.SALFCY_0 IN ('ZHU','HKG','YSH') THEN 'CHINA' ELSE 'OTHER-SITE'
+      END !=
+      CASE 
+        WHEN SQUOTE.BPCORD_0 IN ('00870', '00871', '03167') THEN 'CHINA' ELSE 'OTHER-CUSTOMER'
+      END
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SQUOTE.SALFCY_0 IN ('ZHU','HKG','YSH')
+      AND SQUOTE.BPCORD_0 NOT IN ('00870', '00871', '03167')
+      </when>
+      <otherwise>
+        AND SQUOTE.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+    )
+ 
+  SELECT DISTINCT
+    T0.Site,
+    <if test=' CustomerCode != "ALL" '>
+    T0.CustomerCode,
+    </if>
+    <choose>
+      <when test=' Interval == "Month" and CustomerCode != "ALL" '>
+      FORMAT(Year(T0.QuoteDate), '0000') + '-' + FORMAT(MONTH(T0.QuoteDate), '00') AS Target,
+      COUNT(1)                OVER(PARTITION BY T0.Site, T0.CustomerCode, FORMAT(Year(T0.QuoteDate), '0000') + '-' + FORMAT(MONTH(T0.QuoteDate), '00')) AS SumCountTarget
+      </when>
+      <when test=' Interval == "Month" and CustomerCode == "ALL" '>
+      FORMAT(Year(T0.QuoteDate), '0000') + '-' + FORMAT(MONTH(T0.QuoteDate), '00') AS Target,
+      COUNT(1)                OVER(PARTITION BY T0.Site, FORMAT(Year(T0.QuoteDate), '0000') + '-' + FORMAT(MONTH(T0.QuoteDate), '00')) AS SumCountTarget
+      </when>
+      <when test=' Interval == "Year" and CustomerCode != "ALL" '>
+      FORMAT(Year(T0.QuoteDate), '0000') AS Target,
+      COUNT(1)                OVER(PARTITION BY T0.Site, T0.CustomerCode, FORMAT(Year(T0.QuoteDate), '0000')) AS SumCountTarget
+      </when>
+      <when test=' Interval == "Year" and CustomerCode == "ALL" '>
+      FORMAT(Year(T0.QuoteDate), '0000') AS Target,
+      COUNT(1)                OVER(PARTITION BY T0.Site, FORMAT(Year(T0.QuoteDate), '0000')) AS SumCountTarget
       </when>
       <otherwise>
       </otherwise>
@@ -589,10 +815,12 @@
       ITMMASTER.CCE_1 AS PNFamily,
       SORDER.ORDDAT_0 AS OrderDate,
       SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 AS Amount,
-      SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 AS AmountWithTax,
-      SORDER.CUR_0 AS Currency,
-      IIF(SORDER.ORDINVATI_0=0, 0,SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0)) AS LocalAmount,
-      IIF(SORDER.ORDINVATI_0=0, 0,SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0)) AS LocalAmountWithTax,
+      IIF(SORDERP.NETPRIATI_0 =0, SORDERP.NETPRINOT_0 * SORDERQ.QTY_0, SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 ) AS AmountWithTax,
+      IIF(SORDER.ORDNOT_0=0, 0, SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * ( SORDER.ORDNOTL_0 / SORDER.ORDNOT_0)) AS LocalAmount,
+      IIF(SORDER.ORDATI_0=0, 0, 
+        IIF(SORDERP.NETPRIATI_0=0, 
+            SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * (SORDER.ORDATIL_0 / SORDER.ORDATI_0),
+            SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * (SORDER.ORDATIL_0 / SORDER.ORDATI_0))) AS LocalAmountWithTax,
       COMPANY.ACCCUR_0 AS LocalCurrency
     FROM 
       EXPLOIT.SORDER SORDER
@@ -1062,11 +1290,14 @@
     RTRIM(SORDERP.ITMDES1_0 +' '+ SORDERP.ITMDES2_0 +' '+ SORDERP.ITMDES3_0) AS Description,
     SORDERQ.QTYSTU_0 AS Qty,
     SORDERP.NETPRI_0 AS NetPrice,
-    SORDERP.NETPRIATI_0 AS NetPriceWithTax,
+    IIF(SORDERP.NETPRIATI_0=0, SORDERP.NETPRINOT_0, SORDERP.NETPRIATI_0) AS NetPriceWithTax,
     SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 AS TotalAmount,
-    SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 AS TotalAmountWithTax,
-    IIF(SORDER.ORDINVATI_0=0, 0, SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0)) AS TotalLocalAmount,
-    IIF(SORDER.ORDINVATI_0=0, 0, SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * ( SORDER.ORDINVATIL_0 / SORDER.ORDINVATI_0)) AS TotalLocalAmountWithTax,
+    IIF(SORDERP.NETPRIATI_0 =0, SORDERP.NETPRINOT_0 * SORDERQ.QTY_0, SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 ) AS TotalAmountWithTax,
+    IIF(SORDER.ORDNOT_0=0, 0, SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * ( SORDER.ORDNOTL_0 / SORDER.ORDNOT_0)) AS TotalLocalAmount,
+    IIF(SORDER.ORDATI_0=0, 0, 
+        IIF(SORDERP.NETPRIATI_0=0, 
+            SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * (SORDER.ORDATIL_0 / SORDER.ORDATI_0),
+            SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * (SORDER.ORDATIL_0 / SORDER.ORDATI_0))) AS TotalLocalAmountWithTax,
     SORDER.CUR_0 AS Currency,
 	  COMPANY.ACCCUR_0 AS LocalCurrency,
     SORDERQ.ORDDAT_0 AS OrderDate,
