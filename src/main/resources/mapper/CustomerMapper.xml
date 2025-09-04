@@ -821,6 +821,7 @@
         IIF(SORDERP.NETPRIATI_0=0, 
             SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * (SORDER.ORDATIL_0 / SORDER.ORDATI_0),
             SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * (SORDER.ORDATIL_0 / SORDER.ORDATI_0))) AS LocalAmountWithTax,
+	    SORDER.CUR_0 AS Currency,
       COMPANY.ACCCUR_0 AS LocalCurrency
     FROM 
       EXPLOIT.SORDER SORDER
@@ -933,6 +934,158 @@
       ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.PNFamily), 0) AS TargetAllUSDWithTax,
       ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.PNFamily), 0) AS TargetAllLocal,
       ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.PNFamily), 0) AS TargetAllLocalWithTax,
+      ROUND(SUM(T2.USD)                     OVER(), 0) AS AllUSD,
+      ROUND(SUM(T2.USDWithTax)              OVER(), 0) AS AllUSDWithTax,
+      ROUND(SUM(T2.LocalAmount)             OVER(), 0) AS AllLocal,
+      ROUND(SUM(T2.LocalAmountWithTax)      OVER(), 0) AS AllLocalWithTax,
+      T2.LocalCurrency
+    FROM T2
+   ),
+   T4 AS (
+     SELECT TOP 99999    ------- limit the result to 99999
+       T3.*,
+       DENSE_RANK() OVER(ORDER BY T3.TargetAllUSD DESC) AS RankNum
+     FROM T3
+     ORDER BY
+     T3.TargetAllUSD DESC
+    )
+     
+    SELECT * FROM T4
+    WHERE #{Limit} >=  T4.RankNum
+  </select>
+  <select id="findCustomerSumAmountTopByPN"
+    resultType="com.da.sage.assistant.model.CustomerSummaryAmountTopByPN">
+  WITH 
+  T0 AS ( ---- Project sales line price include tax
+    SELECT DISTINCT
+      SORDER.SALFCY_0 AS Site,
+      SORDER.SOHTYP_0 AS Type,
+      SORDERQ.YSOQ_STA_0 AS Status,
+      SORDER.SOHNUM_0 AS OrderNO,
+      IIF(SORDERQ.YSOQ_PJTORI_0 = '', SORDERQ.YSOH_PJT_0, SORDERQ.YSOQ_PJTORI_0) AS ProjectNO,
+      SORDERP.ITMREF_0 AS PN,
+      ITMMASTER.CCE_1 AS PNFamily,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 AS Amount,
+      IIF(SORDERP.NETPRIATI_0 =0, SORDERP.NETPRINOT_0 * SORDERQ.QTY_0, SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 ) AS AmountWithTax,
+      IIF(SORDER.ORDNOT_0=0, 0, SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * ( SORDER.ORDNOTL_0 / SORDER.ORDNOT_0)) AS LocalAmount,
+      IIF(SORDER.ORDATI_0=0, 0, 
+        IIF(SORDERP.NETPRIATI_0=0, 
+            SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 * (SORDER.ORDATIL_0 / SORDER.ORDATI_0),
+            SORDERP.NETPRIATI_0 * SORDERQ.QTY_0 * (SORDER.ORDATIL_0 / SORDER.ORDATI_0))) AS LocalAmountWithTax,
+	    SORDER.CUR_0 AS Currency,
+      COMPANY.ACCCUR_0 AS LocalCurrency
+    FROM 
+      EXPLOIT.SORDER SORDER
+    INNER JOIN EXPLOIT.SORDERQ SORDERQ
+        ON SORDER.SOHNUM_0 = SORDERQ.SOHNUM_0
+    INNER JOIN EXPLOIT.SORDERP SORDERP
+        ON SORDERP.SOHNUM_0 = SORDERQ.SOHNUM_0
+      AND SORDERP.SOPLIN_0 = SORDERQ.SOPLIN_0
+    INNER JOIN EXPLOIT.ITMMASTER ITMMASTER
+        ON ITMMASTER.ITMREF_0 = SORDERP.ITMREF_0
+    INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER
+        ON BPCUSTOMER.BPCNUM_0 = SORDER.BPCORD_0 
+    INNER JOIN EXPLOIT.COMPANY
+        ON COMPANY.MAIFCY_0 = SORDER.SALFCY_0 
+    WHERE 1=1
+      AND SORDER.ORDINVATI_0 > 0
+      AND SORDERP.NETPRIATI_0 > 0
+      AND (SORDER.ORDDAT_0 BETWEEN CONVERT(DATETIME, #{DateFrom} ,120) AND CONVERT(DATETIME, #{DateTo} ,120))
+      <choose>
+      <when test=' CustomerCode ==  "ALL" '>
+      </when>
+      <otherwise>
+        AND SORDER.BPCORD_0 = #{CustomerCode}
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' OrderType ==  "ALL" '>
+      </when>
+      <when test=' OrderType ==  "DEDIENNE" '>
+        AND BPCUSTOMER.BPCNAM_0 LIKE '%DEDIENNE%'
+      </when>
+      <when test=' OrderType ==  "NORM" '>
+        AND SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES') AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <when test=' OrderType ==  "SERVICES" '>
+        AND ( (SORDER.SOHTYP_0 IN ('NOR','NOR3','YGES', 'LOC','LOC3') AND SORDERQ.YSOQ_STA_0 = 7)  OR SORDER.SOHTYP_0 IN ('REP', 'REP3'))
+      </when>
+      <when test=' OrderType ==  "RENT" '>
+        AND SORDER.SOHTYP_0 IN ('LOC','LOC3') AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+      <otherwise>
+        AND 1=2
+      </otherwise>
+      </choose>
+
+      <choose>
+      <when test=' Site ==  "ALL" '>
+      AND
+      CASE 
+        WHEN SORDER.SALFCY_0 IN ('ZHU','HKG','YSH') THEN 'CHINA' ELSE 'OTHER-SITE'
+      END !=
+      CASE 
+        WHEN SORDER.BPCORD_0 IN ('00870', '00871', '03167') THEN 'CHINA' ELSE 'OTHER-CUSTOMER'
+      END
+      </when>
+      <when test=' Site ==  "CHINA" '>
+      AND SORDER.SALFCY_0 IN ('ZHU','HKG','YSH')
+      AND SORDER.BPCORD_0 NOT IN ('00870', '00871', '03167')
+      </when>
+      <otherwise>
+        AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+      </choose>
+  ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+  T2 AS (
+    SELECT 
+      T0.Site,
+      T0.Type,
+      T0.Status,
+      T0.OrderNO,
+      T0.ProjectNO,
+      T0.PN,
+      T0.PNFamily,
+      T0.OrderDate,
+      IIF(T0.Currency = 'USD', T0.Amount, T0.Amount/T1.Rate) AS USD,
+      IIF(T0.Currency = 'USD', T0.AmountWithTax, T0.AmountWithTax/T1.Rate) AS USDWithTax,
+      T0.LocalAmount,
+      T0.LocalAmountWithTax,
+      T0.LocalCurrency
+    FROM T0
+    LEFT JOIN T1
+        ON  T1.Dest = 'USD'
+           AND T1.Sour = T0.Currency
+           AND T0.OrderDate >= T1.StartDate 
+           AND T1.EndDate > T0.OrderDate
+  ),
+   T3 AS (
+    SELECT DISTINCT
+      T2.Site,
+      T2.PN,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site), 0) AS SiteAllUSD,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site), 0) AS SiteAllUSDWithTax,
+      ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site), 0) AS SiteAllLocal,
+      ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site), 0) AS SiteAllLocalWithTax,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.Site, T2.PN), 0) AS SumUSD,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.Site, T2.PN), 0) AS SumUSDWithTax,
+      ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.Site, T2.PN), 0) AS SumLocal,
+      ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.Site, T2.PN), 0) AS SumLocalWithTax,
+      ROUND(SUM(T2.USD)                     OVER(PARTITION BY T2.PN), 0) AS TargetAllUSD,
+      ROUND(SUM(T2.USDWithTax)              OVER(PARTITION BY T2.PN), 0) AS TargetAllUSDWithTax,
+      ROUND(SUM(T2.LocalAmount)             OVER(PARTITION BY T2.PN), 0) AS TargetAllLocal,
+      ROUND(SUM(T2.LocalAmountWithTax)      OVER(PARTITION BY T2.PN), 0) AS TargetAllLocalWithTax,
       ROUND(SUM(T2.USD)                     OVER(), 0) AS AllUSD,
       ROUND(SUM(T2.USDWithTax)              OVER(), 0) AS AllUSDWithTax,
       ROUND(SUM(T2.LocalAmount)             OVER(), 0) AS AllLocal,

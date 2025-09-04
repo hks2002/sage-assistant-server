@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:29:00                                                                      *
- * @LastEditDate          : 2025-08-26 15:40:50                                                                      *
+ * @LastEditDate          : 2025-08-28 10:07:19                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
 
@@ -23,6 +23,7 @@ import com.da.sage.assistant.model.CustomerOTD;
 import com.da.sage.assistant.model.CustomerOrder;
 import com.da.sage.assistant.model.CustomerSummaryAmountByTarget;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer;
+import com.da.sage.assistant.model.CustomerSummaryAmountTopByPN;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByRepresentative;
 import com.da.sage.assistant.model.CustomerSummaryCountByTarget;
@@ -167,6 +168,23 @@ public class CustomerController {
       @RequestParam(value = "DateTo", required = true) String DateTo,
       @RequestParam(value = "Limit", required = true) String Limit) {
     return (customerService.getCustomerSummaryAmountTopByPNFamily(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo + " 23:59:59",
+        Integer.parseInt(Limit)));
+  }
+
+  @GetMapping("/CustomerSummaryAmountTopByPN")
+  public List<CustomerSummaryAmountTopByPN> getCustomerSummaryAmountTopByPN(
+      @RequestParam(value = "Site", required = true) String Site,
+      @RequestParam(value = "OrderType", required = true) String OrderType,
+      @RequestParam(value = "CustomerCode", required = true) String CustomerCode,
+      @RequestParam(value = "DateFrom", required = true) String DateFrom,
+      @RequestParam(value = "DateTo", required = true) String DateTo,
+      @RequestParam(value = "Limit", required = true) String Limit) {
+    return (customerService.getCustomerSummaryAmountTopByPN(
         Site,
         OrderType,
         CustomerCode,

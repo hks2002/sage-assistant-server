@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:25:00                                                                      *
- * @LastEditDate          : 2025-08-26 15:27:55                                                                      *
+ * @LastEditDate          : 2025-08-28 09:45:16                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
 
@@ -21,6 +21,7 @@ import com.da.sage.assistant.model.CustomerOTD;
 import com.da.sage.assistant.model.CustomerOrder;
 import com.da.sage.assistant.model.CustomerSummaryAmountByTarget;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer;
+import com.da.sage.assistant.model.CustomerSummaryAmountTopByPN;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByRepresentative;
 import com.da.sage.assistant.model.CustomerSummaryCountByTarget;
@@ -83,6 +84,14 @@ public interface CustomerMapper {
       @Param("Limit") Integer Limit);
 
   List<CustomerSummaryAmountTopByPNFamily> findCustomerSumAmountTopByPNFamily(
+      @Param("Site") String Site,
+      @Param("OrderType") String OrderType,
+      @Param("CustomerCode") String CustomerCode,
+      @Param("DateFrom") String DateFrom,
+      @Param("DateTo") String DateTo,
+      @Param("Limit") Integer Limit);
+
+  List<CustomerSummaryAmountTopByPN> findCustomerSumAmountTopByPN(
       @Param("Site") String Site,
       @Param("OrderType") String OrderType,
       @Param("CustomerCode") String CustomerCode,

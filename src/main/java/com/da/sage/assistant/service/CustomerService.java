@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                            *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                          *
  * @CreatedDate           : 2022-03-31 16:27:00                                                                      *
- * @LastEditDate          : 2025-08-26 15:30:08                                                                      *
+ * @LastEditDate          : 2025-08-28 10:01:25                                                                      *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                            *
  ********************************************************************************************************************/
 
@@ -23,6 +23,7 @@ import com.da.sage.assistant.model.CustomerOTD;
 import com.da.sage.assistant.model.CustomerOrder;
 import com.da.sage.assistant.model.CustomerSummaryAmountByTarget;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByCustomer;
+import com.da.sage.assistant.model.CustomerSummaryAmountTopByPN;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByPNFamily;
 import com.da.sage.assistant.model.CustomerSummaryAmountTopByRepresentative;
 import com.da.sage.assistant.model.CustomerSummaryCountByTarget;
@@ -166,6 +167,22 @@ public class CustomerService {
       String DateTo,
       Integer Limit) {
     return customerMapper.findCustomerSumAmountTopByPNFamily(
+        Site,
+        OrderType,
+        CustomerCode,
+        DateFrom,
+        DateTo,
+        Limit);
+  }
+
+  public List<CustomerSummaryAmountTopByPN> getCustomerSummaryAmountTopByPN(
+      String Site,
+      String OrderType,
+      String CustomerCode,
+      String DateFrom,
+      String DateTo,
+      Integer Limit) {
+    return customerMapper.findCustomerSumAmountTopByPN(
         Site,
         OrderType,
         CustomerCode,
