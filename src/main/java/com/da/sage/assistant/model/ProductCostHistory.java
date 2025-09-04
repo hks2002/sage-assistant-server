@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
  * @CreatedDate           : 2022-03-26 17:01:00                                                                       *
- * @LastEditDate          : 2025-07-25 09:18:55                                                                       *
+ * @LastEditDate          : 2025-09-04 18:27:26                                                                       *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
 
@@ -30,7 +30,10 @@ public class ProductCostHistory {
   private String Description;
   private String Currency;
   private Float NetPrice;
-  private Integer Qty;
-  private Float USD;
   private Float Rate;
+  private Integer Qty;
+  private Float LineCostNoTax;
+  private Integer ProjectQty;
+  private Float ProjectUSDCostNoTax;
+  private Float USDCostNoTax;
 }

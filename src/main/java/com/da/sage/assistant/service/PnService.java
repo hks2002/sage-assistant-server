@@ -2,13 +2,12 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
  * @CreatedDate           : 2022-03-26 17:57:00                                                                       *
- * @LastEditDate          : 2025-07-27 11:25:31                                                                       *
+ * @LastEditDate          : 2025-09-04 11:07:02                                                                       *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
 
 package com.da.sage.assistant.service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.ibatis.annotations.Param;
@@ -95,59 +94,15 @@ public class PnService {
   }
 
   public List<ProductSalesHistory> findProductSalesHistoryByPnRoot(String PnRoot) {
-    List<ProductSalesHistory> listPage = (ArrayList<ProductSalesHistory>) pnMapper.findProductSalesHistoryByPnRoot(
-        PnRoot);
-
-    for (ProductSalesHistory o : listPage) {
-      String key = o.getCurrency() + "USD" + DateUtils.formatDate(o.getOrderDate());
-      log.debug("key:" + key);
-      try {
-        o.setRate(Float.parseFloat(currencyService.getCurrencyRate(key)));
-        log.debug("Rate:" + o.getRate());
-      } catch (NumberFormatException e) {
-        log.error(e.getMessage());
-      }
-      o.setUSD(o.getNetPrice() * o.getRate());
-    }
-
-    return listPage;
+    return pnMapper.findProductSalesHistoryByPnRoot(PnRoot);
   }
 
   public List<ProductQuoteHistory> findProductQuoteHistoryByPnRoot(String PnRoot) {
-    List<ProductQuoteHistory> listPage = pnMapper.findProductQuoteHistoryByPnRoot(PnRoot);
-
-    for (ProductQuoteHistory o : listPage) {
-      String key = o.getCurrency() + "USD" + DateUtils.formatDate(o.getQuoteDate());
-      log.debug("key:" + key);
-      try {
-        o.setRate(Float.parseFloat(currencyService.getCurrencyRate(key)));
-        log.debug("Rate:" + o.getRate());
-      } catch (NumberFormatException e) {
-        log.error(e.getMessage());
-      }
-      o.setUSD(o.getNetPrice() * o.getRate());
-    }
-
-    return listPage;
+    return pnMapper.findProductQuoteHistoryByPnRoot(PnRoot);
   }
 
   public List<ProductCostHistory> findProductCostHistoryByPnRoot(String PnRoot) {
-    List<ProductCostHistory> listPage = pnMapper.findProductCostHistoryByPnRoot(PnRoot);
-
-    for (ProductCostHistory o : listPage) {
-      String key = o.getCurrency() + "USD" + DateUtils.formatDate(o.getOrderDate());
-      log.debug("key:" + key);
-      try {
-        o.setRate(Float.parseFloat(currencyService.getCurrencyRate(key)));
-        log.debug("Rate:" + o.getRate());
-      } catch (NumberFormatException e) {
-        log.error(e.getMessage());
-      }
-      o.setUSD(o.getNetPrice() * o.getRate());
-    }
-    // one project maybe purchase line with different currency
-
-    return listPage;
+    return pnMapper.findProductCostHistoryByPnRoot(PnRoot);
   }
 
   public List<ComponentPurchaseHistory> findComponentPurchaseHistoryByPnRoot(String PnRoot) {

@@ -254,6 +254,8 @@
       OrderDate DESC
   </select>
   <select id="findProductSalesHistoryByPnRoot" resultType="com.da.sage.assistant.model.ProductSalesHistory">
+  WITH 
+  T0 AS (
     SELECT
         SORDERP.SALFCY_0 AS SalesSite,
         SORDERP.SOHNUM_0 AS OrderNO,
@@ -273,11 +275,32 @@
             AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
     WHERE
          SORDERP.NETPRI_0 > 0 AND SORDERP.ITMREF_0 = #{PnRoot}
-    ORDER BY 
-      OrderDate DESC
+  ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  )
+
+  SELECT 
+    T0.*,
+    IIF(T0.Currency = 'USD', T0.NetPrice, T0.NetPrice/T1.Rate) AS USD,
+    IIF(T0.Currency = 'USD', 1, T1.Rate) AS Rate      
+  FROM T0
+  LEFT JOIN T1
+      ON  T1.Dest = 'USD'
+         AND T1.Sour = T0.Currency
+         AND T0.OrderDate >= T1.StartDate 
+         AND T1.EndDate > T0.OrderDate  
   </select>
   <select id="findProductQuoteHistoryByPnRoot" resultType="com.da.sage.assistant.model.ProductQuoteHistory">
-      SELECT
+  WITH 
+  T0 AS (
+    SELECT
         SQUOTED.SALFCY_0 AS SalesSite,
         SQUOTED.SQHNUM_0 AS QuoteNO,
         SQUOTED.QUODAT_0 AS QuoteDate,
@@ -295,43 +318,115 @@
         ON SQUOTED.SQHNUM_0=SQUOTE.SQHNUM_0
     WHERE 
         SQUOTED.NETPRI_0 > 0 AND SQUOTED.ITMREF_0 = #{PnRoot}
-    ORDER BY 
-        QuoteDate DESC
+  ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  )
+
+  SELECT 
+    T0.*,
+    IIF(T0.Currency = 'USD', T0.NetPrice, T0.NetPrice/T1.Rate) AS USD,
+    IIF(T0.Currency = 'USD', 1, T1.Rate) AS Rate      
+  FROM T0
+  LEFT JOIN T1
+      ON  T1.Dest = 'USD'
+         AND T1.Sour = T0.Currency
+         AND T0.QuoteDate >= T1.StartDate 
+         AND T1.EndDate > T0.QuoteDate  
+   ORDER BY 
+       T0.QuoteDate DESC
   </select>
   <select id="findProductCostHistoryByPnRoot" resultType="com.da.sage.assistant.model.ProductCostHistory">
-  SELECT DISTINCT
-    PORDERP.PRHFCY_0 AS PurchaseSite,
-    OPPOR.OPPNUM_0 AS ProjectNO,
-    OPPOR.OPPEXTNUM_0 AS OrderPN,
-    OPPOR.CREDAT_0 AS OrderDate,
-    PORDERP.POHNUM_0 AS PurchaseNO,
-    PORDERP.POPLIN_0 As Line,
-    PORDER.BPSNUM_0 AS VendorCode,
-    PORDER.BPRNAM_0 AS VendorName,
-    PORDERP.ITMREF_0 AS PurchasePN,
-    PORDERP.ITMDES1_0 + IIF(PORDERP.ITMDES2_0 ='', '', ' '+ PORDERP.ITMDES2_0) AS Description,
-    PORDER.CUR_0 AS Currency,
-    PORDERP.NETPRI_0 AS NetPrice,
-    PORDERQ.QTYPUU_0 AS Qty
-  FROM EXPLOIT.PORDERP PORDERP
-    INNER JOIN EXPLOIT.PORDERQ PORDERQ
-        ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
-    INNER JOIN EXPLOIT.PORDER PORDER
-        ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
-    INNER JOIN EXPLOIT.OPPOR OPPOR
-        ON PORDERP.PJT_0 = OPPOR.OPPNUM_0 OR PORDERP.PJT_0 = OPPOR.ZOPPNUMORI_0
-  WHERE 
-     PORDERP.PJT_0 != ''
-     -- CDE: Order project
-     -- ART: Stock project
-     AND OPPOR.OPPTYP_0 IN ('CDE','ART')
-     AND OPPOR.OPPEXTNUM_0 = #{PnRoot} AND PORDERP.NETPRI_0 > 0
-  ORDER BY 
-         PurchaseSite ASC,
-         ProjectNO DESC,
-         OrderDate DESC,
-         PurchaseNO ASC,
-         Line ASC
+  WITH 
+  T0 AS (
+    SELECT DISTINCT
+      PORDERP.PRHFCY_0 AS PurchaseSite,
+      OPPOR.OPPNUM_0 AS ProjectNO,
+      OPPOR.OPPEXTNUM_0 AS OrderPN,
+      OPPOR.CREDAT_0 AS OrderDate,
+      PORDERP.CREDAT_0 AS PurchaseDate,
+      PORDERP.POHNUM_0 AS PurchaseNO,
+      PORDERP.POPLIN_0 As Line,
+      PORDER.BPSNUM_0 AS VendorCode,
+      PORDER.BPRNAM_0 AS VendorName,
+      PORDERP.ITMREF_0 AS PurchasePN,
+      PORDERP.ITMDES1_0 + IIF(PORDERP.ITMDES2_0 ='', '', ' '+ PORDERP.ITMDES2_0) AS Description,
+      PORDER.CUR_0 AS Currency,
+      PORDERP.NETPRI_0 AS NetPrice,
+      PORDERQ.QTYPUU_0 AS Qty,
+      PORDERP.NETPRI_0*PORDERQ.QTYPUU_0 AS LineCostNoTax,
+      SORDERQ.QTY_0 AS SalesQty,
+      MFGITM.EXTQTY_0 AS WorkOrderQty,
+      ORDERS_PO.EXTQTY_0 AS PurchaseOrderQty,
+      IIF(SORDERQ.QTY_0 IS NOT NULL, SORDERQ.QTY_0, 
+          IIF(MFGITM.EXTQTY_0 IS NOT NULL, MFGITM.EXTQTY_0, 
+                  IIF(ORDERS_PO.EXTQTY_0 IS NOT NULL, ORDERS_PO.EXTQTY_0, 1))) AS ProjectQty
+    FROM EXPLOIT.PORDERP PORDERP
+      INNER JOIN EXPLOIT.PORDERQ PORDERQ
+          ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER PORDER
+          ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+      INNER JOIN EXPLOIT.OPPOR OPPOR
+          ON PORDERP.PJT_0 = OPPOR.OPPNUM_0 OR PORDERP.PJT_0 = OPPOR.ZOPPNUMORI_0
+      LEFT JOIN EXPLOIT.SORDERQ SORDERQ
+          ON SORDERQ.SALFCY_0 = OPPOR.SALFCY_0
+             AND SORDERQ.ITMREF_0 = OPPOR.OPPEXTNUM_0
+             AND (SORDERQ.YSOH_PJT_0 = OPPOR.OPPNUM_0 OR SORDERQ.YSOQ_PJTORI_0 = OPPOR.OPPNUM_0)
+      LEFT JOIN EXPLOIT.MFGITM MFGITM
+          ON MFGITM.MFGFCY_0 = OPPOR.SALFCY_0
+             AND MFGITM.ITMREF_0 = OPPOR.OPPEXTNUM_0
+             AND MFGITM.PJT_0 = OPPOR.OPPNUM_0
+      LEFT JOIN EXPLOIT.ORDERS ORDERS_PO
+          ON ORDERS_PO.STOFCY_0 = OPPOR.SALFCY_0
+             AND ORDERS_PO.PJT_0 = OPPOR.OPPNUM_0
+             AND ORDERS_PO.ITMREF_0 = OPPOR.OPPEXTNUM_0
+             AND ORDERS_PO.VCRTYP_0 = 14
+    WHERE 
+       PORDERP.PJT_0 != ''
+       -- CDE: Order project
+       -- ART: Stock project
+       AND OPPOR.OPPTYP_0 IN ('CDE','ART')
+       AND OPPOR.OPPEXTNUM_0 = #{PnRoot} AND PORDERP.NETPRI_0 > 0
+  ),
+  T1 AS (
+      SELECT
+        CURDEN_0 AS Sour,
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+ T2 AS (
+  SELECT
+    T0.*,
+    IIF(T0.Currency = 'USD', T0.LineCostNoTax, ROUND(T0.LineCostNoTax/T1.Rate,2)) AS USD,
+    IIF(T0.Currency = 'USD', 1, T1.Rate) AS Rate
+  FROM T0
+  LEFT JOIN T1
+      ON  T1.Dest = 'USD'
+         AND T1.Sour = T0.Currency
+         AND T0.PurchaseDate >= T1.StartDate 
+         AND T1.EndDate > T0.PurchaseDate  
+   )
+
+  SELECT 
+     T2.*,
+     ROUND(SUM(T2.USD)                 OVER(PARTITION BY T2.PurchaseSite, T2.ProjectNO), 2) AS ProjectUSDCostNoTax,
+     ROUND(SUM(T2.USD/T2.ProjectQty)   OVER(PARTITION BY T2.PurchaseSite, T2.ProjectNO), 2) AS USDCostNoTax
+   FROM T2
+   ORDER BY 
+     PurchaseSite ASC,
+     ProjectNO DESC,
+     OrderDate DESC,
+     PurchaseNO ASC,
+     Line ASC
   </select>
   <select id="findComponentStockInfoByPnRoot" resultType="com.da.sage.assistant.model.StockInfo">
   WITH T0 
