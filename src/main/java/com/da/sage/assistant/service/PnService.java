@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                             *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
  * @CreatedDate           : 2022-03-26 17:57:00                                                                       *
- * @LastEditDate          : 2025-09-04 11:07:02                                                                       *
+ * @LastEditDate          : 2025-09-05 21:03:18                                                                       *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
  *********************************************************************************************************************/
 
@@ -26,7 +26,6 @@ import com.da.sage.assistant.model.ProductDeliveryDuration;
 import com.da.sage.assistant.model.ProductQuoteHistory;
 import com.da.sage.assistant.model.ProductSalesHistory;
 import com.da.sage.assistant.model.StockInfo;
-import com.da.sage.assistant.utils.DateUtils;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
@@ -37,7 +36,6 @@ import lombok.extern.log4j.Log4j2;
 public class PnService {
 
   private final PnMapper pnMapper;
-  private final CurrencyService currencyService;
 
   public String checkPN(@Param("PnRoot") String PnRoot) {
     return pnMapper.checkPN(PnRoot);
@@ -106,21 +104,6 @@ public class PnService {
   }
 
   public List<ComponentPurchaseHistory> findComponentPurchaseHistoryByPnRoot(String PnRoot) {
-    List<ComponentPurchaseHistory> listPage = pnMapper.findComponentPurchaseHistoryByPnRoot(PnRoot);
-
-    for (ComponentPurchaseHistory o : listPage) {
-      String key = o.getCurrency() + "USD" + DateUtils.formatDate(o.getPurchaseDate());
-      log.debug("key:" + key);
-      try {
-        o.setRate(Float.parseFloat(currencyService.getCurrencyRate(key)));
-        log.debug("Rate:" + o.getRate());
-      } catch (NumberFormatException e) {
-        log.error(e.getMessage());
-      }
-      o.setUSD(o.getNetPrice() * o.getRate());
-    }
-    // one project maybe purchase line with different currency
-
-    return listPage;
+    return pnMapper.findComponentPurchaseHistoryByPnRoot(PnRoot);
   }
 }

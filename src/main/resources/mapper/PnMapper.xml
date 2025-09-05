@@ -12,14 +12,10 @@
     WHERE ITMMASTER.ITMREF_0=#{PnRoot}
   </select>
   <select id="findPnByLike" resultType="com.da.sage.assistant.model.PnRootPn">
-  WITH 
-  T0 AS (
   SELECT DISTINCT
       ITMMASTER.ITMREF_0 AS PNROOT,
       ITMMASTER.ITMREF_0 AS PN,
-      ITMMASTER.ITMDES1_0 + IIF(ITMMASTER.ITMDES2_0 ='', '', ' '+ ITMMASTER.ITMDES2_0) + IIF(ITMMASTER.ITMDES3_0 ='', '', ' '+ ITMMASTER.ITMDES3_0) AS Description
-      /*
-      IIF(ECCSTA.ITMREF_0 IS NULL,
+  /*  IIF(ECCSTA.ITMREF_0 IS NULL,
       ITMMASTER.ITMREF_0,
       IIF(ECCSTA.ECCVALMAJ_0='#',
         ECCSTA.ITMREF_0,
@@ -28,35 +24,17 @@
             ECCSTA.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0
           )
       )  
-      ) AS PN 
-      */
+      ) AS PN,
+  */
+      ITMMASTER.ITMDES1_0 + IIF(ITMMASTER.ITMDES2_0 ='', '', ' '+ ITMMASTER.ITMDES2_0) + IIF(ITMMASTER.ITMDES3_0 ='', '', ' '+ ITMMASTER.ITMDES3_0) AS Description
   FROM EXPLOIT.ITMMASTER ITMMASTER
   LEFT JOIN EXPLOIT.ECCSTA ECCSTA
        ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
   WHERE ITMMASTER.ITMREF_0 LIKE #{PnRoot} 
       OR (ECCSTA.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0 = #{PnRoot})
-  ORDER BY ITMMASTER.ITMREF_0 DESC, PN
+  ORDER BY ITMMASTER.ITMREF_0 DESC, PN DESC
   OFFSET 0 ROWS
-  FETCH NEXT #{Count} ROWS ONLY
-  ),
-  T1 AS (
-      SELECT DISTINCT
-      ITMMASTER.ITMREF_0 AS PNROOT,
-      ITMMASTER.ITMREF_0 AS PN,
-      ITMMASTER.ITMDES1_0 + IIF(ITMMASTER.ITMDES2_0 ='', '', ' '+ ITMMASTER.ITMDES2_0) + IIF(ITMMASTER.ITMDES3_0 ='', '', ' '+ ITMMASTER.ITMDES3_0) AS Description
-  FROM EXPLOIT.ITMMASTER ITMMASTER
-  LEFT JOIN EXPLOIT.ECCSTA ECCSTA
-       ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
-  WHERE ITMMASTER.ITMDES1_0 LIKE #{PnRoot}
-      OR ITMMASTER.ITMDES2_0 LIKE #{PnRoot}
-      OR ITMMASTER.ITMDES3_0 LIKE #{PnRoot}
-  ORDER BY ITMMASTER.ITMREF_0 DESC, PN
-  OFFSET 0 ROWS
-  FETCH NEXT #{Count} ROWS ONLY
-  )
-  SELECT * FROM T0
-  UNION
-  SELECT * FROM T1
+  FETCH NEXT #{Count} ROWS ONLY  
   </select>
   <select id="findPnByRoot" resultType="com.da.sage.assistant.model.PnRootPn">
   SELECT DISTINCT
@@ -81,6 +59,7 @@
   LEFT JOIN EXPLOIT.ECCSTA ECCSTA
        ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
   WHERE ITMMASTER.ITMREF_0 = #{PnRoot}
+  ORDER BY ECCSTA.ROWID DESC
   </select>
   <select id="findIndustrializationByPnRoot" resultType="com.da.sage.assistant.model.PnIndustrialization">
   SELECT
@@ -195,7 +174,7 @@
       SELECT DISTINCT
             ITMMASTER.ITMREF_0
         FROM EXPLOIT.ITMMASTER ITMMASTER
-        WHERE ITMMASTER.ITMDES1_0 LIKE #{PnRoot}
+        WHERE ITMMASTER.ITMDES1_0 LIKE '%' + #{PnRoot} + '%'
     )
 
   SELECT 
@@ -289,13 +268,16 @@
   SELECT 
     T0.*,
     IIF(T0.Currency = 'USD', T0.NetPrice, T0.NetPrice/T1.Rate) AS USD,
-    IIF(T0.Currency = 'USD', 1, T1.Rate) AS Rate      
+    IIF(T0.Currency = 'USD', 1, T1.Rate) AS Rate
   FROM T0
   LEFT JOIN T1
       ON  T1.Dest = 'USD'
          AND T1.Sour = T0.Currency
          AND T0.OrderDate >= T1.StartDate 
-         AND T1.EndDate > T0.OrderDate  
+         AND T1.EndDate > T0.OrderDate
+   ORDER BY 
+       T0.SalesSite ASC,
+       T0.OrderDate DESC
   </select>
   <select id="findProductQuoteHistoryByPnRoot" resultType="com.da.sage.assistant.model.ProductQuoteHistory">
   WITH 
@@ -339,7 +321,8 @@
          AND T1.Sour = T0.Currency
          AND T0.QuoteDate >= T1.StartDate 
          AND T1.EndDate > T0.QuoteDate  
-   ORDER BY 
+   ORDER BY
+       T0.SalesSite ASC,
        T0.QuoteDate DESC
   </select>
   <select id="findProductCostHistoryByPnRoot" resultType="com.da.sage.assistant.model.ProductCostHistory">
@@ -396,7 +379,7 @@
   ),
   T1 AS (
       SELECT
-        CURDEN_0 AS Sour,
+        CURDEN_0 AS Sour, 
         CUR_0 AS Dest,
         CHGRAT_0 AS Rate,
         CHGSTRDAT_0 AS StartDate,
@@ -423,8 +406,8 @@
    FROM T2
    ORDER BY 
      PurchaseSite ASC,
-     ProjectNO DESC,
      OrderDate DESC,
+     ProjectNO DESC,
      PurchaseNO ASC,
      Line ASC
   </select>
@@ -435,7 +418,7 @@
         ITMREFBPS_0 AS OptionPN
       FROM EXPLOIT.ITMBPS
       WHERE 
-        ITMREF_0 = #{PnRoot}
+        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 != ITMREFBPS_0
 
       UNION
@@ -443,7 +426,7 @@
         ITMREF_0 AS OptionPN
       FROM EXPLOIT.ITMBPS
       WHERE 
-        ITMREFBPS_0 = #{PnRoot}
+        ITMREFBPS_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 !=ITMREFBPS_0
 
       UNION
@@ -451,7 +434,7 @@
         ITMREF_0 AS OptionPN
       FROM EXPLOIT.ITMBPC
       WHERE 
-        ITMREFBPC_0 = #{PnRoot}
+        ITMREFBPC_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 != ITMREFBPC_0
 
       UNION
@@ -459,7 +442,7 @@
         ITMREFBPC_0 AS OptionPN
       FROM EXPLOIT.ITMBPC
       WHERE 
-        ITMREF_0 = #{PnRoot}
+        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 != ITMREFBPC_0
        
       -- include self
@@ -477,7 +460,7 @@
        SELECT DISTINCT
             ITMMASTER.ITMREF_0
         FROM EXPLOIT.ITMMASTER ITMMASTER
-        WHERE ITMMASTER.ITMDES1_0 LIKE #{PnRoot}
+        WHERE ITMMASTER.ITMDES1_0 LIKE '%' + #{PnRoot} + '%'
     )
 
   SELECT DISTINCT
@@ -496,7 +479,7 @@
         ITMREFBPS_0 AS OptionPN
       FROM EXPLOIT.ITMBPS
       WHERE 
-        ITMREF_0 = #{PnRoot}
+        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 != ITMREFBPS_0
 
       UNION
@@ -504,7 +487,7 @@
         ITMREF_0 AS OptionPN
       FROM EXPLOIT.ITMBPS
       WHERE 
-        ITMREFBPS_0 = #{PnRoot}
+        ITMREFBPS_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 !=ITMREFBPS_0
 
       UNION
@@ -512,7 +495,7 @@
         ITMREF_0 AS OptionPN
       FROM EXPLOIT.ITMBPC
       WHERE 
-        ITMREFBPC_0 = #{PnRoot}
+        ITMREFBPC_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 != ITMREFBPC_0
 
       UNION
@@ -520,7 +503,7 @@
         ITMREFBPC_0 AS OptionPN
       FROM EXPLOIT.ITMBPC
       WHERE 
-        ITMREF_0 = #{PnRoot}
+        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 != ITMREFBPC_0
        
       -- include self
@@ -538,7 +521,7 @@
        SELECT DISTINCT
             ITMMASTER.ITMREF_0
         FROM EXPLOIT.ITMMASTER ITMMASTER
-        WHERE ITMMASTER.ITMDES1_0 LIKE #{PnRoot}
+        WHERE ITMMASTER.ITMDES1_0 LIKE '%' + #{PnRoot} + '%'
     )
 
   SELECT 
@@ -563,8 +546,7 @@
       ON PORDER.POHNUM_0 = PORDERQ.POHNUM_0
   WHERE 
      PORDERQ.POHNUM_0 != '' 
-     AND PORDERQ.QTYPUU_0 > 0 
-     AND PORDERQ.ITMREF_0 = #{PnRoot}
+     AND PORDERQ.QTYPUU_0 > 0
   ORDER BY PORDERQ.ORDDAT_0 DESC
   </select>
   <select id="findComponentPurchaseHistoryByPnRoot" resultType="com.da.sage.assistant.model.ComponentPurchaseHistory">
@@ -574,7 +556,7 @@
         ITMREFBPS_0 AS OptionPN
       FROM EXPLOIT.ITMBPS
       WHERE 
-        ITMREF_0 = #{PnRoot}
+        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 != ITMREFBPS_0
 
       UNION
@@ -582,7 +564,7 @@
         ITMREF_0 AS OptionPN
       FROM EXPLOIT.ITMBPS
       WHERE 
-        ITMREFBPS_0 = #{PnRoot}
+        ITMREFBPS_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 !=ITMREFBPS_0
 
       UNION
@@ -590,7 +572,7 @@
         ITMREF_0 AS OptionPN
       FROM EXPLOIT.ITMBPC
       WHERE 
-        ITMREFBPC_0 = #{PnRoot}
+        ITMREFBPC_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 != ITMREFBPC_0
 
       UNION
@@ -598,7 +580,7 @@
         ITMREFBPC_0 AS OptionPN
       FROM EXPLOIT.ITMBPC
       WHERE 
-        ITMREF_0 = #{PnRoot}
+        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
         AND ITMREF_0 != ITMREFBPC_0
        
       -- include self
@@ -610,43 +592,67 @@
        SELECT DISTINCT 
         T0.OptionPN AS ITMREF_0 
        FROM T0
-       
+
        --- PNOG style ITMREF_0
        UNION
        SELECT DISTINCT
             ITMMASTER.ITMREF_0
-       FROM EXPLOIT.ITMMASTER ITMMASTER
-       WHERE ITMMASTER.ITMDES1_0 LIKE #{PnRoot}
-    )
-    
-  SELECT DISTINCT
-    PORDERP.PRHFCY_0 AS PurchaseSite,
-    PORDERP.PJT_0 AS ProjectNO,
-    PORDERP.CREDAT_0 AS PurchaseDate,
-    PORDERP.POHNUM_0 AS PurchaseNO,
-    PORDERP.POPLIN_0 As Line,
-    PORDER.BPSNUM_0 AS VendorCode,
-    PORDER.BPRNAM_0 AS VendorName,
-    PORDERP.ITMREF_0 AS PurchasePN,
-    PORDERP.ITMDES1_0 + IIF(PORDERP.ITMDES2_0 ='', '', ' '+ PORDERP.ITMDES2_0) AS Description,
-    PORDER.CUR_0 AS Currency,
-    PORDERP.NETPRI_0 AS NetPrice,
-    PORDERQ.QTYPUU_0 AS Qty,
-    PORDERQ.PUU_0 AS Unit
-  FROM T1
-    INNER JOIN EXPLOIT.PORDERP PORDERP
-        ON PORDERP.ITMREF_0 = T1.ITMREF_0
-    INNER JOIN EXPLOIT.PORDERQ PORDERQ
-        ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
-    INNER JOIN EXPLOIT.PORDER PORDER
-        ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
-  WHERE 
-     PORDERP.PJT_0 != ''
-     AND T1.ITMREF_0 = #{PnRoot}
-     AND PORDERP.NETPRI_0 > 0
-  ORDER BY 
-     PurchaseDate DESC,
-     PurchaseNO ASC,
-     Line ASC
+        FROM EXPLOIT.ITMMASTER ITMMASTER
+        WHERE ITMMASTER.ITMDES1_0 LIKE '%' + #{PnRoot} + '%'
+    ),
+    T2 AS (
+      SELECT DISTINCT
+        PORDERP.PRHFCY_0 AS PurchaseSite,
+        PORDERP.PJT_0 AS ProjectNO,
+        PORDERP.CREDAT_0 AS PurchaseDate,
+        PORDERP.POHNUM_0 AS PurchaseNO,
+        PORDERP.POPLIN_0 As Line,
+        PORDER.BPSNUM_0 AS VendorCode,
+        PORDER.BPRNAM_0 AS VendorName,
+        PORDERP.ITMREF_0 AS PurchasePN,
+        PORDERP.ITMDES1_0 + IIF(PORDERP.ITMDES2_0 ='', '', ' '+ PORDERP.ITMDES2_0) AS Description,
+        PORDER.CUR_0 AS Currency,
+        PORDERP.NETPRI_0 AS NetPrice,
+        PORDERQ.QTYPUU_0 AS Qty,
+        PORDERQ.PUU_0 AS Unit
+      FROM T1
+        INNER JOIN EXPLOIT.PORDERP PORDERP
+            ON PORDERP.ITMREF_0 = T1.ITMREF_0
+        INNER JOIN EXPLOIT.PORDERQ PORDERQ
+            ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+        INNER JOIN EXPLOIT.PORDER PORDER
+            ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
+      WHERE 
+         PORDERP.PJT_0 != ''
+         AND PORDERP.NETPRI_0 > 0
+    ),
+   T3 AS (
+      SELECT
+        CURDEN_0 AS Sour, 
+        CUR_0 AS Dest,
+        CHGRAT_0 AS Rate,
+        CHGSTRDAT_0 AS StartDate,
+        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
+      FROM EXPLOIT.TABCHANGE
+  ),
+ T4 AS (
+    SELECT
+      T2.*,
+      IIF(T2.Currency = 'USD', T2.NetPrice, ROUND(T2.NetPrice/T3.Rate,2)) AS USD,
+      IIF(T2.Currency = 'USD', 1, T3.Rate) AS Rate
+    FROM T2
+    LEFT JOIN T3
+        ON  T3.Dest = 'USD'
+           AND T3.Sour = T2.Currency
+           AND T2.PurchaseDate >= T3.StartDate 
+           AND T3.EndDate > T2.PurchaseDate  
+   )
+   SELECT 
+     T4.*
+    FROM T4
+    ORDER BY 
+       PurchaseDate DESC,
+       PurchaseNO ASC,
+       Line ASC
   </select>
 </mapper>
