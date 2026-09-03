@@ -79,6 +79,7 @@ springframework
 srvdata
 srvop
 srvsyr
+temurin
 thead
 Tobe
 tofile
