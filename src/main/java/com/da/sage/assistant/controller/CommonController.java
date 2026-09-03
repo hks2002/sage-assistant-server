@@ -1,16 +1,15 @@
-/**********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
- * @CreatedDate           : 2022-03-26 18:04:00                                                                       *
- * @LastEditDate          : 2025-07-18 14:03:40                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- *********************************************************************************************************************/
+/***********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
+ * @CreatedDate           : 2022-03-26 18:04:00                                                                        *
+ * @LastEditDate          : 2026-09-04 00:47:49                                                                        *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
+ **********************************************************************************************************************/
 
 package com.da.sage.assistant.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,8 +25,11 @@ import jakarta.servlet.http.HttpServletRequest;
 @RequestMapping("/sa-api")
 public class CommonController {
 
-  @Autowired
-  CommonService commonService;
+  final CommonService commonService;
+
+  CommonController(CommonService commonService) {
+    this.commonService = commonService;
+  }
 
   @GetMapping("/Sites")
   public List<String> getAllSites() {

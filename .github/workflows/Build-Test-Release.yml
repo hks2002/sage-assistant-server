@@ -1,42 +1,42 @@
 on:
-    workflow_dispatch:
-    push:
-        branches:
-            - 'master'
+  workflow_dispatch:
+  push:
+    branches:
+      - "master"
 
 # https://github.com/OWNER/REPO/settings/actions
 # MUST CHANGE GITHUB_TOKEN PERMISSION FROM READ TO WRITE
 # MUST CHANGE GITHUB_TOKEN PERMISSION ALLOW PULL REQUESTS
 # ⚠ ⚠ ⚠ You need merge pull request manually ⚠ ⚠ ⚠
 permissions:
-    contents: write
-    pull-requests: write
-    issues: write
+  contents: write
+  pull-requests: write
+  issues: write
 
 jobs:
-    build-test-release:
-        strategy:
-            matrix:
-                os: [ubuntu-latest]
-        runs-on: ${{ matrix.os }}
-        
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v3
+  build-test-release:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+    runs-on: ${{ matrix.os }}
 
-            - name: Install JDK
-              uses: actions/setup-java@v3
-              with:
-                  java-version: 17
-                  distribution: 'adopt'
-                  cache: 'maven'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-            - name: Run Spring-boot
-              run: |
-                  chmod +x mvnw
-                  ./mvnw spring-boot:run
+      - name: Install JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: 21
+          distribution: "adopt"
+          cache: "maven"
 
-            - uses: google-github-actions/release-please-action@v3
-              with:
-                  release-type: maven
-                  #package-name: release-please-action
+      - name: Build
+        run: |
+          chmod +x mvnw
+          ./mvnw -B compile
+
+      - uses: google-github-actions/release-please-action@v3
+        with:
+          release-type: maven
+          #package-name: release-please-action

@@ -1,10 +1,10 @@
-/**********************************************************************************************************************
- * @Author                : Robert Huang<56649783@qq.com>                                                             *
- * @CopyRight             : Dedienne Aerospace China ZhuHai                                                           *
- * @CreatedDate           : 2023-03-15 23:49:52                                                                       *
- * @LastEditDate          : 2025-07-15 11:18:22                                                                       *
- * @LastEditors           : Robert Huang<56649783@qq.com>                                                             *
- *********************************************************************************************************************/
+/***********************************************************************************************************************
+ * @Author                : Robert Huang<56649783@qq.com>                                                              *
+ * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
+ * @CreatedDate           : 2023-03-15 23:49:52                                                                        *
+ * @LastEditDate          : 2026-09-04 00:49:40                                                                        *
+ * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
+ **********************************************************************************************************************/
 
 package com.da.sage.assistant;
 
@@ -57,6 +57,7 @@ public class SrvInfoControllerTest {
 
   }
 
+  @SuppressWarnings("null")
   @Test
   void testSrvInfo() throws Exception {
     MockHttpServletRequestBuilder req = MockMvcRequestBuilders
@@ -72,6 +73,7 @@ public class SrvInfoControllerTest {
 
   }
 
+  @SuppressWarnings("null")
   @Test
   void testSrvProjectDependencies() throws Exception {
     MockHttpServletRequestBuilder req = MockMvcRequestBuilders
