@@ -1,5 +1,54 @@
 # Changelog
 
+## [4.1.0](https://github.com/hks2002/sage-assistant-server/compare/v4.0.0...v4.1.0) (2026-09-03)
+
+
+### Features
+
+* ✨ add quote for sales ([06ec600](https://github.com/hks2002/sage-assistant-server/commit/06ec600ea8714b9c4de150ebf459e335446d6811))
+* ✨add auth filter ([e27e72e](https://github.com/hks2002/sage-assistant-server/commit/e27e72e2f86ebe9ea0c2e3169735df7561b32e75))
+* ✨add QC notice ([e16b035](https://github.com/hks2002/sage-assistant-server/commit/e16b03520400e3f172a11b29ca73b6c74ccdc764))
+* ✨add top PN summary ([c7a59e8](https://github.com/hks2002/sage-assistant-server/commit/c7a59e80f9c08602c407007c318ec96789561fc3))
+* ✨add user log docs ([82d3943](https://github.com/hks2002/sage-assistant-server/commit/82d39436d9412fbfdaa32002176d521225974d22))
+* ✨improve login performance ([8636835](https://github.com/hks2002/sage-assistant-server/commit/8636835931d95ce2c7589cfdbe5ad8075894f916))
+* ✨improve shadow PN history ([cde79d3](https://github.com/hks2002/sage-assistant-server/commit/cde79d3d2d83e70a20cd122f4340d46b31cbca5f))
+* ✨keep json field seq same with POJO def ([41f2e3c](https://github.com/hks2002/sage-assistant-server/commit/41f2e3c3885a0d47ec4d4e76e0ec6fc76e0363d6))
+* ✨mass update ([cdb286b](https://github.com/hks2002/sage-assistant-server/commit/cdb286b80ad09113c57a685ac1912dd5dd229d13))
+* ✨multi database support ([d9f2f76](https://github.com/hks2002/sage-assistant-server/commit/d9f2f76102be72be51d790737de04f4d197a32c8))
+* ✨new project cost ([ce72bdb](https://github.com/hks2002/sage-assistant-server/commit/ce72bdb062118ebe76e8e59c42462d9e6cd5bdde))
+* ✨notice for SGP by teams ([004fb66](https://github.com/hks2002/sage-assistant-server/commit/004fb6634b5d7b612a5c3490e590005bd44afdd5))
+* ✨PNOGSEM Inventory Info ([2a82065](https://github.com/hks2002/sage-assistant-server/commit/2a82065c7dcb983edaa203902dea02e9216f51ed))
+* ✨send webhook with limit freq ([c9c5a13](https://github.com/hks2002/sage-assistant-server/commit/c9c5a13b5c5d549026e17ea5dc5365d386940fd8))
+* ✨update sage report print ([cbf0c79](https://github.com/hks2002/sage-assistant-server/commit/cbf0c79d1336932d6d1a928fbb8988d283bfb8d1))
+* ✨update sales order data ([4043c5d](https://github.com/hks2002/sage-assistant-server/commit/4043c5d1b1142cdceb477326f274388821e37038))
+* ✨update supplier data ([91c1689](https://github.com/hks2002/sage-assistant-server/commit/91c1689c21df3833c46a330e208e637b0187556e))
+* ✨update suspect Duplicate ([c24b1d1](https://github.com/hks2002/sage-assistant-server/commit/c24b1d1ac69c5b441e485c9037e7abf94936a7c0))
+* ✨we chart message ([9372bde](https://github.com/hks2002/sage-assistant-server/commit/9372bdec0541c623a001b8c2df77f4d5f5aa1e51))
+* ✨we work message ([bb9e293](https://github.com/hks2002/sage-assistant-server/commit/bb9e29366fcc62377a8cea6a3ef7b2e60cbbf08f))
+* ✨webdav support ([77967aa](https://github.com/hks2002/sage-assistant-server/commit/77967aaa656e71e612eaf3ef2b6ec9c27242eb64))
+
+
+### Bug Fixes
+
+* 🐛change attachment for new product files ([3c05038](https://github.com/hks2002/sage-assistant-server/commit/3c05038226b8abc686d6c380961304aceb767b48))
+* 🐛china ip range changed ([4173bb6](https://github.com/hks2002/sage-assistant-server/commit/4173bb6e6c90b9c12b6cdb18df9be2b57d9590e4))
+* 🐛DateTo add 23:59:59 ([e7709e3](https://github.com/hks2002/sage-assistant-server/commit/e7709e3f21bcfb0c629801324e2de35aa9e157e0))
+* 🐛fix empty ori project no link in purchase ([ea2db6e](https://github.com/hks2002/sage-assistant-server/commit/ea2db6e823cca9eae2415730107b631bdee8959c))
+* 🐛fix sql bug ([20682dd](https://github.com/hks2002/sage-assistant-server/commit/20682dd55d15ca29954e7d5d54d55622019924c2))
+* 🐛fix upload file bugs ([597b036](https://github.com/hks2002/sage-assistant-server/commit/597b0364f5bff4c3494d97d722bdbcac29fbe38d))
+* 🐛setScale rounding ([ae6c8a8](https://github.com/hks2002/sage-assistant-server/commit/ae6c8a8f1f44ef1cc1aa5583d494f170f41f8db8))
+* 🐛to solve tiff files problem ([dc23f9f](https://github.com/hks2002/sage-assistant-server/commit/dc23f9fd26f50098983921a902ddb0c265491b37))
+
+
+### Performance Improvements
+
+* 🚀rewrite sql for suspect duplicate ([e522ee1](https://github.com/hks2002/sage-assistant-server/commit/e522ee13f825d05f253e076808c25e3c1ed3ffdc))
+
+
+### Documentation
+
+* 📚update readme ([7ae4878](https://github.com/hks2002/sage-assistant-server/commit/7ae4878f1abc8261bb18e64de73239eda9f9eea0))
+
 ## 1.0.0 (2024-05-25)
 
 
