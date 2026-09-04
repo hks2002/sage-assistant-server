@@ -1,5 +1,16 @@
 # Changelog
 
+## [5.0.0](https://github.com/hks2002/sage-assistant-server/compare/v4.1.0...v5.0.0) (2026-09-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* ♻️Change to Vertx
+
+### Code Refactoring
+
+* ♻️Change to Vertx ([9f069c5](https://github.com/hks2002/sage-assistant-server/commit/9f069c5f2eb651e2f88a012777af2247e322dd48))
+
 ## [4.1.0](https://github.com/hks2002/sage-assistant-server/compare/v4.0.0...v4.1.0) (2026-09-03)
 
 
