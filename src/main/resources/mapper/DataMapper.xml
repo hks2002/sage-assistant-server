@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.DataMapper">
+  <cache flushInterval="3600000" size="100" />
+  <sql id="data_Query_WHERE">
+    <choose>
+      <when test="id != null and id != ''">
+        data.id = #{id}
+      </when> 
+      <when test="data_code != null and data_code != ''">
+        data_code = #{data_code}
+      </when> 
+      <when test="q != null and q != ''">
+        (
+          user.login_name LIKE #{q}
+          OR data_code LIKE #{q}
+          OR data_description LIKE #{q}
+          OR data_group LIKE #{q}
+        )
+      </when> 
+      <otherwise>
+        1 = 1
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="data_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'owner'">
+            user.login_name
+          </when> 
+          <when test="sortBy == 'data_code'">
+            data_code
+          </when> 
+          <when test="sortBy == 'data_group'">
+            data.data_group
+          </when> 
+          <when test="sortBy == 'create_at'">
+            data.create_at
+          </when> 
+          <when test="sortBy == 'update_at'">
+            data.update_at
+          </when> 
+          <otherwise>
+            data.id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="data_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      data.id,
+      data.data_source,
+      data.data_code,
+      data.data_description,
+      data.data_group,
+      <if test="details != null and details != ''">
+        data.data_definition,
+        data.data_params,
+        data.data_columns,
+        data.cache_time,
+      </if> data.owner_id,
+      user.login_name AS owner,
+      data.create_at,
+      data.create_by,
+      data.update_at,
+      data.update_by
+    FROM
+      data
+      LEFT JOIN user ON data.owner_id = user.id
+    WHERE
+      <include refid="data_Query_WHERE"></include> 
+      <include refid="data_Query_ORDER_BY"></include>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="data_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      data
+      LEFT JOIN user ON data.owner_id = user.id
+    WHERE
+      <include refid="data_Query_WHERE"></include>
+  </select>
+  <insert id="data_Insert">
+    INSERT INTO
+      data 
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="data_source != null">
+          data_source,
+        </if> 
+        <if test="data_code != null">
+          data_code,
+        </if> 
+        <if test="data_description != null">
+          data_description,
+        </if> 
+        <if test="data_group != null">
+          data_group,
+        </if> 
+        <if test="data_definition != null">
+          data_definition,
+        </if> 
+        <if test="data_params != null">
+          data_params,
+        </if> 
+        <if test="data_columns != null">
+          data_columns,
+        </if> 
+        <if test="owner_id != null">
+          owner_id,
+        </if> 
+        <if test="cache_time != null">
+          cache_time,
+        </if> 
+        <if test="create_by != null">
+          create_by,
+        </if> 
+        <if test="update_by != null">
+          update_by,
+        </if>
+      </trim>
+    VALUES
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="data_source != null">
+          #{data_source},
+        </if> 
+        <if test="data_code != null">
+          #{data_code},
+        </if> 
+        <if test="data_description != null">
+          #{data_description},
+        </if> 
+        <if test="data_group != null">
+          #{data_group},
+        </if> 
+        <if test="data_definition != null">
+          #{data_definition},
+        </if> 
+        <if test="data_params != null">
+          #{data_params},
+        </if> 
+        <if test="data_columns != null">
+          #{data_columns},
+        </if> 
+        <if test="owner_id != null">
+          #{owner_id},
+        </if> 
+        <if test="cache_time != null">
+          #{cache_time},
+        </if> 
+        <if test="create_at != null">
+          #{create_at},
+        </if> 
+        <if test="create_by != null">
+          #{create_by},
+        </if>
+      </trim>
+  </insert>
+  <update id="data_Update">
+    UPDATE data 
+    <set>
+      <if test="data_source != null">
+        data_source = #{data_source},
+      </if> 
+      <if test="data_code != null">
+        data_code = #{data_code},
+      </if> 
+      <if test="data_description != null">
+        data_description = #{data_description},
+      </if> 
+      <if test="data_group != null">
+        data_group = #{data_group},
+      </if> 
+      <if test="data_definition != null">
+        data_definition = #{data_definition},
+      </if> 
+      <if test="data_params != null">
+        data_params = #{data_params},
+      </if> 
+      <if test="data_columns != null">
+        data_columns = #{data_columns},
+      </if> 
+      <if test="owner_id != null">
+        owner_id = #{owner_id},
+      </if> 
+      <if test="cache_time != null">
+        cache_time = #{cache_time},
+      </if> 
+      <if test="update_at != null">
+        update_at = #{update_at},
+      </if> 
+      <if test="update_by != null">
+        update_by = #{update_by},
+      </if>
+    </set>
+    WHERE
+      <choose>
+        <when test="id != null">
+          id = #{id}
+        </when> 
+        <when test="data_code != null">
+          data_code = #{data_code}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </update>
+  <delete id="data_Delete">
+    DELETE FROM data
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="data_code != null and data_code != ''">
+          data_code = #{data_code}
+        </when> 
+        <when test="owner_id != null and owner_id != ''">
+          owner_id = #{owner_id}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </delete>
+</mapper>

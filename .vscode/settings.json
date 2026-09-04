@@ -1,13 +1,12 @@
 {
-  "[java]": {
-    "editor.defaultFormatter": "redhat.java"
-  },
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "java.autobuild.enabled": true,
   "auto-header-plus.commentElements": [
     "Author",
-    "CopyRight",
     "CreatedDate",
+    "LastEditors",
     "LastEditDate",
-    "LastEditors"
+    "CopyRight"
   ],
   "auto-header-plus.commentElementsValue": {
     "CopyRight": "Dedienne Aerospace China ZhuHai"
@@ -19,48 +18,24 @@
   "editor.codeActionsOnSave": {
     "source.organizeImports": "explicit"
   },
+  "[xml]": {
+    "editor.formatOnSave": false
+  },
+  "editor.formatOnSave": true,
   "editor.detectIndentation": false,
   "editor.stickyTabStops": true,
   "editor.tabSize": 2,
   "editor.useTabStops": false,
-  "editor.formatOnSave": true,
-  "editor.renderControlCharacters": true,
-  "editor.renderWhitespace": "all",
-  "editor.rulers": [
-    {
-      "color": "#4000ff",
-      "column": 80
-    },
-    {
-      "color": "#d6225e",
-      "column": 120
-    }
-  ],
-  "java.compile.nullAnalysis.mode": "automatic",
-  "java.configuration.updateBuildConfiguration": "automatic",
-  "java.format.enabled": true,
-  "java.format.settings.url": "${workspaceRoot}/eclipse-formatter.xml",
-  "java.jdt.ls.vmargs": "-XX:+UseParallelGC -XX:GCTimeRatio=4 -XX:AdaptiveSizePolicyWeight=90 -Dsun.zip.disableMemoryMapping=true -Xmx2G -Xms100m -Xlog:disable -Xshare:off",
+  // for debug run
+  "java.debug.settings.vmArgs": "-Dlog4j.skipJansi=false",
+  // for unit test
   "java.test.config": {
-    "args": [
+    "vmArgs": [
       "-Dlog4j.skipJansi=false"
     ]
   },
-  "xml.format.preserveSpace": [
-    "xsl:text",
-    "xsl:comment",
-    "xsl:processing-instruction",
-    "literallayout",
-    "programlisting",
-    "screen",
-    "synopsis",
-    "pre",
-    "xd:pre",
-    "select",
-    "if",
-    "when",
-    "otherwise",
-    "choose"
-  ],
-  "xml.format.maxLineWidth": 120
+  "java.compile.nullAnalysis.mode": "disabled",
+  "trae.tab.enableRename": false,
+  "trae.tab.enableAutoImport": false,
+  "java.debug.settings.onBuildFailureProceed": true,
 }

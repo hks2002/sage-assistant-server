@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.ChartMapper">
+  <cache flushInterval="3600000" size="100" />
+  <sql id="chart_Query_WHERE">
+    <choose>
+      <when test="id != null and id != ''">
+        chart.id = #{id}
+      </when> 
+      <when test="chart_code != null and chart_code != ''">
+        chart.chart_code = #{chart_code}
+      </when> 
+      <when test="q != null and q != ''">
+        (
+          user.login_name LIKE #{q}
+          OR chart.chart_code LIKE #{q}
+          OR data.data_code LIKE #{q}
+        )
+      </when> 
+      <otherwise>
+        1 = 1
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="chart_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'owner'">
+            user.login_name
+          </when> 
+          <when test="sortBy == 'chart_code'">
+            chart.chart_code
+          </when> 
+          <otherwise>
+            chart.id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="chart_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      chart.id,
+      chart.chart_code,
+      chart.chart_description,
+      chart.chart_snap,
+      <if test="details != null and details != ''">
+        chart.chart_options,
+        chart.data_id,
+        chart.group_by,
+        data.data_code,
+        data.data_params,
+        data.data_columns,
+      </if> chart.owner_id,
+      user.login_name AS owner,
+      chart.create_at,
+      chart.create_by,
+      chart.update_at,
+      chart.update_by
+    FROM
+      chart
+      LEFT JOIN user ON chart.owner_id = user.id
+      LEFT JOIN data ON chart.data_id = data.id
+    WHERE
+      <include refid="chart_Query_WHERE"></include> 
+      <include refid="chart_Query_ORDER_BY"></include>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="chart_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      chart
+      LEFT JOIN user ON chart.owner_id = user.id
+      LEFT JOIN data ON chart.data_id = data.id
+    WHERE
+      <include refid="chart_Query_WHERE"></include>
+  </select>
+  <insert id="chart_Insert">
+    INSERT INTO
+      chart 
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="chart_code != null">
+          chart_code,
+        </if> 
+        <if test="chart_description != null">
+          chart_description,
+        </if> 
+        <if test="data_id != null">
+          data_id,
+        </if> 
+        <if test="group_by != null">
+          group_by,
+        </if> 
+        <if test="chart_options != null">
+          chart_options,
+        </if> 
+        <if test="chart_snap != null">
+          chart_snap,
+        </if> 
+        <if test="owner_id != null">
+          owner_id,
+        </if> 
+        <if test="create_at != null">
+          create_at,
+        </if> 
+        <if test="create_by != null">
+          create_by,
+        </if>
+      </trim>
+    VALUES
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="chart_code != null">
+          #{chart_code},
+        </if> 
+        <if test="chart_description != null">
+          #{chart_description},
+        </if> 
+        <if test="data_id != null">
+          #{data_id},
+        </if> 
+        <if test="group_by != null">
+          #{group_by},
+        </if> 
+        <if test="chart_options != null">
+          #{chart_options},
+        </if> 
+        <if test="chart_snap != null">
+          #{chart_snap},
+        </if> 
+        <if test="owner_id != null">
+          #{owner_id},
+        </if> 
+        <if test="create_at != null">
+          #{create_at},
+        </if> 
+        <if test="create_by != null">
+          #{create_by},
+        </if>
+      </trim>
+  </insert>
+  <update id="chart_Update">
+    UPDATE chart 
+    <set>
+      <if test="chart_code != null and chart_code != ''">
+        chart_code = #{chart_code},
+      </if> 
+      <if test="chart_description != null and chart_description != ''">
+        chart_description = #{chart_description},
+      </if> 
+      <if test="data_id != null and data_id != ''">
+        data_id = #{data_id},
+      </if> 
+      <if test="group_by != null and group_by != ''">
+        group_by = #{group_by},
+      </if> 
+      <if test="chart_options != null and chart_options != ''">
+        chart_options = #{chart_options},
+      </if> 
+      <if test="chart_snap != null and chart_snap != ''">
+        chart_snap = #{chart_snap},
+      </if> 
+      <if test="owner_id != null and owner_id != ''">
+        owner_id = #{owner_id},
+      </if> 
+      <if test="update_at != null and update_at != ''">
+        update_at = #{update_at},
+      </if> 
+      <if test="update_by != null and update_by != ''">
+        update_by = #{update_by},
+      </if>
+    </set>
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="chart_code != null and chart_code != ''">
+          chart_code = #{chart_code}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </update>
+  <delete id="chart_Delete">
+    DELETE FROM chart
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="chart_code != null and chart_code != ''">
+          chart_code = #{chart_code}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </delete>
+</mapper>

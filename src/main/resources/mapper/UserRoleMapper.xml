@@ -1,0 +1,185 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.UserRoleMapper">
+  <cache flushInterval="3600000" size="100" />
+  <sql id="userRole_role_Query_WHERE">
+    <if test="invert != null and invert != ''">
+      NOT
+    </if> EXISTS (
+      SELECT
+        1
+      FROM
+        user_roles
+        INNER JOIN user ON user.id = user_roles.user_id
+      WHERE
+        user_roles.role_id = role.id 
+        <choose>
+          <when test="user_id != null and user_id != ''">
+            AND user_roles.user_id = #{user_id}
+          </when> 
+          <when test="login_name != null and login_name != ''">
+            AND user.login_name = #{login_name}
+          </when>
+        </choose>
+    ) 
+    <if test="q != null and q != ''">
+      AND (
+        role.role_code LIKE #{q}
+        OR role.role_name LIKE #{q}
+      )
+    </if>
+  </sql>
+  <sql id="userRole_role_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'role_code'">
+            role_code
+          </when> 
+          <when test="sortBy == 'role_name'">
+            role_name
+          </when> 
+          <otherwise>
+            id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="userRole_role_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      role.id,
+      role.role_code,
+      role.role_name
+    FROM
+      role
+    WHERE
+      <include refid="userRole_role_Query_WHERE"></include> 
+      <include refid="userRole_role_Query_ORDER_BY"></include>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="userRole_role_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      role
+    WHERE
+      <include refid="userRole_role_Query_WHERE"></include>
+  </select>
+  <sql id="userRole_user_Query_WHERE">
+    <if test="invert != null and invert != ''">
+      NOT
+    </if> EXISTS (
+      SELECT
+        1
+      FROM
+        user_roles
+        INNER JOIN role ON role.id = user_roles.role_id
+      WHERE
+        user_roles.user_id = user.id 
+        <choose>
+          <when test="role_id != null and role_id != ''">
+            AND user_roles.role_id = #{role_id}
+          </when>
+        </choose>
+    ) 
+    <if test="q != null and q != ''">
+      AND (
+        user.login_name LIKE #{q}
+        OR user.first_name LIKE #{q}
+        OR user.last_name LIKE #{q}
+        OR user.email LIKE #{q}
+      )
+    </if>
+  </sql>
+  <sql id="userRole_user_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="orderBy == 'login_name'">
+            login_name
+          </when> 
+          <when test="orderBy == 'first_name'">
+            first_name
+          </when> 
+          <when test="orderBy == 'last_name'">
+            last_name
+          </when> 
+          <when test="orderBy == 'email'">
+            email
+          </when> 
+          <otherwise>
+            id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="userRole_user_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      user.id,
+      user.login_name,
+      user.first_name,
+      user.last_name,
+      user.email
+    FROM
+      user
+    WHERE
+      <include refid="userRole_user_Query_WHERE"></include> 
+      <include refid="userRole_user_Query_ORDER_BY"></include>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="userRole_user_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      user
+    WHERE
+      <include refid="userRole_user_Query_WHERE"></include>
+  </select>
+  <insert id="userRole_Insert">
+    INSERT INTO
+      user_roles (user_id, role_id, create_at, create_by)
+    VALUES
+      (
+        #{user_id},
+        #{role_id},
+        #{create_at},
+        #{create_by}
+      )
+  </insert>
+  <delete id="userRole_Delete">
+    DELETE FROM user_roles
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="user_id != null and user_id != '' and role_id != null and role_id != ''">
+          user_id = #{user_id}
+          AND role_id = #{role_id}
+        </when> 
+        <when test="user_id != null and user_id != ''">
+          user_id = #{user_id}
+        </when> 
+        <when test="role_id != null and role_id != ''">
+          role_id = #{role_id}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </delete>
+</mapper>

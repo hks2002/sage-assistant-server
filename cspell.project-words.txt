@@ -26,6 +26,7 @@ Dedienne
 DNSA
 EURUSD
 Fapiao
+fasterxml
 fastjson
 Funcs
 GBPUSD
@@ -84,6 +85,7 @@ thead
 Tobe
 tofile
 unethicalreading
+vertx
 webclient
 Webdav
 Wework

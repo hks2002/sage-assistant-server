@@ -1,0 +1,71 @@
+{
+  "configName": "dev",
+  "http": {
+    "port": 8080
+  },
+  "session": {
+    "sessionTimeout": 3600000
+  },
+  "defaultAccess": {
+    "read": true,
+    "write": true,
+    "admin": false
+  },
+  "adminPassword": "sa",
+  "adServer": {
+    "url": "ldap://127.0.0.1:389",
+    "domain": "docs.com",
+    "searchBase": "OU=User,DC=docs,DC=com"
+  },
+  "permissionManage": true,
+  "idSalt": "1234567890",
+  "idMinLength": 8,
+  "dataSource": [
+    {
+      "type": "MYSQL",
+      "name": "sa",
+      "config": {
+        "host": "127.0.0.1",
+        "port": 3306,
+        "database": "sage_assistant",
+        "user": "dev",
+        "password": "password",
+        "ssl": true
+      },
+      "options": {
+        "maxSize": 5,
+        "maxWaitQueueSize": -1,
+        "idleTimeout": 0,
+        "maxLifetime": 0,
+        "eventLoopSize": 0
+      }
+    },
+    {
+      "type": "MYSQL",
+      "name": "sage",
+      "config": {
+        "host": "127.0.0.1",
+        "port": 3306,
+        "database": "docs",
+        "user": "docs",
+        "password": "password",
+        "ssl": false
+      },
+      "options": {
+        "maxSize": 5,
+        "maxWaitQueueSize": -1,
+        "idleTimeout": 0,
+        "maxLifetime": 0,
+        "shared": false,
+        "eventLoopSize": 0
+      }
+    }
+  ],
+  "dbCache": {
+    "cacheSize": 1000,
+    "expireAfterWrite": 5
+  },
+  "upload": {
+    "bodyLimit": -1
+  }
+}

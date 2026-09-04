@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.PermissionMapper">
+  <cache flushInterval="3600000" size="100" />
+  <sql id="permission_Query_WHERE">
+    <choose>
+      <when test="id != null and id != ''">
+        id = #{id}
+      </when> 
+      <when test="permission_code != null and permission_code != ''">
+        permission_code = #{permission_code}
+      </when> 
+      <when test="q != null and q != ''">
+        permission_code LIKE #{q}
+        OR permission_description LIKE #{q}
+      </when> 
+      <otherwise>
+        1 = 1
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="permission_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'group'">
+            `group`
+          </when> 
+          <when test="sortBy == 'permission_code'">
+            permission_code
+          </when> 
+          <when test="sortBy == 'permission_description'">
+            permission_description
+          </when> 
+          <when test="sortBy == 'create_at'">
+            create_at
+          </when> 
+          <when test="sortBy == 'update_at'">
+            update_at
+          </when> 
+          <otherwise>
+            id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="permission_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      id,
+      `group`,
+      permission_code,
+      permission_description,
+      enable,
+      create_at,
+      create_by,
+      update_at,
+      update_by
+    FROM
+      permission
+    WHERE
+      <include refid="permission_Query_WHERE"></include> 
+      <include refid="permission_Query_ORDER_BY"></include>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="permission_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      permission
+    WHERE
+      <include refid="permission_Query_WHERE"></include>
+  </select>
+  <insert id="permission_Insert">
+    INSERT INTO
+      permission 
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="group != null">
+          `group`,
+        </if> 
+        <if test="permission_code != null">
+          permission_code,
+        </if> 
+        <if test="permission_description != null">
+          permission_description,
+        </if> 
+        <if test="enable != null">
+          enable,
+        </if> 
+        <if test="create_at != null">
+          create_at,
+        </if> 
+        <if test="create_by != null">
+          create_by,
+        </if>
+      </trim>
+    VALUES
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="group != null">
+          #{group},
+        </if> 
+        <if test="permission_code != null">
+          #{permission_code},
+        </if> 
+        <if test="permission_description != null">
+          #{permission_description},
+        </if> 
+        <if test="enable != null">
+          #{enable},
+        </if> 
+        <if test="create_at != null">
+          #{create_at},
+        </if> 
+        <if test="create_by != null">
+          #{create_by},
+        </if>
+      </trim>
+  </insert>
+  <update id="permission_Update">
+    UPDATE permission 
+    <set>
+      <if test="group != null">
+        `group` = #{group},
+      </if> 
+      <if test="permission_code != null">
+        permission_code = #{permission_code},
+      </if> 
+      <if test="permission_description != null">
+        permission_description = #{permission_description},
+      </if> 
+      <if test="enable != null">
+        enable = #{enable},
+      </if> 
+      <if test="update_at != null">
+        update_at = #{update_at},
+      </if> 
+      <if test="update_by != null">
+        update_by = #{update_by},
+      </if>
+    </set>
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="permission_code != null and permission_code != ''">
+          permission_code = #{permission_code}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </update>
+  <delete id="permission_Delete">
+    DELETE FROM permission
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="permission_code != null and permission_code != ''">
+          permission_code = #{permission_code}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </delete>
+</mapper>

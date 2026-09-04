@@ -1,8 +1,9 @@
 {
-    "recommendations": [
-        "merbleueaviation.auto-header-plus",
-        "streetsidesoftware.code-spell-checker",
-        "merbleueaviation.emoji-commit-tiny",
-        "vmware.vscode-spring-boot"
-    ]
+  "recommendations": [
+    "merbleueaviation.auto-header-plus",
+    "streetsidesoftware.code-spell-checker",
+    "merbleueaviation.emoji-commit-tiny",
+    "vscjava.vscode-java-pack",
+    "yangbaopan.vscode-java-ibatisx"
+  ]
 }

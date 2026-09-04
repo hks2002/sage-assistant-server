@@ -22,7 +22,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Install JDK
         uses: actions/setup-java@v5
@@ -36,7 +36,9 @@ jobs:
           chmod +x mvnw
           ./mvnw -B compile
 
-      - uses: google-github-actions/release-please-action@v4
+      - uses: googleapis/release-please-action@v5
         with:
           release-type: maven
           #package-name: release-please-action
+          token: ${{ secrets.GITHUB_TOKEN }}
+          config-file: release-please-config.json

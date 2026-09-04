@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.UserPermissionMapper">
+  <cache flushInterval="3600000" size="100" />
+  <insert id="userPermission_Insert">
+    INSERT INTO
+      user_permissions (user_id, permission_id, create_at, create_by)
+    VALUES
+      (
+        #{user_id},
+        #{permission_id},
+        #{create_at},
+        #{create_by}
+      )
+  </insert>
+  <delete id="userPermission_Delete">
+    DELETE FROM user_permissions
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="user_id != null and user_id != '' and permission_id != null and permission_id != ''">
+          user_id = #{user_id}
+          AND permission_id = #{permission_id}
+        </when> 
+        <when test="user_id != null and user_id != ''">
+          user_id = #{user_id}
+        </when> 
+        <when test="permission_id != null and permission_id != ''">
+          permission_id = #{permission_id}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </delete>
+  <sql id="userPermission_user_Query_WHERE">
+    <if test="invert != null and invert != ''">
+      NOT
+    </if> EXISTS (
+      SELECT
+        1
+      FROM
+        user_permissions
+        INNER JOIN permission ON user_permissions.permission_id = permission.id
+        AND permission.enable = 1
+      WHERE
+        user_permissions.user_id = user.id 
+        <choose>
+          <when test="permission_id != null and permission_id != ''">
+            AND user_permissions.permission_id = #{permission_id}
+          </when> 
+          <when test="permission_code != null and permission_code != ''">
+            AND permission.permission_code = #{permission_code}
+          </when>
+        </choose>
+    ) 
+    <if test="q != null and q != ''">
+      AND (
+        user.login_name LIKE #{q}
+        OR user.first_name LIKE #{q}
+        OR user.last_name LIKE #{q}
+        OR user.email LIKE #{q}
+      )
+    </if>
+  </sql>
+  <sql id="userPermission_user_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'login_name'">
+            login_name
+          </when> 
+          <when test="sortBy == 'first_name'">
+            first_name
+          </when> 
+          <when test="sortBy == 'last_name'">
+            last_name
+          </when> 
+          <when test="sortBy == 'email'">
+            email
+          </when> 
+          <otherwise>
+            id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="userPermission_user_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      user.id,
+      user.login_name,
+      user.first_name,
+      user.last_name,
+      user.email
+    FROM
+      user
+    WHERE
+      <include refid="userPermission_user_Query_WHERE"/> 
+      <include refid="userPermission_user_Query_ORDER_BY"/>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="userPermission_user_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      user
+    WHERE
+      <include refid="userPermission_user_Query_WHERE"/>
+  </select>
+  <sql id="userPermission_permission_Query_WHERE">
+    permission.enable = 1
+    AND 
+    <if test="invert != null and invert != ''">
+      NOT
+    </if> EXISTS (
+      SELECT
+        1
+      FROM
+        user_permissions
+        INNER JOIN user ON user.id = user_permissions.user_id
+      WHERE
+        user_permissions.permission_id = permission.id 
+        <choose>
+          <when test="user_id != null and user_id != ''">
+            AND user_permissions.user_id = #{user_id}
+          </when> 
+          <when test="login_name != null and login_name != ''">
+            AND user.login_name = #{login_name}
+          </when>
+        </choose>
+    ) 
+    <if test="q != null and q != ''">
+      AND (
+        permission.group LIKE #{q}
+        OR permission.permission_code LIKE #{q}
+        OR permission.permission_description LIKE #{q}
+      )
+    </if>
+  </sql>
+  <sql id="userPermission_permission_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'group'">
+            `group`
+          </when> 
+          <when test="sortBy == 'permission_code'">
+            permission_code
+          </when> 
+          <otherwise>
+            id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="userPermission_permission_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      permission.id,
+      permission.group,
+      permission.permission_code,
+      permission.permission_description
+    FROM
+      permission
+    WHERE
+      <include refid="userPermission_permission_Query_WHERE"/> 
+      <include refid="userPermission_permission_Query_ORDER_BY"/>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="userPermission_permission_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      permission
+    WHERE
+      <include refid="userPermission_permission_Query_WHERE"/>
+  </select>
+  <sql id="userRolePermission_Query_WHERE">
+    permission.enable = 1
+    AND 
+    <choose>
+      <when test="user_id != null and user_id != ''">
+        user_roles.user_id = #{user_id}
+      </when> 
+      <when test="login_name != null and login_name != ''">
+        user.login_name = #{login_name}
+      </when>
+    </choose>
+  </sql>
+  <select id="userRolePermission_Query">
+    SELECT DISTINCT
+      permission.permission_code
+    FROM
+      user
+      INNER JOIN user_roles ON user.id = user_roles.user_id
+      INNER JOIN role_permissions ON user_roles.role_id = role_permissions.role_id
+      INNER JOIN permission ON role_permissions.permission_id = permission.id
+    WHERE
+      <include refid="userRolePermission_Query_WHERE"/>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="userRolePermission_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      user
+      INNER JOIN user_roles ON user.id = user_roles.user_id
+      INNER JOIN role_permissions ON user_roles.role_id = role_permissions.role_id
+      INNER JOIN permission ON role_permissions.permission_id = permission.id
+    WHERE
+      <include refid="userRolePermission_Query_WHERE"/>
+  </select>
+</mapper>

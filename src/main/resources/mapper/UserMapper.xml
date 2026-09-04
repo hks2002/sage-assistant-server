@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.UserMapper">
+  <cache flushInterval="3600000" size="100" />
+  <sql id="user_Query_WHERE">
+    <choose>
+      <when test="id != null and id != ''">
+        id = #{id}
+      </when> 
+      <when test="login_name != null and login_name != ''">
+        login_name = #{login_name}
+      </when> 
+      <when test="q != null and q != ''">
+        login_name LIKE #{q}
+        OR first_name LIKE #{q}
+        OR last_name LIKE #{q}
+        OR email LIKE #{q}
+      </when> 
+      <otherwise>
+        1 = 1
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="user_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'login_name'">
+            login_name
+          </when> 
+          <when test="sortBy == 'first_name'">
+            first_name
+          </when> 
+          <when test="sortBy == 'last_name'">
+            last_name
+          </when> 
+          <when test="sortBy == 'email'">
+            email
+          </when> 
+          <when test="sortBy == 'create_at'">
+            create_at
+          </when> 
+          <when test="sortBy == 'update_at'">
+            update_at
+          </when> 
+          <otherwise>
+            id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="user_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      id,
+      login_name,
+      first_name,
+      last_name,
+      email,
+      create_at,
+      create_by,
+      update_at,
+      update_by
+    FROM
+      user
+    WHERE
+      <include refid="user_Query_WHERE"></include> 
+      <include refid="user_Query_ORDER_BY"></include>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="user_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      user
+    WHERE
+      <include refid="user_Query_WHERE"></include>
+  </select>
+  <insert id="user_Insert">
+    INSERT INTO
+      user 
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="login_name != null">
+          login_name,
+        </if> 
+        <if test="first_name != null">
+          first_name,
+        </if> 
+        <if test="last_name != null">
+          last_name,
+        </if> 
+        <if test="email != null">
+          email,
+        </if> 
+        <if test="create_at != null">
+          create_at,
+        </if> 
+        <if test="create_by != null">
+          create_by,
+        </if>
+      </trim>
+    VALUES
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="login_name != null">
+          #{login_name},
+        </if> 
+        <if test="first_name != null">
+          #{first_name},
+        </if> 
+        <if test="last_name != null">
+          #{last_name},
+        </if> 
+        <if test="email != null">
+          #{email},
+        </if> 
+        <if test="create_at != null">
+          #{create_at},
+        </if> 
+        <if test="create_by != null">
+          #{create_by},
+        </if>
+      </trim>
+  </insert>
+  <update id="user_Update">
+    UPDATE user 
+    <set>
+      <if test="login_name != null">
+        login_name = #{login_name},
+      </if> 
+      <if test="first_name != null">
+        first_name = #{first_name},
+      </if> 
+      <if test="last_name != null">
+        last_name = #{last_name},
+      </if> 
+      <if test="email != null">
+        email = #{email},
+      </if> 
+      <if test="update_at != null">
+        update_at = #{update_at},
+      </if> 
+      <if test="update_by != null">
+        update_by = #{update_by},
+      </if>
+    </set>
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="login_name != null and login_name != ''">
+          login_name = #{login_name}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </update>
+  <delete id="user_Delete">
+    DELETE FROM user
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="login_name != null and login_name != ''">
+          login_name = #{login_name}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </delete>
+</mapper>

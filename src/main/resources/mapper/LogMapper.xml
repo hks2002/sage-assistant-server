@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.LogMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour-->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="log_Query_WHERE">
+    <choose>
+      <when test="id != null and id != ''">
+        AND log.id = #{id}
+      </when> 
+      <when test="template_code != null and template_code != ''">
+        AND log_template.template_code = #{template_code}
+      </when> 
+      <when test="ip != null and ip != ''">
+        AND log.ip = #{ip}
+      </when> 
+      <when test="user_id != null and user_id != ''">
+        AND user.id = #{user_id}
+      </when> 
+      <when test="login_name != null and login_name != ''">
+        AND user.login_name = #{login_name}
+      </when> 
+      <when test="q != null and q != ''">
+        AND (
+          log_template.template_code LIKE #{q}
+          OR user.login_name LIKE #{q}
+          OR user.first_name LIKE #{q}
+          OR user.last_name LIKE #{q}
+          OR user.email LIKE #{q}
+          OR log.v0 LIKE #{q}
+          OR log.v1 LIKE #{q}
+          OR log.v2 LIKE #{q}
+          OR log.v3 LIKE #{q}
+          OR log.v4 LIKE #{q}
+          OR log.v5 LIKE #{q}
+          OR log.v6 LIKE #{q}
+          OR log.v7 LIKE #{q}
+          OR log.v8 LIKE #{q}
+          OR log.v9 LIKE #{q}
+        )
+      </when> 
+      <otherwise>
+        1 = 1
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="log_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'id'">
+            log.id
+          </when> 
+          <when test="sortBy == 'template_code'">
+            log_template.template_code
+          </when> 
+          <when test="sortBy == 'log_at'">
+            log.log_at
+          </when> 
+          <when test="sortBy == 'ip'">
+            log.ip
+          </when> 
+          <when test="sortBy == 'login_name'">
+            user.login_name
+          </when> 
+          <when test="sortBy == 'first_name'">
+            user.first_name
+          </when> 
+          <when test="sortBy == 'last_name'">
+            user.last_name
+          </when> 
+          <when test="sortBy == 'email'">
+            user.email
+          </when> 
+          <when test="sortBy == 'v0'">
+            log.v0
+          </when> 
+          <when test="sortBy == 'v1'">
+            log.v1
+          </when> 
+          <when test="sortBy == 'v2'">
+            log.v2
+          </when> 
+          <when test="sortBy == 'v3'">
+            log.v3
+          </when> 
+          <when test="sortBy == 'v4'">
+            log.v4
+          </when> 
+          <when test="sortBy == 'v5'">
+            log.v5
+          </when> 
+          <when test="sortBy == 'v6'">
+            log.v6
+          </when> 
+          <when test="sortBy == 'v7'">
+            log.v7
+          </when> 
+          <when test="sortBy == 'v8'">
+            log.v8
+          </when> 
+          <when test="sortBy == 'v9'">
+            log.v9
+          </when> 
+          <otherwise>
+            log.id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="log_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      log.id AS id,
+      log_template.template_code AS template_code,
+      log.log_at AS log_at,
+      log.ip AS ip,
+      user.login_name AS login_name,
+      user.first_name AS first_name,
+      user.last_name AS last_name,
+      user.email AS email,
+      log.v0 AS v0,
+      log.v1 AS v1,
+      log.v2 AS v2,
+      log.v3 AS v3,
+      log.v4 AS v4,
+      log.v5 AS v5,
+      log.v6 AS v6,
+      log.v7 AS v7,
+      log.v8 AS v8,
+      log.v9 AS v9
+    FROM
+      log
+      LEFT JOIN log_template ON log.template_id = log_template.id
+      LEFT JOIN user ON log.log_by = user.login_name
+    WHERE
+      <include refid="log_Query_WHERE"></include> 
+      <include refid="log_Query_ORDER_BY"></include>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="log_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      log
+      LEFT JOIN log_template ON log.template_id = log_template.id
+      LEFT JOIN user ON log.log_by = user.login_name
+    WHERE
+      <include refid="log_Query_WHERE"></include>
+  </select>
+  <insert id="log_Insert">
+    INSERT INTO
+      log 
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="template_id != null">
+          template_id,
+        </if> 
+        <if test="log_at != null">
+          log_at,
+        </if> 
+        <if test="log_by != null">
+          log_by,
+        </if> 
+        <if test="ip != null">
+          ip,
+        </if> 
+        <if test="v0 != null">
+          v0,
+        </if> 
+        <if test="v1 != null">
+          v1,
+        </if> 
+        <if test="v2 != null">
+          v2,
+        </if> 
+        <if test="v3 != null">
+          v3,
+        </if> 
+        <if test="v4 != null">
+          v4,
+        </if> 
+        <if test="v5 != null">
+          v5,
+        </if> 
+        <if test="v6 != null">
+          v6,
+        </if> 
+        <if test="v7 != null">
+          v7,
+        </if> 
+        <if test="v8 != null">
+          v8,
+        </if> 
+        <if test="v9 != null">
+          v9,
+        </if> 
+        <if test="create_at != null">
+          create_at,
+        </if> 
+        <if test="update_at != null">
+          update_at,
+        </if> 
+        <if test="create_by != null">
+          create_by,
+        </if> 
+        <if test="update_by != null">
+          update_by,
+        </if>
+      </trim>
+    VALUES
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="template_id != null">
+          #{template_id},
+        </if> 
+        <if test="log_at != null">
+          #{log_at},
+        </if> 
+        <if test="log_by != null">
+          #{log_by},
+        </if> 
+        <if test="ip != null">
+          #{ip},
+        </if> 
+        <if test="v0 != null">
+          #{v0},
+        </if> 
+        <if test="v1 != null">
+          #{v1},
+        </if> 
+        <if test="v2 != null">
+          #{v2},
+        </if> 
+        <if test="v3 != null">
+          #{v3},
+        </if> 
+        <if test="v4 != null">
+          #{v4},
+        </if> 
+        <if test="v5 != null">
+          #{v5},
+        </if> 
+        <if test="v6 != null">
+          #{v6},
+        </if> 
+        <if test="v7 != null">
+          #{v7},
+        </if> 
+        <if test="v8 != null">
+          #{v8},
+        </if> 
+        <if test="v9 != null">
+          #{v9},
+        </if> 
+        <if test="create_at != null">
+          #{create_at},
+        </if> 
+        <if test="update_at != null">
+          #{update_at},
+        </if> 
+        <if test="create_by != null">
+          #{create_by},
+        </if> 
+        <if test="update_by != null">
+          #{update_by},
+        </if>
+      </trim>
+  </insert>
+  <delete id="log_Delete">
+    DELETE FROM log
+    WHERE
+      <choose>
+        <when test="id">
+          id = #{id}
+        </when> 
+        <when test="template_id">
+          template_id = #{template_id}
+        </when> 
+        <when test="login_name">
+          log_by = #{login_name}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </delete>
+</mapper>

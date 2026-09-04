@@ -1,0 +1,183 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.RolePermissionMapper">
+  <cache flushInterval="3600000" size="100" />
+  <sql id="rolePermission_permission_Query_WHERE">
+    permission.enable = 1
+    AND 
+    <if test="invert != null and invert != ''">
+      NOT
+    </if> EXISTS (
+      SELECT
+        1
+      FROM
+        role_permissions
+        INNER JOIN role ON role_permissions.role_id = role.id
+      WHERE
+        role_permissions.permission_id = permission.id 
+        <choose>
+          <when test="role_id != null and role_id != ''">
+            AND role_permissions.role_id = #{role_id}
+          </when> 
+          <when test="role_code != null and role_code != ''">
+            AND role.role_code = #{role_code}
+          </when>
+        </choose>
+    ) 
+    <if test="q != null and q != ''">
+      AND (
+        permission.group LIKE #{q}
+        OR permission.permission_code LIKE #{q}
+        OR permission.permission_description LIKE #{q}
+      )
+    </if>
+  </sql>
+  <sql id="rolePermission_permission_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'group'">
+            `group`
+          </when> 
+          <when test="sortBy == 'permission_code'">
+            permission_code
+          </when> 
+          <otherwise>
+            id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="rolePermission_permission_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      permission.id,
+      permission.group,
+      permission.permission_code,
+      permission.permission_description
+    FROM
+      permission
+    WHERE
+      <include refid="rolePermission_permission_Query_WHERE"></include> 
+      <include refid="rolePermission_permission_Query_ORDER_BY"></include>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="rolePermission_permission_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      permission
+    WHERE
+      <include refid="rolePermission_permission_Query_WHERE"></include>
+  </select>
+  <sql id="rolePermission_role_Query_WHERE">
+    <if test="invert != null and invert != ''">
+      NOT
+    </if> EXISTS (
+      SELECT
+        1
+      FROM
+        role_permissions
+        INNER JOIN permission ON role_permissions.permission_id = permission.id
+        AND permission.enable = 1
+      WHERE
+        role_permissions.role_id = role.id 
+        <choose>
+          <when test="permission_id != null and permission_id != ''">
+            AND role_permissions.permission_id = #{permission_id}
+          </when> 
+          <when test="permission_code != null and permission_code != ''">
+            AND permission.permission_code = #{permission_code}
+          </when>
+        </choose>
+    ) 
+    <if test="q != null and q != ''">
+      AND (
+        role.role_code LIKE #{q}
+        OR role.role_name LIKE #{q}
+      )
+    </if>
+  </sql>
+  <sql id="rolePermission_role_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'role_code'">
+            role_code
+          </when> 
+          <when test="sortBy == 'role_name'">
+            role_name
+          </when> 
+          <otherwise>
+            id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="rolePermission_role_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      role.id,
+      role.role_code,
+      role.role_name
+    FROM
+      role
+    WHERE
+      <include refid="rolePermission_role_Query_WHERE"></include> 
+      <include refid="rolePermission_role_Query_ORDER_BY"></include>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="rolePermission_invert_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      role
+    WHERE
+      <include refid="rolePermission_role_Query_WHERE"></include>
+  </select>
+  <insert id="rolePermission_Insert">
+    INSERT INTO
+      role_permissions (role_id, permission_id, create_at, create_by)
+    VALUES
+      (
+        #{role_id},
+        #{permission_id},
+        #{create_at},
+        #{create_by}
+      )
+  </insert>
+  <delete id="rolePermission_Delete">
+    DELETE FROM role_permissions
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="role_id != null and role_id != '' and permission_id != null and permission_id != ''">
+          role_id = #{role_id}
+          AND permission_id = #{permission_id}
+        </when> 
+        <when test="role_id != null and role_id != ''">
+          role_id = #{role_id}
+        </when> 
+        <when test="permission_id != null and permission_id != ''">
+          permission_id = #{permission_id}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </delete>
+</mapper>

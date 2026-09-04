@@ -1,658 +1,385 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
-<mapper namespace="com.da.sage.assistant.dao.PnMapper">
-  <!-- Open L2 Cache under Names pace: 1 Hour-->
-  <cache eviction="LRU" flushInterval="3600000" readOnly="true" size="4096" />
-  <select id="checkPN" resultType="java.lang.String">
-    SELECT TOP 1
-      ITMMASTER.ITMREF_0
+<mapper namespace="com.da.sage.assistant.mapper.PnMapper">
+  <cache flushInterval="3600000" size="10000" />
+  <sql id="TPN">
+    SELECT
+      NULL AS PN 
+      <if test=' WithPN == "YES" or WithPN == "Y" '>
+        UNION
+        SELECT DISTINCT
+          ITMMASTER.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+          LEFT JOIN EXPLOIT.ECCSTA ECCSTA ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
+        WHERE
+          ITMMASTER.ITMREF_0 = #{PN}
+          OR (
+            ECCSTA.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0 = #{PN}
+          )
+      </if> 
+      <if test=' WithPNOG == "YES" or WithPNOG == "Y" '>
+        UNION
+        SELECT
+          ITMMASTER.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+        WHERE
+          LEFT (ITMMASTER.ITMREF_0, 4) = 'PNOG'
+          AND ITMMASTER.ITMDES1_0 LIKE '%' + #{PN} + '%'
+      </if> 
+      <if test=' WithCSPN == "YES" or WithCSPN == "Y" '>
+        UNION
+        SELECT
+          ITMMASTER.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+        WHERE
+          LEFT (ITMMASTER.ITMREF_0, 4) = 'PNOG'
+          AND ITMMASTER.ITMDES2_0 LIKE '%' + #{PN} + '%'
+      </if> 
+      <if test=' WithOptionPN == "YES" or WithOptionPN == "Y" '>
+        UNION
+        SELECT
+          TRIM(ITMBPS.ITMREFBPS_0) AS PN
+        FROM
+          EXPLOIT.ITMBPS ITMBPS
+        WHERE
+          TRIM(ITMBPS.ITMREF_0) = #{PN}
+        UNION
+        SELECT
+          ITMBPS.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMBPS ITMBPS
+        WHERE
+          TRIM(ITMBPS.ITMREFBPS_0) = #{PN}
+        UNION
+        SELECT
+          ITMBPC.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMBPC ITMBPC
+        WHERE
+          TRIM(ITMBPC.ITMREFBPC_0) = #{PN}
+        UNION
+        SELECT
+          TRIM(ITMBPC.ITMREFBPC_0) AS PN
+        FROM
+          EXPLOIT.ITMBPC ITMBPC
+        WHERE
+          TRIM(ITMBPC.ITMREF_0) = #{PN}
+      </if>
+  </sql>
+  <select id="PN_FIND_BY_LIKE">
+    SELECT DISTINCT
+      ITMMASTER.ITMREF_0 AS PNROOT,
+      ITMMASTER.ITMREF_0 AS PN,
+      ITMMASTER.ITMDES1_0 + IIF (
+        ITMMASTER.ITMDES2_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES2_0
+      ) + IIF (
+        ITMMASTER.ITMDES3_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES3_0
+      ) AS Description
+    FROM
+      EXPLOIT.ITMMASTER ITMMASTER
+    WHERE
+      ITMMASTER.ITMREF_0 LIKE #{PN}
+    ORDER BY
+      ITMMASTER.ITMREF_0 ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="PN_OPTION_PN">
+    -- Suppliers PN
+    SELECT
+      BPARTNER.BPRNUM_0 AS BPCode,
+      BPARTNER.BPRSHO_0 AS BPName,
+      ITMREFBPS_0 AS OptionPN,
+      IIF (
+        ITMDESBPS_0 != '',
+        ITMDESBPS_0,
+        ITMMASTER.ITMDES1_0 + IIF (
+          ITMMASTER.ITMDES2_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES2_0
+        ) + IIF (
+          ITMMASTER.ITMDES3_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES3_0
+        )
+      ) AS Description
+    FROM
+      EXPLOIT.ITMBPS ITMBPS
+      LEFT JOIN EXPLOIT.BPARTNER ON ITMBPS.BPSNUM_0 = BPARTNER.BPRNUM_0
+      LEFT JOIN EXPLOIT.ITMMASTER ON ITMBPS.ITMREF_0 = ITMMASTER.ITMREF_0
+    WHERE
+      ITMBPS.ITMREF_0 = #{PN}
+      AND ITMBPS.ITMREF_0 != ITMBPS.ITMREFBPS_0
+      -- Suppliers PN2
+    UNION
+    SELECT
+      '00000' AS BPCode,
+      'DEDIENNE' AS BPName,
+      ITMREFBPS_0 AS OptionPN,
+      IIF (
+        ITMDESBPS_0 != '',
+        ITMDESBPS_0,
+        ITMMASTER.ITMDES1_0 + IIF (
+          ITMMASTER.ITMDES2_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES2_0
+        ) + IIF (
+          ITMMASTER.ITMDES3_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES3_0
+        )
+      ) AS Description
+    FROM
+      EXPLOIT.ITMBPS ITMBPS
+      LEFT JOIN EXPLOIT.ITMMASTER ON ITMBPS.ITMREF_0 = ITMMASTER.ITMREF_0
+    WHERE
+      TRIM(ITMBPS.ITMREFBPS_0) = #{PN}
+      AND ITMBPS.ITMREF_0 != ITMBPS.ITMREFBPS_0
+      -- Customer PN
+    UNION
+    SELECT
+      BPARTNER.BPRNUM_0 AS BPCode,
+      BPARTNER.BPRSHO_0 AS BPName,
+      ITMREFBPC_0 AS OptionPN,
+      IIF (
+        ITMDESBPC_0 != '',
+        ITMDESBPC_0,
+        ITMMASTER.ITMDES1_0 + IIF (
+          ITMMASTER.ITMDES2_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES2_0
+        ) + IIF (
+          ITMMASTER.ITMDES3_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES3_0
+        )
+      ) AS Description
+    FROM
+      EXPLOIT.ITMBPC ITMBPC
+      LEFT JOIN EXPLOIT.BPARTNER ON ITMBPC.BPCNUM_0 = BPARTNER.BPRNUM_0
+      LEFT JOIN EXPLOIT.ITMMASTER ON ITMBPC.ITMREF_0 = ITMMASTER.ITMREF_0
+    WHERE
+      ITMBPC.ITMREF_0 = #{PN}
+      AND ITMBPC.ITMREF_0 != ITMBPC.ITMREFBPC_0
+      -- Customer PN2
+    UNION
+    SELECT
+      '00000' AS BPCode,
+      'DEDIENNE' AS BPName,
+      ITMREFBPC_0 AS OptionPN,
+      IIF (
+        ITMDESBPC_0 != '',
+        ITMDESBPC_0,
+        ITMMASTER.ITMDES1_0 + IIF (
+          ITMMASTER.ITMDES2_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES2_0
+        ) + IIF (
+          ITMMASTER.ITMDES3_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES3_0
+        )
+      ) AS Description
+    FROM
+      EXPLOIT.ITMBPC ITMBPC
+      LEFT JOIN EXPLOIT.ITMMASTER ON ITMBPC.ITMREF_0 = ITMMASTER.ITMREF_0
+    WHERE
+      TRIM(ITMBPC.ITMREFBPC_0) = #{PN}
+      AND ITMBPC.ITMREF_0 != ITMBPC.ITMREFBPC_0 
+      <if test=' WithPNOG == "YES" or WithPNOG == "Y" '>
+        UNION
+        SELECT
+          '00000' AS BPCode,
+          'DEDIENNE' AS BPName,
+          ITMMASTER.ITMREF_0 AS OptionPN,
+          ITMMASTER.ITMDES1_0 + IIF (
+            ITMMASTER.ITMDES2_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES2_0
+          ) + IIF (
+            ITMMASTER.ITMDES3_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES3_0
+          ) AS Description
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+        WHERE
+          LEFT (ITMMASTER.ITMREF_0, 4) = 'PNOG'
+          AND ITMMASTER.ITMDES1_0 LIKE '%' + #{PN} + '%'
+      </if> 
+      <if test=' WithCSPN == "YES" or WithCSPN == "Y" '>
+        UNION
+        SELECT
+          '00000' AS BPCode,
+          'DEDIENNE' AS BPName,
+          ITMMASTER.ITMREF_0 AS OptionPN,
+          ITMMASTER.ITMDES1_0 + IIF (
+            ITMMASTER.ITMDES2_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES2_0
+          ) + IIF (
+            ITMMASTER.ITMDES3_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES3_0
+          ) AS Description
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+        WHERE
+          LEFT (ITMMASTER.ITMREF_0, 4) = 'PNOG'
+          AND ITMMASTER.ITMDES2_0 LIKE '%' + #{PN} + '%'
+      </if>
+  </select>
+  <select id="PN_ALL_IN_ROOT">
+    WITH
+      TPN AS (
+      <include refid="TPN" />),
+      T0 AS (
+        SELECT
+          ITMMASTER.ITMREF_0 AS PNROOT,
+          IIF (
+            ITMMASTER.ECCFLG_0 = 2,
+            ITMMASTER.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0,
+            ITMMASTER.ITMREF_0
+          ) AS PN,
+          ITMMASTER.TSICOD_0 AS Cat,
+          ECCSTA.ECCVALMAJ_0 AS Version,
+          ITMMASTER.ITMDES1_0 + IIF (
+            ITMMASTER.ITMDES2_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES2_0
+          ) + IIF (
+            ITMMASTER.ITMDES3_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES3_0
+          ) AS Description,
+          ITMMASTER.YITM_COMSTA_0 AS Comment,
+          IIF (ECCSTA.EXNFLG_0 = 2, 5, ITMMASTER.ITMSTA_0) AS Status,
+          ITMMASTER.CREDAT_0 AS CreateDate
+        FROM
+          TPN
+          INNER JOIN EXPLOIT.ITMMASTER ON TPN.PN = ITMMASTER.ITMREF_0
+          LEFT JOIN EXPLOIT.ECCSTA ECCSTA ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
+      )
+    SELECT
+      ROW_NUMBER() OVER (
+        ORDER BY
+          T0.Version DESC
+      ) AS ID,
+      T0.PNROOT,
+      T0.PN,
+      T0.Cat,
+      T0.Version,
+      T0.Description,
+      T0.Comment,
+      T0.Status,
+      T0.CreateDate
+    FROM
+      T0
+  </select>
+  <select id="PN_INDUSTRIALIZATION">
+    SELECT
+      YITMINDUS.YCHKDWG_0 checkDrawing,
+      APLSTD.LANMES_0 typo,
+      YITMINDUS.YCOMPLEX_0 complex,
+      YITMINDUS.YWAROUT_0 warnManufTool,
+      YITMINDUS.YWARCE_0 warnCE,
+      YITMINDUS.YWAREXTRA_0 warnExtraSize,
+      YITMINDUS.YWARCAST_0 warnCasters,
+      YITMINDUS.YWARLIFT_0 warnLifting,
+      YITMINDUS.YCOMCOM_0 isComponents,
+      YITMINDUS.YMATALU_0 rawAluminum,
+      YITMINDUS.YMATSTL_0 rawSteel,
+      YITMINDUS.YMATPLA_0 rawPlastic,
+      YITMINDUS.YMATVAR_0 rawVariousMaterial,
+      YITMINDUS.YMATSPE_0 rawSpecific,
+      YITMINDUS.YTTHHTRT_0 heatTreatment,
+      YITMINDUS.YMACGEA_0 machineGrinding,
+      YITMINDUS.YMACGRI_0 machineGear,
+      YITMINDUS.YTTSSTD_0 ttsStand,
+      YITMINDUS.YTTSSPE_0 ttsSpecific,
+      YITMINDUS.YTTSPAI_0 ttsPainting,
+      YITMINDUS.YTTSPLC_0 ttsPlastic,
+      YITMINDUS.YPCKSPB_0 specialPackingBox,
+      YITMINDUS.YCONLOT_0 testLoad,
+      YITMINDUS.YCONHYD_0 testHydraulic,
+      YITMINDUS.YCONBAT_0 testBalancing,
+      YITMINDUS.YCONVAR_0 testVarious,
+      YITMINDUS.YCONCAL_0 controlCalibration,
+      YITMINDUS.YCONSPE_0 controlSpecific,
+      YITMINDUS.YCONGEO_0 control3D
+    FROM
+      EXPLOIT.YITMINDUS YITMINDUS
+      LEFT JOIN EXPLOIT.APLSTD APLSTD ON APLSTD.LAN_0 = 'ENG'
+      AND LANCHP_0 = '6557'
+      AND APLSTD.LANNUM_0 = YITMINDUS.YFAMPN_0
+    WHERE
+      ITMREF_0 = #{PN}
+  </select>
+  <select id="CHECK_PN">
+    SELECT
+      TOP 1 ITMMASTER.ITMREF_0
     FROM
       ITMMASTER
-    WHERE ITMMASTER.ITMREF_0=#{PnRoot}
-  </select>
-  <select id="findPnByLike" resultType="com.da.sage.assistant.model.PnRootPn">
-  SELECT DISTINCT
-      ITMMASTER.ITMREF_0 AS PNROOT,
-      ITMMASTER.ITMREF_0 AS PN,
-  /*  IIF(ECCSTA.ITMREF_0 IS NULL,
-      ITMMASTER.ITMREF_0,
-      IIF(ECCSTA.ECCVALMAJ_0='#',
-        ECCSTA.ITMREF_0,
-        IIF(ECCSTA.ECCVALMAJ_0='-',
-            ECCSTA.ITMREF_0,
-            ECCSTA.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0
-          )
-      )  
-      ) AS PN,
-  */
-      ITMMASTER.ITMDES1_0 + IIF(ITMMASTER.ITMDES2_0 ='', '', ' '+ ITMMASTER.ITMDES2_0) + IIF(ITMMASTER.ITMDES3_0 ='', '', ' '+ ITMMASTER.ITMDES3_0) AS Description
-  FROM EXPLOIT.ITMMASTER ITMMASTER
-  LEFT JOIN EXPLOIT.ECCSTA ECCSTA
-       ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
-  WHERE ITMMASTER.ITMREF_0 LIKE #{PnRoot} 
-      OR (ECCSTA.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0 = #{PnRoot})
-  ORDER BY ITMMASTER.ITMREF_0 DESC, PN DESC
-  OFFSET 0 ROWS
-  FETCH NEXT #{Count} ROWS ONLY  
-  </select>
-  <select id="findPnByRoot" resultType="com.da.sage.assistant.model.PnRootPn">
-  SELECT DISTINCT
-      ITMMASTER.ITMREF_0 AS PNROOT,
-      ITMMASTER.ITMREF_0 AS PN,
-  ORDER BY ITMMASTER.ITMREF_0 DESC, PN
-  OFFSET 0 ROWS
-  FETCH NEXT #{Count} ROWS ONLY
-  </select>
-  <select id="findAllPnByPnRoot" resultType="com.da.sage.assistant.model.PnDetails">
-  SELECT TOP 3
-    ROW_NUMBER() OVER (ORDER BY ECCSTA.ZECCREVMAJ_0 DESC) AS ROWID,
-    ITMMASTER.ITMREF_0 AS PNROOT,
-    IIF(ITMMASTER.ECCFLG_0 = 2, ITMMASTER.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0, ITMMASTER.ITMREF_0) AS PN,
-    ITMMASTER.TSICOD_0 AS Cat,
-    ECCSTA.ECCVALMAJ_0 AS Version,
-    ITMMASTER.ITMDES1_0 + IIF(ITMMASTER.ITMDES2_0 ='', '', ' '+ ITMMASTER.ITMDES2_0) + IIF(ITMMASTER.ITMDES3_0 ='', '', ' '+ ITMMASTER.ITMDES3_0) AS Description,
-    ITMMASTER.YITM_COMSTA_0 AS Comment,
-    IIF(ECCSTA.EXNFLG_0=2, 5, ITMMASTER.ITMSTA_0) AS Status,
-    ITMMASTER.CREDAT_0 AS CreateDate
-  FROM EXPLOIT.ITMMASTER ITMMASTER
-  LEFT JOIN EXPLOIT.ECCSTA ECCSTA
-       ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
-  WHERE ITMMASTER.ITMREF_0 = #{PnRoot}
-  ORDER BY ECCSTA.ROWID DESC
-  </select>
-  <select id="findIndustrializationByPnRoot" resultType="com.da.sage.assistant.model.PnIndustrialization">
-  SELECT
-    YITMINDUS.YCHKDWG_0 checkDrawing,
-    APLSTD.LANMES_0 typo,
-    YITMINDUS.YCOMPLEX_0 complex,
-    YITMINDUS.YWAROUT_0 warnManufTool,
-    YITMINDUS.YWARCE_0 warnCE,
-    YITMINDUS.YWAREXTRA_0 warnExtraSize,
-    YITMINDUS.YWARCAST_0 warnCasters,
-    YITMINDUS.YWARLIFT_0 warnLifting,
-    YITMINDUS.YCOMCOM_0 isComponents,
-    YITMINDUS.YMATALU_0 rawAluminum,
-    YITMINDUS.YMATSTL_0 rawSteel,
-    YITMINDUS.YMATPLA_0 rawPlastic,
-    YITMINDUS.YMATVAR_0 rawVariousMaterial,
-    YITMINDUS.YMATSPE_0 rawSpecific,
-    YITMINDUS.YTTHHTRT_0 heatTreatment,
-    YITMINDUS.YMACGEA_0 machineGrinding,
-    YITMINDUS.YMACGRI_0 machineGear,
-    YITMINDUS.YTTSSTD_0 ttsStand,
-    YITMINDUS.YTTSSPE_0 ttsSpecific,
-    YITMINDUS.YTTSPAI_0 ttsPainting,
-    YITMINDUS.YTTSPLC_0 ttsPlastic,
-    YITMINDUS.YPCKSPB_0 specialPackingBox,
-    YITMINDUS.YCONLOT_0 testLoad,
-    YITMINDUS.YCONHYD_0 testHydraulic,
-    YITMINDUS.YCONBAT_0 testBalancing,
-    YITMINDUS.YCONVAR_0 testVarious,
-    YITMINDUS.YCONCAL_0 controlCalibration,
-    YITMINDUS.YCONSPE_0 controlSpecific,
-    YITMINDUS.YCONGEO_0 control3D
-  FROM EXPLOIT.YITMINDUS YITMINDUS
-    LEFT JOIN  EXPLOIT.APLSTD APLSTD
-    ON APLSTD.LAN_0 = 'ENG' 
-       AND LANCHP_0 ='6557'
-       AND APLSTD.LANNUM_0 = YITMINDUS.YFAMPN_0
-  WHERE ITMREF_0 = #{PnRoot}
-  </select>
-  <select id="findOptionPn" resultType="com.da.sage.assistant.model.PnOptionPn">
-  SELECT 
-    BPARTNER.BPRNUM_0 AS BPCode,
-    BPARTNER.BPRNAM_0 + IIF(BPARTNER.BPRNAM_1 = '', '', BPARTNER.BPRNAM_1) AS BPName,
-    ITMREFBPS_0 AS OptionPN,
-    IIF(ITMDESBPS_0 != '', ITMDESBPS_0, ITMMASTER.ITMDES1_0 + IIF(ITMMASTER.ITMDES2_0 ='', '', ' '+ ITMMASTER.ITMDES2_0) + IIF(ITMMASTER.ITMDES3_0 ='', '', ' '+ ITMMASTER.ITMDES3_0)) AS Description
-  FROM 
-    EXPLOIT.ITMBPS ITMBPS
-  LEFT JOIN EXPLOIT.BPARTNER 
-    ON ITMBPS.BPSNUM_0 = BPARTNER.BPRNUM_0
-  LEFT JOIN EXPLOIT.ITMMASTER
-    ON ITMBPS.ITMREF_0 = ITMMASTER.ITMREF_0
-  WHERE 
-    ITMBPS.ITMREF_0 = #{PnRoot}
-    AND ITMBPS.ITMREF_0 != ITMBPS.ITMREFBPS_0
-
-  UNION
-  SELECT  
-    BPARTNER.BPRNUM_0 AS BPCode,
-    BPARTNER.BPRNAM_0 + IIF(BPARTNER.BPRNAM_1 = '', '', BPARTNER.BPRNAM_1) AS BPName,
-    ITMREFBPC_0 AS OptionPN,
-    IIF(ITMDESBPC_0 != '', ITMDESBPC_0, ITMMASTER.ITMDES1_0 + IIF(ITMMASTER.ITMDES2_0 ='', '', ' '+ ITMMASTER.ITMDES2_0) + IIF(ITMMASTER.ITMDES3_0 ='', '', ' '+ ITMMASTER.ITMDES3_0)) AS Description
-  FROM EXPLOIT.ITMBPC ITMBPC
-  LEFT JOIN EXPLOIT.BPARTNER 
-    ON ITMBPC.BPCNUM_0 = BPARTNER.BPRNUM_0
-  LEFT JOIN EXPLOIT.ITMMASTER
-    ON ITMBPC.ITMREF_0 = ITMMASTER.ITMREF_0
-  WHERE 
-    ITMBPC.ITMREFBPC_0 = #{PnRoot}
-    AND ITMBPC.ITMREF_0 != ITMBPC.ITMREFBPC_0
-  </select>
-  <select id="findObsoletePnBySite" resultType="com.da.sage.assistant.model.PnStatus">
-  SELECT
-    IIF (ITMMASTER.ECCFLG_0 = 2, ITMMASTER.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0, ITMMASTER.ITMREF_0) AS PN,
-    ITMMASTER.ITMDES1_0 + IIF(ITMMASTER.ITMDES2_0 ='', '', ' '+ ITMMASTER.ITMDES2_0) + IIF(ITMMASTER.ITMDES3_0 ='', '', ' '+ ITMMASTER.ITMDES3_0) AS Description,
-    IIF (
-      ECCSTA.EXNFLG_0 = 2,
-      'Obsolete',
-      (
-        CASE
-          WHEN ITMMASTER.ITMSTA_0 = 1 THEN 'Active'
-          WHEN ITMMASTER.ITMSTA_0 = 2 THEN 'InDevelopment'
-          WHEN ITMMASTER.ITMSTA_0 = 3 THEN 'OnShortage'
-          WHEN ITMMASTER.ITMSTA_0 = 4 THEN 'NotRenewed'
-          WHEN ITMMASTER.ITMSTA_0 = 5 THEN 'Obsolete'
-          WHEN ITMMASTER.ITMSTA_0 = 6 THEN 'NotUsable'
-          ELSE 'UNK'
-        END
-      )
-    ) AS PNStatus,
-    ITMMASTER.YITM_SUP_0 AS WC,
-    IIF (
-      SORDERQ.YSOQ_PJTORI_0 = '',
-      SORDERQ.YSOH_PJT_0,
-      SORDERQ.YSOQ_PJTORI_0
-    ) AS ProjectNO,
-    SORDER.BPCORD_0 AS CustomerCode,
-    SORDER.BPCNAM_0 AS CustomerName
-  FROM
-    EXPLOIT.SORDERQ AS SORDERQ
-    LEFT JOIN EXPLOIT.SORDER ON SORDERQ.SOHNUM_0 = SORDER.SOHNUM_0
-    LEFT JOIN EXPLOIT.ECCSTA AS ECCSTA ON SORDERQ.ITMREF_0 = ECCSTA.ITMREF_0
-    AND SORDERQ.ECCVALMAJ_0 = ECCSTA.ECCVALMAJ_0
-    LEFT JOIN EXPLOIT.ITMMASTER AS ITMMASTER ON ITMMASTER.ITMREF_0 = SORDERQ.ITMREF_0
-  WHERE
-    SORDERQ.SOQSTA_0 != 3
-    AND ITMMASTER.ITMSTA_0 != 1
-    AND SORDERQ.SALFCY_0 = #{Site}
-  </select>
-  <select id="findProductStockInfoByPnRoot" resultType="com.da.sage.assistant.model.StockInfo">
-  WITH T0 
-    AS (
-      SELECT DISTINCT
-            ITMMASTER.ITMREF_0
-        FROM EXPLOIT.ITMMASTER ITMMASTER
-        WHERE ITMMASTER.ITMDES1_0 LIKE '%' + #{PnRoot} + '%'
-    )
-
-  SELECT 
-    STOCK.STOFCY_0 AS StockSite,
-    STOCK.ITMREF_0 AS PN,
-    SUM(STOCK.QTYSTU_0) OVER (PARTITION BY STOCK.ITMREF_0, STOCK.STOFCY_0) AS Qty,
-    'P' AS Type
-  FROM EXPLOIT.STOCK STOCK
-    LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
-    ON ITMMASTER.ITMREF_0 = STOCK.ITMREF_0
-  WHERE ITMMASTER.ITMREF_0 = #{PnRoot}
-        -- NON Repair return
-        AND STOCK.STA_0 != 'RE'
-
-  UNION
-
-  SELECT 
-    STOCK.STOFCY_0 AS StockSite,
-    STOCK.ITMREF_0 + '(RE)' AS PN,
-    SUM(STOCK.QTYSTU_0) OVER (PARTITION BY STOCK.ITMREF_0, STOCK.STOFCY_0) AS Qty,
-    'RE' AS Type
-  FROM EXPLOIT.STOCK STOCK
-    LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER
-    ON ITMMASTER.ITMREF_0 = STOCK.ITMREF_0
-  WHERE ITMMASTER.ITMREF_0 = #{PnRoot}
-        -- Repair return
-        AND STOCK.STA_0 = 'RE'
-
-  UNION
-
-  SELECT 
-    STOCK.STOFCY_0 AS StockSite,
-    STOCK.ITMREF_0 AS PN,
-    SUM(STOCK.QTYSTU_0) OVER (PARTITION BY STOCK.ITMREF_0, STOCK.STOFCY_0) AS Qty,
-    'C' AS Type
-  FROM EXPLOIT.STOCK STOCK
-  INNER JOIN T0
-      ON STOCK.ITMREF_0 = T0.ITMREF_0
-  </select>
-  <select id="findProductDeliveryDurationByPnRoot" resultType="com.da.sage.assistant.model.ProductDeliveryDuration">
-  SELECT 
-    SORDERP.SALFCY_0 AS SalesSite,
-    SORDERP.ITMREF_0 AS PN,
-    SORDER.ORDDAT_0 AS OrderDate,
-    SDELIVERYD.SHIDAT_0 AS ShipDate,
-    DateDiff(day, SORDER.ORDDAT_0, SDELIVERYD.SHIDAT_0) AS Duration
-  FROM EXPLOIT.SORDER SORDER
-      LEFT JOIN EXPLOIT.SORDERP SORDERP
-      ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
-      INNER JOIN EXPLOIT.SDELIVERYD SDELIVERYD
-      ON SORDERP.SOHNUM_0 = SDELIVERYD.SOHNUM_0
-         AND SORDERP.SOPLIN_0 = SDELIVERYD.SOPLIN_0
-  WHERE 
-      SORDERP.ITMREF_0 = #{PnRoot}
-  ORDER BY 
-      OrderDate DESC
-  </select>
-  <select id="findProductSalesHistoryByPnRoot" resultType="com.da.sage.assistant.model.ProductSalesHistory">
-  WITH 
-  T0 AS (
-    SELECT
-        SORDERP.SALFCY_0 AS SalesSite,
-        SORDERP.SOHNUM_0 AS OrderNO,
-        SORDER.ORDDAT_0 AS OrderDate,
-        SORDER.BPCORD_0 AS CustomerCode,
-        SORDER.BPCNAM_0 AS CustomerName,
-        SORDERP.ITMREF_0 AS PN,
-        SORDERQ.QTY_0 AS QTY,
-        SORDERP.NETPRI_0 AS NetPrice,
-        SORDER.CUR_0 AS Currency,
-        SORDER.EECICT_0 AS TradeTerm
-    FROM EXPLOIT.SORDER SORDER
-    LEFT JOIN  EXPLOIT.SORDERP SORDERP
-        ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
-    INNER JOIN  EXPLOIT.SORDERQ SORDERQ
-        ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
-            AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
     WHERE
-         SORDERP.NETPRI_0 > 0 AND SORDERP.ITMREF_0 = #{PnRoot}
-  ),
-  T1 AS (
-      SELECT
-        CURDEN_0 AS Sour,
-        CUR_0 AS Dest,
-        CHGRAT_0 AS Rate,
-        CHGSTRDAT_0 AS StartDate,
-        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
-      FROM EXPLOIT.TABCHANGE
-  )
-
-  SELECT 
-    T0.*,
-    IIF(T0.Currency = 'USD', T0.NetPrice, T0.NetPrice/T1.Rate) AS USD,
-    IIF(T0.Currency = 'USD', 1, T1.Rate) AS Rate
-  FROM T0
-  LEFT JOIN T1
-      ON  T1.Dest = 'USD'
-         AND T1.Sour = T0.Currency
-         AND T0.OrderDate >= T1.StartDate 
-         AND T1.EndDate > T0.OrderDate
-   ORDER BY 
-       T0.SalesSite ASC,
-       T0.OrderDate DESC
+      ITMMASTER.ITMREF_0 = #{PN}
   </select>
-  <select id="findProductQuoteHistoryByPnRoot" resultType="com.da.sage.assistant.model.ProductQuoteHistory">
-  WITH 
-  T0 AS (
+  <select id="OBSOLETE_PN" >
     SELECT
-        SQUOTED.SALFCY_0 AS SalesSite,
-        SQUOTED.SQHNUM_0 AS QuoteNO,
-        SQUOTED.QUODAT_0 AS QuoteDate,
-        SQUOTE.BPCORD_0 AS CustomerCode,
-        SQUOTE.BPCNAM_0 AS CustomerName,
-        SQUOTED.ITMREF_0 AS PN,
-        SQUOTED.QTY_0 AS QTY,
-        SQUOTED.NETPRI_0 AS NetPrice,
-        SQUOTE.CUR_0 AS Currency,
-        SQUOTED.ORDFLG_0 AS OrderFlag,
-        SQUOTED.SOHNUM_0 AS OrderNO,
-        SQUOTE.EECICT_0 AS TradeTerm
-    FROM EXPLOIT.SQUOTE SQUOTE
-    LEFT JOIN EXPLOIT.SQUOTED SQUOTED
-        ON SQUOTED.SQHNUM_0=SQUOTE.SQHNUM_0
-    WHERE 
-        SQUOTED.NETPRI_0 > 0 AND SQUOTED.ITMREF_0 = #{PnRoot}
-  ),
-  T1 AS (
-      SELECT
-        CURDEN_0 AS Sour,
-        CUR_0 AS Dest,
-        CHGRAT_0 AS Rate,
-        CHGSTRDAT_0 AS StartDate,
-        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
-      FROM EXPLOIT.TABCHANGE
-  )
-
-  SELECT 
-    T0.*,
-    IIF(T0.Currency = 'USD', T0.NetPrice, T0.NetPrice/T1.Rate) AS USD,
-    IIF(T0.Currency = 'USD', 1, T1.Rate) AS Rate      
-  FROM T0
-  LEFT JOIN T1
-      ON  T1.Dest = 'USD'
-         AND T1.Sour = T0.Currency
-         AND T0.QuoteDate >= T1.StartDate 
-         AND T1.EndDate > T0.QuoteDate  
-   ORDER BY
-       T0.SalesSite ASC,
-       T0.QuoteDate DESC
-  </select>
-  <select id="findProductCostHistoryByPnRoot" resultType="com.da.sage.assistant.model.ProductCostHistory">
-  WITH 
-  T0 AS (
-    SELECT DISTINCT
-      PORDERP.PRHFCY_0 AS PurchaseSite,
-      OPPOR.OPPNUM_0 AS ProjectNO,
-      OPPOR.OPPEXTNUM_0 AS OrderPN,
-      OPPOR.CREDAT_0 AS OrderDate,
-      PORDERP.CREDAT_0 AS PurchaseDate,
-      PORDERP.POHNUM_0 AS PurchaseNO,
-      PORDERP.POPLIN_0 As Line,
-      PORDER.BPSNUM_0 AS VendorCode,
-      PORDER.BPRNAM_0 AS VendorName,
-      PORDERP.ITMREF_0 AS PurchasePN,
-      PORDERP.ITMDES1_0 + IIF(PORDERP.ITMDES2_0 ='', '', ' '+ PORDERP.ITMDES2_0) AS Description,
-      PORDER.CUR_0 AS Currency,
-      PORDERP.NETPRI_0 AS NetPrice,
-      PORDERQ.QTYPUU_0 AS Qty,
-      PORDERP.NETPRI_0*PORDERQ.QTYPUU_0 AS LineCostNoTax,
-      SORDERQ.QTY_0 AS SalesQty,
-      MFGITM.EXTQTY_0 AS WorkOrderQty,
-      ORDERS_PO.EXTQTY_0 AS PurchaseOrderQty,
-      IIF(SORDERQ.QTY_0 IS NOT NULL, SORDERQ.QTY_0, 
-          IIF(MFGITM.EXTQTY_0 IS NOT NULL, MFGITM.EXTQTY_0, 
-                  IIF(ORDERS_PO.EXTQTY_0 IS NOT NULL, ORDERS_PO.EXTQTY_0, 1))) AS ProjectQty
-    FROM EXPLOIT.PORDERP PORDERP
-      INNER JOIN EXPLOIT.PORDERQ PORDERQ
-          ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
-      INNER JOIN EXPLOIT.PORDER PORDER
-          ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
-      INNER JOIN EXPLOIT.OPPOR OPPOR
-          ON PORDERP.PJT_0 = OPPOR.OPPNUM_0 OR PORDERP.PJT_0 = OPPOR.ZOPPNUMORI_0
-      LEFT JOIN EXPLOIT.SORDERQ SORDERQ
-          ON SORDERQ.SALFCY_0 = OPPOR.SALFCY_0
-             AND SORDERQ.ITMREF_0 = OPPOR.OPPEXTNUM_0
-             AND (SORDERQ.YSOH_PJT_0 = OPPOR.OPPNUM_0 OR SORDERQ.YSOQ_PJTORI_0 = OPPOR.OPPNUM_0)
-      LEFT JOIN EXPLOIT.MFGITM MFGITM
-          ON MFGITM.MFGFCY_0 = OPPOR.SALFCY_0
-             AND MFGITM.ITMREF_0 = OPPOR.OPPEXTNUM_0
-             AND MFGITM.PJT_0 = OPPOR.OPPNUM_0
-      LEFT JOIN EXPLOIT.ORDERS ORDERS_PO
-          ON ORDERS_PO.STOFCY_0 = OPPOR.SALFCY_0
-             AND ORDERS_PO.PJT_0 = OPPOR.OPPNUM_0
-             AND ORDERS_PO.ITMREF_0 = OPPOR.OPPEXTNUM_0
-             AND ORDERS_PO.VCRTYP_0 = 14
-    WHERE 
-       PORDERP.PJT_0 != ''
-       -- CDE: Order project
-       -- ART: Stock project
-       AND OPPOR.OPPTYP_0 IN ('CDE','ART')
-       AND OPPOR.OPPEXTNUM_0 = #{PnRoot} AND PORDERP.NETPRI_0 > 0
-  ),
-  T1 AS (
-      SELECT
-        CURDEN_0 AS Sour, 
-        CUR_0 AS Dest,
-        CHGRAT_0 AS Rate,
-        CHGSTRDAT_0 AS StartDate,
-        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
-      FROM EXPLOIT.TABCHANGE
-  ),
- T2 AS (
-  SELECT
-    T0.*,
-    IIF(T0.Currency = 'USD', T0.LineCostNoTax, ROUND(T0.LineCostNoTax/T1.Rate,2)) AS USD,
-    IIF(T0.Currency = 'USD', 1, T1.Rate) AS Rate
-  FROM T0
-  LEFT JOIN T1
-      ON  T1.Dest = 'USD'
-         AND T1.Sour = T0.Currency
-         AND T0.PurchaseDate >= T1.StartDate 
-         AND T1.EndDate > T0.PurchaseDate  
-   )
-
-  SELECT 
-     T2.*,
-     ROUND(SUM(T2.USD)                 OVER(PARTITION BY T2.PurchaseSite, T2.ProjectNO), 2) AS ProjectUSDCostNoTax,
-     ROUND(SUM(T2.USD/T2.ProjectQty)   OVER(PARTITION BY T2.PurchaseSite, T2.ProjectNO), 2) AS USDCostNoTax
-   FROM T2
-   ORDER BY 
-     PurchaseSite ASC,
-     OrderDate DESC,
-     ProjectNO DESC,
-     PurchaseNO ASC,
-     Line ASC
-  </select>
-  <select id="findComponentStockInfoByPnRoot" resultType="com.da.sage.assistant.model.StockInfo">
-  WITH T0 
-    AS (
-      SELECT 
-        ITMREFBPS_0 AS OptionPN
-      FROM EXPLOIT.ITMBPS
-      WHERE 
-        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 != ITMREFBPS_0
-
-      UNION
-      SELECT 
-        ITMREF_0 AS OptionPN
-      FROM EXPLOIT.ITMBPS
-      WHERE 
-        ITMREFBPS_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 !=ITMREFBPS_0
-
-      UNION
-      SELECT 
-        ITMREF_0 AS OptionPN
-      FROM EXPLOIT.ITMBPC
-      WHERE 
-        ITMREFBPC_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 != ITMREFBPC_0
-
-      UNION
-      SELECT 
-        ITMREFBPC_0 AS OptionPN
-      FROM EXPLOIT.ITMBPC
-      WHERE 
-        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 != ITMREFBPC_0
-       
-      -- include self
-      UNION
-      SELECT 
-        #{PnRoot} AS OptionPN
-    ),
-    T1 AS (
-       SELECT DISTINCT 
-        T0.OptionPN AS ITMREF_0 
-       FROM T0
-
-       --- PNOG style ITMREF_0
-       UNION
-       SELECT DISTINCT
-            ITMMASTER.ITMREF_0
-        FROM EXPLOIT.ITMMASTER ITMMASTER
-        WHERE ITMMASTER.ITMDES1_0 LIKE '%' + #{PnRoot} + '%'
-    )
-
-  SELECT DISTINCT
-    STOCK.STOFCY_0 AS StockSite,
-    STOCK.ITMREF_0 AS PN,
-    SUM(STOCK.QTYSTU_0) OVER (PARTITION BY STOCK.ITMREF_0, STOCK.STOFCY_0) AS Qty,
-    'C' AS Type
-  FROM EXPLOIT.STOCK STOCK
-  INNER JOIN T1
-      ON STOCK.ITMREF_0 = T1.ITMREF_0
-  </select>
-  <select id="findComponentDeliveryDurationByPnRoot" resultType="com.da.sage.assistant.model.ComponentDeliveryDuration">
-  WITH T0 
-    AS (
-      SELECT 
-        ITMREFBPS_0 AS OptionPN
-      FROM EXPLOIT.ITMBPS
-      WHERE 
-        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 != ITMREFBPS_0
-
-      UNION
-      SELECT 
-        ITMREF_0 AS OptionPN
-      FROM EXPLOIT.ITMBPS
-      WHERE 
-        ITMREFBPS_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 !=ITMREFBPS_0
-
-      UNION
-      SELECT 
-        ITMREF_0 AS OptionPN
-      FROM EXPLOIT.ITMBPC
-      WHERE 
-        ITMREFBPC_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 != ITMREFBPC_0
-
-      UNION
-      SELECT 
-        ITMREFBPC_0 AS OptionPN
-      FROM EXPLOIT.ITMBPC
-      WHERE 
-        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 != ITMREFBPC_0
-       
-      -- include self
-      UNION
-      SELECT 
-        #{PnRoot} AS OptionPN
-    ),
-    T1 AS (
-       SELECT DISTINCT 
-        T0.OptionPN AS ITMREF_0 
-       FROM T0
-
-       --- PNOG style ITMREF_0
-       UNION
-       SELECT DISTINCT
-            ITMMASTER.ITMREF_0
-        FROM EXPLOIT.ITMMASTER ITMMASTER
-        WHERE ITMMASTER.ITMDES1_0 LIKE '%' + #{PnRoot} + '%'
-    )
-
-  SELECT 
-    PORDERQ.PRHFCY_0 AS PurchaseSite,
-    PORDERQ.ITMREF_0 AS PN,
-    PORDERQ.POHNUM_0 AS PurchaseNO,
-    PORDERQ.POPLIN_0 As Line,
-    PORDER.BPSNUM_0 AS VendorCode,
-    PORDER.BPRNAM_0 AS VendorName,
-    PORDERQ.ORDDAT_0 AS PurchaseDate,
-    PRECEIPTD.RCPDAT_0 AS ReceiptDate,
-    DateDiff(day, PORDERQ.ORDDAT_0, PRECEIPTD.RCPDAT_0) AS Duration,
-    PORDERQ.QTYPUU_0 AS Qty,
-    PORDERQ.PUU_0 AS Unit
-  FROM T1
-    INNER JOIN EXPLOIT.PORDERQ PORDERQ
-      ON PORDERQ.ITMREF_0 = T1.ITMREF_0
-    INNER JOIN EXPLOIT.PRECEIPTD PRECEIPTD
-      ON PORDERQ.POHNUM_0 = PRECEIPTD.POHNUM_0
-         AND PORDERQ.POPLIN_0 = PRECEIPTD.POPLIN_0
-     LEFT JOIN EXPLOIT.PORDER PORDER
-      ON PORDER.POHNUM_0 = PORDERQ.POHNUM_0
-  WHERE 
-     PORDERQ.POHNUM_0 != '' 
-     AND PORDERQ.QTYPUU_0 > 0
-  ORDER BY PORDERQ.ORDDAT_0 DESC
-  </select>
-  <select id="findComponentPurchaseHistoryByPnRoot" resultType="com.da.sage.assistant.model.ComponentPurchaseHistory">
-  WITH T0 
-    AS (
-      SELECT 
-        ITMREFBPS_0 AS OptionPN
-      FROM EXPLOIT.ITMBPS
-      WHERE 
-        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 != ITMREFBPS_0
-
-      UNION
-      SELECT 
-        ITMREF_0 AS OptionPN
-      FROM EXPLOIT.ITMBPS
-      WHERE 
-        ITMREFBPS_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 !=ITMREFBPS_0
-
-      UNION
-      SELECT 
-        ITMREF_0 AS OptionPN
-      FROM EXPLOIT.ITMBPC
-      WHERE 
-        ITMREFBPC_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 != ITMREFBPC_0
-
-      UNION
-      SELECT 
-        ITMREFBPC_0 AS OptionPN
-      FROM EXPLOIT.ITMBPC
-      WHERE 
-        ITMREF_0 LIKE '%' + #{PnRoot} + '%'
-        AND ITMREF_0 != ITMREFBPC_0
-       
-      -- include self
-      UNION
-      SELECT 
-        #{PnRoot} AS OptionPN
-    ),
-    T1 AS (
-       SELECT DISTINCT 
-        T0.OptionPN AS ITMREF_0 
-       FROM T0
-
-       --- PNOG style ITMREF_0
-       UNION
-       SELECT DISTINCT
-            ITMMASTER.ITMREF_0
-        FROM EXPLOIT.ITMMASTER ITMMASTER
-        WHERE ITMMASTER.ITMDES1_0 LIKE '%' + #{PnRoot} + '%'
-    ),
-    T2 AS (
-      SELECT DISTINCT
-        PORDERP.PRHFCY_0 AS PurchaseSite,
-        PORDERP.PJT_0 AS ProjectNO,
-        PORDERP.CREDAT_0 AS PurchaseDate,
-        PORDERP.POHNUM_0 AS PurchaseNO,
-        PORDERP.POPLIN_0 As Line,
-        PORDER.BPSNUM_0 AS VendorCode,
-        PORDER.BPRNAM_0 AS VendorName,
-        PORDERP.ITMREF_0 AS PurchasePN,
-        PORDERP.ITMDES1_0 + IIF(PORDERP.ITMDES2_0 ='', '', ' '+ PORDERP.ITMDES2_0) AS Description,
-        PORDER.CUR_0 AS Currency,
-        PORDERP.NETPRI_0 AS NetPrice,
-        PORDERQ.QTYPUU_0 AS Qty,
-        PORDERQ.PUU_0 AS Unit
-      FROM T1
-        INNER JOIN EXPLOIT.PORDERP PORDERP
-            ON PORDERP.ITMREF_0 = T1.ITMREF_0
-        INNER JOIN EXPLOIT.PORDERQ PORDERQ
-            ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0 AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
-        INNER JOIN EXPLOIT.PORDER PORDER
-            ON PORDER.POHNUM_0 = PORDERP.POHNUM_0
-      WHERE 
-         PORDERP.PJT_0 != ''
-         AND PORDERP.NETPRI_0 > 0
-    ),
-   T3 AS (
-      SELECT
-        CURDEN_0 AS Sour, 
-        CUR_0 AS Dest,
-        CHGRAT_0 AS Rate,
-        CHGSTRDAT_0 AS StartDate,
-        LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
-      FROM EXPLOIT.TABCHANGE
-  ),
- T4 AS (
-    SELECT
-      T2.*,
-      IIF(T2.Currency = 'USD', T2.NetPrice, ROUND(T2.NetPrice/T3.Rate,2)) AS USD,
-      IIF(T2.Currency = 'USD', 1, T3.Rate) AS Rate
-    FROM T2
-    LEFT JOIN T3
-        ON  T3.Dest = 'USD'
-           AND T3.Sour = T2.Currency
-           AND T2.PurchaseDate >= T3.StartDate 
-           AND T3.EndDate > T2.PurchaseDate  
-   )
-   SELECT 
-     T4.*
-    FROM T4
-    ORDER BY 
-       PurchaseDate DESC,
-       PurchaseNO ASC,
-       Line ASC
+      IIF (
+        ITMMASTER.ECCFLG_0 = 2,
+        ITMMASTER.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0,
+        ITMMASTER.ITMREF_0
+      ) AS PN,
+      ITMMASTER.ITMDES1_0 + IIF (
+        ITMMASTER.ITMDES2_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES2_0
+      ) + IIF (
+        ITMMASTER.ITMDES3_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES3_0
+      ) AS Description,
+      IIF (
+        ECCSTA.EXNFLG_0 = 2,
+        'Obsolete',
+        (
+          CASE
+            WHEN ITMMASTER.ITMSTA_0 = 1 THEN 'Active'
+            WHEN ITMMASTER.ITMSTA_0 = 2 THEN 'InDevelopment'
+            WHEN ITMMASTER.ITMSTA_0 = 3 THEN 'OnShortage'
+            WHEN ITMMASTER.ITMSTA_0 = 4 THEN 'NotRenewed'
+            WHEN ITMMASTER.ITMSTA_0 = 5 THEN 'Obsolete'
+            WHEN ITMMASTER.ITMSTA_0 = 6 THEN 'NotUsable'
+            ELSE 'UNK'
+          END
+        )
+      ) AS PNStatus,
+      ITMMASTER.YITM_SUP_0 AS WC,
+      IIF (
+        SORDERQ.YSOQ_PJTORI_0 = '',
+        SORDERQ.YSOH_PJT_0,
+        SORDERQ.YSOQ_PJTORI_0
+      ) AS ProjectNO,
+      SORDER.BPCORD_0 AS CustomerCode,
+      SORDER.BPCNAM_0 AS CustomerName
+    FROM
+      EXPLOIT.SORDERQ AS SORDERQ
+      LEFT JOIN EXPLOIT.SORDER ON SORDERQ.SOHNUM_0 = SORDER.SOHNUM_0
+      LEFT JOIN EXPLOIT.ECCSTA AS ECCSTA ON SORDERQ.ITMREF_0 = ECCSTA.ITMREF_0
+      AND SORDERQ.ECCVALMAJ_0 = ECCSTA.ECCVALMAJ_0
+      LEFT JOIN EXPLOIT.ITMMASTER AS ITMMASTER ON ITMMASTER.ITMREF_0 = SORDERQ.ITMREF_0
+    WHERE
+      SORDERQ.SOQSTA_0 != 3
+      AND ITMMASTER.ITMSTA_0 != 1
+      AND SORDERQ.SALFCY_0 = #{Site}
   </select>
 </mapper>

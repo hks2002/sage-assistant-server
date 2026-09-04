@@ -1,0 +1,62 @@
+{
+  "configName": "prod",
+  "http": {
+    "port": 8090
+  },
+  "session": {
+    "sessionTimeout": 1800000
+  },
+  "adminPassword": "SaAdmin",
+  "adServer": {
+    "url": "ldaps://srvadcn01.dedaero.lan:636",
+    "domain": "dedaero.lan",
+    "searchBase": "OU=Dedienne Aerospace,DC=dedaero,DC=lan"
+  },
+  "permissionManage": false,
+  "idMinLength": 16,
+  "dataSource": [
+    {
+      "type": "MYSQL",
+      "name": "sa",
+      "config": {
+        "host": "192.168.0.246",
+        "port": 3306,
+        "database": "sage_assistant",
+        "user": "sa",
+        "password": "Dedienne@2025!",
+        "ssl": true
+      },
+      "options": {
+        "maxSize": 10,
+        "maxWaitQueueSize": -1,
+        "idleTimeout": 0,
+        "maxLifetime": 0
+      }
+    },
+    {
+      "type": "MSSQL",
+      "name": "sage",
+      "config": {
+        "jdbcUrl": "jdbc:sqlserver://192.168.10.60:1433;instanceName=SAGEX3PRD;DatabaseName=x3prd;TrustServerCertificate=true;applicationName=SageAssistant;",
+        "database": "x3prd",
+        "user": "BI",
+        "password": "BIDEDIENNE"
+      },
+      "options": {
+        "maxSize": 10,
+        "idleSize": 3,
+        "maxWaitQueueSize": 1000,
+        "idleTimeout": 300,
+        "maxLifetime": 300,
+        "connectionTimeout": 10
+      }
+    }
+  ],
+  "dbCache": {
+    "cacheSize": 100,
+    "expireAfterWrite": 3000000
+  },
+  "upload": {
+    "bodyLimit": -1
+  }
+}

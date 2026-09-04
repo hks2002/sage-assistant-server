@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.LogTemplateMapper">
+  <cache flushInterval="3600000" size="100" />
+  <sql id="logTemplate_Query_WHERE">
+    <choose>
+      <when test="id != null and id != ''">
+        id = #{id}
+      </when> 
+      <when test="template_code != null and template_code != ''">
+        template_code = #{template_code}
+      </when> 
+      <when test="q != null and q != ''">
+        (
+          template_code LIKE #{q}
+          OR template_definition LIKE #{q}
+        )
+      </when> 
+      <otherwise>
+        1 = 1
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="logTemplate_Query_ORDER_BY">
+    <if test="sortBy != null and sortBy != ''">
+      ORDER BY
+        <choose>
+          <when test="sortBy == 'template_code'">
+            template_code
+          </when> 
+          <otherwise>
+            id
+          </otherwise>
+        </choose> 
+        <if test="descending != null and descending != ''">
+          DESC
+        </if>
+    </if>
+  </sql>
+  <select id="logTemplate_Query">
+    SELECT
+      ROW_NUMBER() OVER () AS row_num,
+      id,
+      template_code,
+      template_definition,
+      create_at,
+      create_by,
+      update_at,
+      update_by
+    FROM
+      log_template
+    WHERE
+      <include refid="logTemplate_Query_WHERE"/> 
+      <include refid="logTemplate_Query_ORDER_BY"/>
+    LIMIT
+      #{limit}
+    OFFSET
+      #{offset}
+  </select>
+  <select id="logTemplate_QueryCnt">
+    SELECT
+      count(1) AS total
+    FROM
+      log_template
+    WHERE
+      <include refid="logTemplate_Query_WHERE"/>
+  </select>
+  <insert id="logTemplate_Insert">
+    INSERT INTO
+      log_template 
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="template_code != null">
+          template_code,
+        </if> 
+        <if test="template_definition != null">
+          template_definition,
+        </if> 
+        <if test="create_at != null">
+          create_at,
+        </if> 
+        <if test="create_by != null">
+          create_by,
+        </if>
+      </trim>
+    VALUES
+      <trim prefix="(" suffix=")" suffixOverrides=",">
+        <if test="template_code != null">
+          #{template_code},
+        </if> 
+        <if test="template_definition != null">
+          #{template_definition},
+        </if> 
+        <if test="create_at != null">
+          #{create_at},
+        </if> 
+        <if test="create_by != null">
+          #{create_by},
+        </if>
+      </trim>
+  </insert>
+  <update id="logTemplate_Update">
+    UPDATE log_template 
+    <set>
+      <if test="template_code != null and template_code != ''">
+        template_code = #{template_code},
+      </if> 
+      <if test="template_definition != null and template_definition != ''">
+        template_definition = #{template_definition},
+      </if> 
+      <if test="update_at != null and update_at != ''">
+        update_at = #{update_at},
+      </if> 
+      <if test="update_by != null and update_by != ''">
+        update_by = #{update_by},
+      </if>
+    </set>
+    WHERE
+      id = #{id}
+  </update>
+  <delete id="logTemplate_Delete">
+    DELETE FROM log_template
+    WHERE
+      <choose>
+        <when test="id != null and id != ''">
+          id = #{id}
+        </when> 
+        <when test="template_code != null and template_code != ''">
+          template_code = #{template_code}
+        </when> 
+        <otherwise>
+          1 = 2
+        </otherwise>
+      </choose>
+  </delete>
+</mapper>

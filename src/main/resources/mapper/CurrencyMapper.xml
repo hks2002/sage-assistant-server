@@ -1,25 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-
-<mapper namespace="com.da.sage.assistant.dao.CurrencyMapper">
-  <!-- Open L2 Cache under Names pace: 1 day -->
-  <cache eviction="FIFO" flushInterval="86400000" readOnly="true" size="10240" />
-
-  <select id="findCurrencyRate" resultType="com.da.sage.assistant.model.CurrencyHistory">
-  SELECT * FROM (
-    SELECT 
+<mapper namespace="com.da.sage.assistant.mapper.CurrencyMapper">
+  <cache flushInterval="3600000" size="10000" />
+  <select id="CURRENCY_RATE_HISTORY">
+    SELECT
       CUR_0 AS Sour,
       CURDEN_0 AS Dest,
       CHGRAT_0 AS Rate,
       CHGSTRDAT_0 AS StartDate,
-      LEAD(CHGSTRDAT_0,1,GETDATE()) OVER (PARTITION BY CUR_0,CURDEN_0 ORDER BY CHGSTRDAT_0 ASC) AS EndDate
-    FROM EXPLOIT.TABCHANGE 
-    WHERE 
-      CUR_0 = #{Sour} AND CURDEN_0 = #{Dest}
-    ) AS T1
-    WHERE 
-    CONVERT(datetime, #{Date}, 120) >= T1.StartDate
+      LEAD (CHGSTRDAT_0, 1, GETDATE ()) OVER (
+        PARTITION BY
+          CUR_0,
+          CURDEN_0
+        ORDER BY
+          CHGSTRDAT_0 ASC
+      ) AS EndDate
+    FROM
+      EXPLOIT.TABCHANGE
+    ORDER BY
+      CHGSTRDAT_0 DESC
+  </select>
+  <select id="CURRENCY_RATE_HISTORY_AVG_NORMAL">
+    WITH
+      rankedData AS (
+        SELECT
+          CUR_0 AS Sour,
+          CURDEN_0 AS Dest,
+          CHGRAT_0 AS Rate,
+          PERCENT_RANK() OVER (
+            PARTITION BY
+              CUR_0,
+              CURDEN_0
+            ORDER BY
+              CHGRAT_0
+          ) AS pctRank
+        FROM
+          EXPLOIT.TABCHANGE
+        WHERE
+          CHGSTRDAT_0 >= CONVERT(datetime, #{Date}, 120)
+      )
+    SELECT
+      Sour,
+      Dest,
+      AVG(Rate) AS AvgNormalRate
+    FROM
+      rankedData
+      -- Bottom: 0.1 Top 0.9
+    WHERE
+      pctRank BETWEEN #{Bottom} AND #{Top}
+    GROUP BY
+      Sour,
+      Dest
+    ORDER BY
+      Sour,
+      Dest;
+  </select>
+  <select id="CURRENCY_RATE_HISTORY_ONE_DAY">
+    WITH
+      T1 AS (
+        SELECT
+          CUR_0 AS Sour,
+          CURDEN_0 AS Dest,
+          CHGRAT_0 AS Rate,
+          CHGSTRDAT_0 AS StartDate,
+          LEAD (CHGSTRDAT_0, 1, GETDATE ()) OVER (
+            PARTITION BY
+              CUR_0,
+              CURDEN_0
+            ORDER BY
+              CHGSTRDAT_0 ASC
+          ) AS EndDate
+        FROM
+          EXPLOIT.TABCHANGE
+        WHERE
+          CUR_0 = #{Sour}
+          AND CURDEN_0 = #{Dest}
+      )
+    SELECT
+      *
+    FROM
+      T1
+    WHERE
+      CONVERT(DATETIME, #{Date}, 120) >= T1.StartDate
       AND T1.EndDate > CONVERT(datetime, #{Date}, 120)
   </select>
-
 </mapper>

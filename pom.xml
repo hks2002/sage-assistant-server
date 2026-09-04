@@ -1,23 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>3.5.16</version>
-    <relativePath/>
-  </parent>
-
   <groupId>com.da</groupId>
   <artifactId>sage-assistant-server</artifactId>
   <version>4.1.0</version>
   <name>SageAssistantServer</name>
   <description>Sage assistant data server</description>
-
   <properties>
     <java.version>21</java.version>
-    <mainClass>com.da.sage.assistant.SageAssistantApplication</mainClass>
-    <!-- reduce maven plugin validation verbosity to avoid IDE warnings -->
+    <vertx.version>5.1.7</vertx.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <maven.plugin.validation>BRIEF</maven.plugin.validation>
   </properties>
 
@@ -30,104 +24,101 @@
     </developer>
   </developers>
 
-  <dependencyManagement>
-    <dependencies>
-      <dependency>
-        <groupId>org.apache.logging.log4j</groupId>
-        <artifactId>log4j-bom</artifactId>
-        <version>2.24.3</version>
-        <scope>import</scope>
-        <type>pom</type>
-      </dependency>
-    </dependencies>
-  </dependencyManagement>
-
   <dependencies>
+    <!-- lombok -->
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-web</artifactId>
-      <exclusions>
-        <!-- remove default tomcat -->
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-tomcat</artifactId>
-        </exclusion>
-        <!-- remove default logger logback, using log4j2 -->
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-logging</artifactId>
-        </exclusion>
-        <!-- remove default Jackson, use fastjson2 -->
-        <exclusion>
-          <groupId>org.springframework.boot</groupId>
-          <artifactId>spring-boot-starter-json</artifactId>
-        </exclusion>
-      </exclusions>
-    </dependency>
-    <!-- using undertow as web server -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-undertow</artifactId>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.38</version>
+      <scope>provided</scope>
     </dependency>
     <!-- log4j -->
     <dependency>
       <groupId>org.apache.logging.log4j</groupId>
       <artifactId>log4j-core</artifactId>
+      <version>2.24.3</version>
     </dependency>
-    <!-- some dependency using slf4j, add the adapter -->
+    <!-- some dependency using slf4j -->
     <dependency>
-      <groupId>org.apache.logging.log4j</groupId>
-      <artifactId>log4j-slf4j2-impl</artifactId>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>2.0.7</version>
     </dependency>
-
-    <!-- use fastjson2 -->
+    <!-- vertx -->
     <dependency>
-      <groupId>com.alibaba.fastjson2</groupId>
-      <artifactId>fastjson2-extension-spring6</artifactId>
-      <version>2.0.57</version>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-core</artifactId>
+      <version>${vertx.version}</version>
     </dependency>
-
-    <!-- mybatis-plus-boot-starter it contains mybatis and  spring-boot-starter-jdbc-->
-    <!-- mybatis-plus is easier use than mybatis -->
-    <!-- https://mvnrepository.com/artifact/org.mybatis/mybatis-spring -->
     <dependency>
-      <groupId>com.baomidou</groupId>
-      <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
-      <version>3.5.12</version>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-launcher-application</artifactId>
+      <version>${vertx.version}</version>
     </dependency>
-
-    <!-- database driver -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-config</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-web-client</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-mysql-client</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-pg-client</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <!-- ms client not stable yet, don't use it, using jdbc instead of -->
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-jdbc-client</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
     <dependency>
       <groupId>com.microsoft.sqlserver</groupId>
       <artifactId>mssql-jdbc</artifactId>
+      <version>13.4.0.jre11</version>
     </dependency>
-
+    <dependency>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-uri-template</artifactId>
+      <version>${vertx.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis</artifactId>
+      <version>3.5.19</version>
+    </dependency>
     <!-- cache -->
     <dependency>
       <groupId>com.github.ben-manes.caffeine</groupId>
       <artifactId>caffeine</artifactId>
+      <version>3.2.0</version>
     </dependency>
-
+    <!-- jackson date time support -->
+    <dependency>
+      <groupId>com.fasterxml.jackson.datatype</groupId>
+      <artifactId>jackson-datatype-jsr310</artifactId>
+      <version>2.18.2</version>
+    </dependency>
     <!-- test -->
     <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-test</artifactId>
+      <groupId>io.vertx</groupId>
+      <artifactId>vertx-junit5</artifactId>
+      <version>${vertx.version}</version>
       <scope>test</scope>
-    </dependency>
-
-    <!-- getter and setter -->
-    <dependency>
-      <groupId>org.projectlombok</groupId>
-      <artifactId>lombok</artifactId>
-      <scope>provided</scope>
-    </dependency>
-
-    <!-- devtools -->
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-devtools</artifactId>
-      <scope>provided</scope>
-      <optional>true</optional>
     </dependency>
   </dependencies>
 
@@ -138,15 +129,14 @@
         <!-- ❗️❗️❗️ import, properties @project.name@ replacing ❗️❗️❗️ -->
         <filtering>true</filtering>
       </resource>
-      <resource>
-        <directory>src/main/mapper</directory>
-        <targetPath>mapper</targetPath>
-        <includes>
-          <include>**/*.xml</include>
-        </includes>
-      </resource>
     </resources>
+
     <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-resources-plugin</artifactId>
+        <version>3.5.0</version>
+      </plugin>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
         <version>3.14.0</version>
@@ -165,25 +155,6 @@
           <reuseForks>true</reuseForks>
         </configuration>
       </plugin>
-      <!-- copy dependencies to lib -->
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-dependency-plugin</artifactId>
-        <version>3.8.1</version>
-        <executions>
-          <execution>
-            <id>copy-dependencies</id>
-            <phase>package</phase>
-            <goals>
-              <goal>copy-dependencies</goal>
-            </goals>
-            <configuration>
-              <outputDirectory>${project.build.directory}/lib</outputDirectory>
-              <includeScope>runtime</includeScope>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
       <!-- the default jar without dependencies -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
@@ -196,15 +167,31 @@
               <classpathPrefix>lib/</classpathPrefix>
             </manifest>
             <manifestEntries>
-              <Main-Class>${mainClass}</Main-Class>
+              <App-Name>${project.name}</App-Name>
+              <App-Version>${project.version}</App-Version>
+              <Main-Class>${project.properties.mainClass}</Main-Class>
             </manifestEntries>
           </archive>
         </configuration>
       </plugin>
-      <!-- spring boot packing -->
+      <!-- copy dependencies to lib -->
       <plugin>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-maven-plugin</artifactId>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-dependency-plugin</artifactId>
+        <version>3.8.1</version>
+        <executions>
+          <execution>
+            <id>copy-dependencies</id>
+            <phase>compile</phase>
+            <goals>
+              <goal>copy-dependencies</goal>
+            </goals>
+            <configuration>
+              <outputDirectory>${project.build.directory}/lib</outputDirectory>
+              <includeScope>runtime</includeScope>
+            </configuration>
+          </execution>
+        </executions>
       </plugin>
       <!-- keep jar with version and no version at same times -->
       <plugin>
@@ -213,26 +200,13 @@
         <version>3.1.0</version>
         <executions>
           <execution>
-            <id>fat-jar</id>
             <phase>package</phase>
             <goals>
               <goal>run</goal>
             </goals>
             <configuration>
               <target>
-                <copy file="${project.build.directory}/${project.artifactId}-${project.version}.jar" tofile="${project.build.directory}/${project.artifactId}-fat.jar"/>
-              </target>
-            </configuration>
-          </execution>
-          <execution>
-            <id>thin-jar</id>
-            <phase>package</phase>
-            <goals>
-              <goal>run</goal>
-            </goals>
-            <configuration>
-              <target>
-                <copy file="${project.build.directory}/${project.artifactId}-${project.version}.jar.original" tofile="${project.build.directory}/${project.artifactId}.jar"/>
+                <copy file="${project.build.directory}/${project.artifactId}-${project.version}.jar" tofile="${project.build.directory}/${project.artifactId}.jar"/>
               </target>
             </configuration>
           </execution>

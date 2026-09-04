@@ -1,0 +1,440 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.SalesMapper">
+  <cache flushInterval="3600000" size="10000" />
+  <sql id="SALES_QUOTE_SITE_WHERE">
+    <choose>
+      <when test=' Site == "ALL" '></when> 
+      <when test=' Site == "CHINA" '>
+        AND SQUOTED.SALFCY_0 IN ('ZHU', 'HKG', 'YSH')
+      </when> 
+      <otherwise>
+        AND SQUOTED.SALFCY_0 = #{Site}
+      </otherwise>
+    </choose> 
+    <choose>
+      <when test=' BetweenSite == "ALL" '></when> 
+      <when test=' BetweenSite ==  "YES" or BetweenSite ==  "Y" '>
+        AND SQUOTE.BPCNAM_0 LIKE '%DEDIENNE%%'
+      </when> 
+      <when test=' BetweenSite ==  "NO" or BetweenSite ==  "N" '>
+        AND SQUOTE.BPCNAM_0 NOT LIKE '%DEDIENNE%%'
+      </when> 
+      <otherwise></otherwise>
+    </choose> 
+    <if test=' ExcludeHK ==  "YES" or ExcludeHK ==  "Y"  ' >
+      AND SQUOTED.BPCORD_0 != '00870'
+    </if>
+  </sql>
+  <sql id="SALES_ORDER_SITE_WHERE">
+    <choose>
+      <when test=' Site == "ALL" '></when> 
+      <when test=' Site == "CHINA" '>
+        AND SORDERQ.SALFCY_0 IN ('ZHU', 'HKG', 'YSH')
+      </when> 
+      <otherwise>
+        AND SORDERQ.SALFCY_0 = #{Site}
+      </otherwise>
+    </choose> 
+    <choose>
+      <when test=' BetweenSite == "ALL" '></when> 
+      <when test=' BetweenSite ==  "YES" or BetweenSite ==  "Y" '>
+        AND SORDER.BETFCY_0 = 2
+      </when> 
+      <when test=' BetweenSite ==  "NO" or BetweenSite ==  "N" '>
+        AND SORDER.BETFCY_0 = 1
+      </when> 
+      <otherwise></otherwise>
+    </choose> 
+    <if test=' ExcludeHK ==  "YES" or ExcludeHK ==  "Y"  ' >
+      AND SORDER.BPCORD_0 != '00870'
+    </if>
+  </sql>
+  <select id="SALES_QUOTE">
+    WITH
+      TPN AS (
+      <include refid="com.da.sage.assistant.mapper.PnMapper.TPN" />)
+    SELECT DISTINCT
+      SQUOTED.SALFCY_0 AS SalesSite,
+      SQUOTED.ITMREF_0 AS PN,
+      SQUOTED.SQHNUM_0 AS QuoteNO,
+      SQUOTED.SQDLIN_0 AS QuoteLine,
+      SQUOTED.QUODAT_0 AS QuoteDate,
+      SQUOTED.BPCORD_0 AS CustomerCode,
+      BPCUSTOMER.BPCSHO_0 AS CustomerName,
+      SQUOTED.QTY_0 AS QTY,
+      SQUOTED.STU_0 AS Unit,
+      SQUOTED.NETPRI_0 AS NetPrice,
+      SQUOTE.CUR_0 AS Currency,
+      SQUOTED.SOHNUM_0 AS OrderNO,
+      ISNULL (CONVERT(VARCHAR, SORDER.ORDDAT_0, 120), '') AS OrderDate,
+      SQUOTED.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO
+    FROM
+      TPN
+      INNER JOIN EXPLOIT.SQUOTED SQUOTED ON TPN.PN = SQUOTED.ITMREF_0
+      INNER JOIN EXPLOIT.SQUOTE SQUOTE ON SQUOTED.SQHNUM_0 = SQUOTE.SQHNUM_0
+      LEFT JOIN EXPLOIT.SORDER SORDER ON SQUOTED.SOHNUM_0 = SORDER.SOHNUM_0
+      AND SQUOTED.SOHNUM_0 != ''
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SQUOTED.SOHNUM_0 = SORDERQ.SOHNUM_0
+      AND SQUOTED.SOPLIN_0 = SORDERQ.SOPLIN_0
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER ON BPCUSTOMER.BPCNUM_0 = SQUOTED.BPCORD_0
+    WHERE
+      SQUOTED.NETPRI_0 > 0 
+      <include refid="SALES_QUOTE_SITE_WHERE"/>
+    ORDER BY
+      SQUOTED.SALFCY_0 DESC,
+      SQUOTED.QUODAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="SALES_ORDER">
+    WITH
+      TPN AS (
+      <include refid="com.da.sage.assistant.mapper.PnMapper.TPN" />)
+    SELECT DISTINCT
+      SORDERQ.SALFCY_0 AS SalesSite,
+      SORDERP.ITMREF_0 AS PN,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDER.BPCORD_0 AS CustomerCode,
+      BPCUSTOMER.BPCSHO_0 AS CustomerName,
+      SORDERQ.QTY_0 AS QTY,
+      SORDERP.STU_0 AS Unit,
+      SORDERP.NETPRI_0 AS NetPrice,
+      SORDER.CUR_0 AS Currency,
+      SORDERQ.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO
+    FROM
+      TPN
+      INNER JOIN EXPLOIT.SORDERP SORDERP ON TPN.PN = SORDERP.ITMREF_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER ON BPCUSTOMER.BPCNUM_0 = SORDER.BPCORD_0
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="SALES_ORDER_SITE_WHERE"/>
+    ORDER BY
+      SORDERQ.SALFCY_0 DESC,
+      SORDER.ORDDAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="SALES_ORDER_COST">
+    WITH
+      TPN AS (
+      <include refid="com.da.sage.assistant.mapper.PnMapper.TPN" />),
+      T00 AS (
+        -- The closed sales order
+        SELECT
+          SORDERP.ITMREF_0 AS PN,
+          SORDERP.SALFCY_0 AS OrderSite,
+          SORDERP.SOHNUM_0 AS OrderNO,
+          SORDERP.SOPLIN_0 AS OrderLine,
+          SORDER.ORDDAT_0 AS OrderDate,
+          SORDERQ.QTY_0 AS ProjectQty,
+          SORDERQ.YSOH_PJT_0 AS ProjectNO,
+          SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO,
+          COMPANY.ACCCUR_0 AS Currency
+        FROM
+          TPN
+          INNER JOIN EXPLOIT.SORDERP SORDERP ON TPN.PN = SORDERP.ITMREF_0
+          INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+          AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+          INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+          INNER JOIN EXPLOIT.COMPANY COMPANY ON COMPANY.MAIFCY_0 = SORDER.SALFCY_0
+        WHERE
+          SORDERP.NETPRI_0 > 0
+          AND SORDERQ.SOQSTA_0 = 3 -- Important, only closed sales order
+          <include refid="SALES_ORDER_SITE_WHERE"/>
+        ORDER BY
+          OrderDate DESC
+        OFFSET
+          #{offset} ROWS
+        FETCH NEXT
+          #{limit} ROWS ONLY
+      ),
+      T01 AS (
+        -- The provide projectNO and Qty for closed sales order
+        SELECT DISTINCT
+          T00.OrderSite,
+          T00.OrderNO,
+          T00.OrderLine,
+          SPACKD.LOT_0 AS ProvideProjectNO,
+          COUNT(SPACKD.SERNUM_0) OVER (
+            PARTITION BY
+              T00.OrderSite,
+              T00.ProjectNO,
+              SPACKD.LOT_0
+          ) AS ProvideQty
+        FROM
+          T00
+          INNER JOIN EXPLOIT.SDELIVERYD SDELIVERYD ON SDELIVERYD.SOHNUM_0 = T00.OrderNO
+          AND SDELIVERYD.SOPLIN_0 = T00.OrderLine
+          INNER JOIN EXPLOIT.SPACKD SPACKD ON SDELIVERYD.SDHNUM_0 = SPACKD.VCRNUM_0
+          AND SDELIVERYD.SDDLIN_0 = SPACKD.VCRLIN_0
+          AND LEN (SPACKD.LOT_0) > 5 -- To skip misc projectNO
+      ),
+      T02 AS (
+        -- 只保留 JOIN 键 + ProvideTotalQty, 去掉 OrderDate/ProjectNO/OriProjectNO
+        SELECT DISTINCT
+          T01.OrderSite,
+          T01.ProvideProjectNO,
+          SUM(PORDERQ.QTYSTU_0) OVER (
+            PARTITION BY
+              T01.OrderSite,
+              T01.ProvideProjectNO
+          ) AS ProvideTotalQty
+        FROM
+          T01
+          INNER JOIN EXPLOIT.OPPOR OPPOR ON T01.ProvideProjectNO = OPPOR.OPPNUM_0 -- no site limit, for hongkong project, purchase by zhuhai
+          INNER JOIN EXPLOIT.PORDERP PORDERP ON OPPOR.OPPNUM_0 = PORDERP.PJT_0
+          AND T01.OrderSite = PORDERP.PRHFCY_0
+          AND (
+            PORDERP.ITMREF_0 = OPPOR.OPPEXTNUM_0 -- PN same to sales order
+            OR CHARINDEX (OPPOR.OPPEXTNUM_0, PORDERP.ITMDES1_0) > 0
+          ) -- PNOG, SMEC, ITMDES1 maybe contains version
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+        WHERE
+          PORDERQ.LINAMT_0 > 0
+      ),
+      T03 AS (
+        SELECT DISTINCT
+          T00.OrderSite,
+          T00.PN,
+          T00.OrderDate,
+          T00.OrderNO,
+          T00.OrderLine,
+          T00.ProjectNO,
+          T00.OriProjectNO,
+          T00.Currency,
+          (
+            SUM(PORDERQ.LINAMTCPR_0) OVER (
+              PARTITION BY
+                T00.OrderSite,
+                T01.ProvideProjectNO
+            )
+          ) * T01.ProvideQty / NULLIF(T02.ProvideTotalQty, 0) / NULLIF(T00.ProjectQty, 0) AS Cost,
+          (
+            SUM(
+              PORDERQ.LINATI_0 * (PORDERQ.LINAMTCPR_0 / NULLIF(PORDERQ.LINAMT_0, 0))
+            ) OVER (
+              PARTITION BY
+                T00.OrderSite,
+                T01.ProvideProjectNO
+            )
+          ) * T01.ProvideQty / NULLIF(T02.ProvideTotalQty, 0) / NULLIF(T00.ProjectQty, 0) AS CostWithTax
+        FROM
+          T00
+          INNER JOIN T01 ON T00.OrderNO = T01.OrderNO
+          AND T00.OrderLine = T01.OrderLine
+          INNER JOIN T02 ON T02.OrderSite = T01.OrderSite
+          AND T02.ProvideProjectNO = T01.ProvideProjectNO
+          INNER JOIN EXPLOIT.PORDERP AS PORDERP ON T01.ProvideProjectNO = PORDERP.PJT_0
+          AND T01.OrderSite = PORDERP.PRHFCY_0
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+          INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0
+        WHERE
+          PORDERQ.LINAMT_0 > 0
+      )
+    SELECT
+      *
+    FROM
+      T03
+    ORDER BY
+      OrderDate DESC
+  </select>
+  <select id="SALES_ORDER_COST_DETAILS">
+    WITH
+      TPN AS (
+      <include refid="com.da.sage.assistant.mapper.PnMapper.TPN" />),
+      T00 AS (
+        -- The closed sales order
+        SELECT
+          SORDERP.ITMREF_0 AS PN,
+          SORDERP.SALFCY_0 AS OrderSite,
+          SORDERP.SOHNUM_0 AS OrderNO,
+          SORDERP.SOPLIN_0 AS OrderLine,
+          SORDER.ORDDAT_0 AS OrderDate,
+          SORDERQ.QTY_0 AS QTY,
+          SORDERQ.YSOH_PJT_0 AS ProjectNO,
+          SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO
+        FROM
+          TPN
+          INNER JOIN EXPLOIT.SORDERP SORDERP ON TPN.PN = SORDERP.ITMREF_0
+          INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+          AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+          INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+          INNER JOIN EXPLOIT.COMPANY COMPANY ON COMPANY.MAIFCY_0 = SORDER.SALFCY_0
+        WHERE
+          SORDERP.NETPRI_0 > 0
+          AND SORDERQ.SOQSTA_0 = 3 -- Important, only closed sales order
+          <include refid="SALES_ORDER_SITE_WHERE"/>
+        ORDER BY
+          OrderDate DESC
+        OFFSET
+          #{offset} ROWS
+        FETCH NEXT
+          #{limit} ROWS ONLY
+      ),
+      T01 AS (
+        -- The delivered projectNO maybe from other project / stock project
+        -- 只留 JOIN 键 + ProvideQty；ProjectNO 仅用于窗口分区，不输出；ProjectQty 全程未用，删除
+        SELECT DISTINCT
+          T00.OrderSite,
+          T00.OrderNO,
+          T00.OrderLine,
+          SPACKD.LOT_0 AS ProvideProjectNO,
+          COUNT(SPACKD.SERNUM_0) OVER (
+            PARTITION BY
+              T00.OrderSite,
+              T00.ProjectNO,
+              SPACKD.LOT_0
+          ) AS ProvideQty
+        FROM
+          T00
+          INNER JOIN EXPLOIT.SDELIVERYD SDELIVERYD ON SDELIVERYD.SOHNUM_0 = T00.OrderNO
+          AND SDELIVERYD.SOPLIN_0 = T00.OrderLine
+          INNER JOIN EXPLOIT.SPACKD SPACKD ON SDELIVERYD.SDHNUM_0 = SPACKD.VCRNUM_0
+          AND SDELIVERYD.SDDLIN_0 = SPACKD.VCRLIN_0
+          AND LEN (SPACKD.LOT_0) > 5 -- To skip misc projectNO
+      ),
+      T02 AS (
+        -- Get main parts Qty purchased for each ProvideProjectNO
+        -- 只留 JOIN 键 + ProvideTotalQty
+        SELECT DISTINCT
+          T01.OrderSite,
+          T01.ProvideProjectNO,
+          SUM(PORDERQ.QTYSTU_0) OVER (
+            PARTITION BY
+              T01.OrderSite,
+              T01.ProvideProjectNO
+          ) AS ProvideTotalQty
+        FROM
+          T01
+          INNER JOIN EXPLOIT.OPPOR OPPOR ON T01.ProvideProjectNO = OPPOR.OPPNUM_0 -- no site limit, for hongkong project, purchase by zhuhai
+          INNER JOIN EXPLOIT.PORDERP PORDERP ON OPPOR.OPPNUM_0 = PORDERP.PJT_0
+          AND T01.OrderSite = PORDERP.PRHFCY_0
+          AND (
+            PORDERP.ITMREF_0 = OPPOR.OPPEXTNUM_0 -- PN same to sales order
+            OR CHARINDEX (OPPOR.OPPEXTNUM_0, PORDERP.ITMDES1_0) > 0
+          ) -- ITMDES1 maybe contains version
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+        WHERE
+          PORDERQ.LINAMT_0 > 0
+      ),
+      T03 AS (
+        SELECT DISTINCT
+          T00.OrderSite,
+          T00.PN,
+          T00.OrderDate,
+          T00.ProjectNO,
+          T00.OriProjectNO,
+          T01.ProvideProjectNO,
+          PORDERQ.POHNUM_0 AS PurchaseNO,
+          PORDERQ.POPLIN_0 AS PurchaseLine,
+          PORDERQ.ITMREF_0 AS PurchasePN,
+          PORDERP.ITMDES1_0 AS Description,
+          PORDER.ORDDAT_0 AS PurchaseDate,
+          PORDER.BPSNUM_0 AS SupplierCode,
+          BPSUPPLIER.BPSSHO_0 AS SupplierName,
+          PORDERQ.QTYSTU_0 AS PurchaseQty,
+          PORDERQ.STU_0 AS Unit,
+          PORDERQ.NETCUR_0 AS LineCurrency,
+          PORDERP.NETPRI_0 AS Netprice,
+          PORDERQ.LINAMT_0 AS LineAmount,
+          PORDERQ.LINATI_0 AS LineAmountWithTax,
+          -- total for provide projectNO
+          --SUM(PORDERQ.LINAMTCPR_0) OVER (PARTITION BY T00.OrderSite, T01.ProvideProjectNO) AS ProvideAmount,
+          --SUM(PORDERQ.LINATI_0 * (PORDERQ.LINAMTCPR_0 / NULLIF(PORDERQ.LINAMT_0, 0))) OVER (PARTITION BY T00.OrderSite, T01.ProvideProjectNO) AS ProvideAmountWithTax,
+          -- total for the sales projectNO
+          PORDERQ.CPRCUR_0 AS Currency,
+          (
+            SUM(PORDERQ.LINAMTCPR_0) OVER (
+              PARTITION BY
+                T00.OrderSite,
+                T01.ProvideProjectNO
+            )
+          ) * T01.ProvideQty / NULLIF(T02.ProvideTotalQty, 0) AS ProvideCost,
+          (
+            SUM(
+              PORDERQ.LINATI_0 * (PORDERQ.LINAMTCPR_0 / NULLIF(PORDERQ.LINAMT_0, 0))
+            ) OVER (
+              PARTITION BY
+                T00.OrderSite,
+                T01.ProvideProjectNO
+            )
+          ) * T01.ProvideQty / NULLIF(T02.ProvideTotalQty, 0) AS ProvideCostWithTax
+        FROM
+          T00
+          INNER JOIN T01 ON T00.OrderNO = T01.OrderNO
+          AND T00.OrderLine = T01.OrderLine
+          INNER JOIN T02 ON T02.OrderSite = T01.OrderSite
+          AND T02.ProvideProjectNO = T01.ProvideProjectNO
+          INNER JOIN EXPLOIT.PORDERP AS PORDERP ON T01.ProvideProjectNO = PORDERP.PJT_0
+          AND T01.OrderSite = PORDERP.PRHFCY_0
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+          INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0
+          INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+        WHERE
+          PORDERQ.LINAMT_0 > 0
+      )
+    SELECT
+      *
+    FROM
+      T03
+    ORDER BY
+      OrderSite DESC,
+      OrderDate DESC,
+      ProjectNO DESC,
+      ProvideCostWithTax DESC -- Let the biggest cost be the first line
+  </select>
+  <select id="SALES_DELIVERY">
+    WITH
+      TPN AS (
+      <include refid="com.da.sage.assistant.mapper.PnMapper.TPN" />)
+    SELECT
+      SORDERP.SALFCY_0 AS SalesSite,
+      SORDERP.ITMREF_0 AS PN,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDER.BPCORD_0 AS CustomerCode,
+      BPCUSTOMER.BPCSHO_0 AS CustomerName,
+      SORDERQ.QTY_0 AS QTY,
+      SORDERP.STU_0 AS Unit,
+      SORDERQ.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO,
+      SDELIVERYD.SHIDAT_0 AS ShipDate,
+      DateDiff (day, SORDER.ORDDAT_0, SDELIVERYD.SHIDAT_0) AS Duration
+    FROM
+      TPN
+      INNER JOIN EXPLOIT.SORDERP SORDERP ON SORDERP.ITMREF_0 = TPN.PN
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER ON BPCUSTOMER.BPCNUM_0 = SORDER.BPCORD_0
+      INNER JOIN EXPLOIT.SDELIVERYD SDELIVERYD ON SORDERP.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERP.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="SALES_ORDER_SITE_WHERE"/>
+    ORDER BY
+      SORDERP.SALFCY_0 DESC,
+      SORDER.ORDDAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+</mapper>

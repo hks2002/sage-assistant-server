@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.PurchaseMapper">
+  <cache flushInterval="3600000" size="10000" />
+  <sql id="PURCHASE_ORDER_SITE_WHERE">
+    <choose>
+      <when test=' Site == "ALL" '></when> 
+      <when test=' Site == "CHINA" '>
+        AND PORDERQ.POHFCY_0 IN ('ZHU', 'HKG', 'YSH')
+      </when> 
+      <otherwise>
+        AND PORDERQ.POHFCY_0 = #{Site}
+      </otherwise>
+    </choose> 
+    <choose>
+      <when test=' BetweenSite == "ALL" '></when> 
+      <when test=' BetweenSite ==  "YES" or BetweenSite ==  "Y" '>
+        AND PORDER.BETFCY_0 = 2
+      </when> 
+      <when test=' BetweenSite ==  "NO" or BetweenSite ==  "N" '>
+        AND PORDER.BETFCY_0 = 1
+      </when> 
+      <otherwise></otherwise>
+    </choose>
+  </sql>
+  <select id="PURCHASE_ORDER">
+    WITH
+      TPN AS (
+      <include refid="com.da.sage.assistant.mapper.PnMapper.TPN" />)
+    SELECT DISTINCT
+      PORDERQ.POHFCY_0 AS PurchaseSite,
+      PORDERP.ITMREF_0 AS PN,
+      PORDERQ.POHNUM_0 AS PurchaseNO,
+      PORDERQ.POPLIN_0 AS PurchaseLine,
+      PORDERQ.ORDDAT_0 AS PurchaseDate,
+      PORDER.BPSNUM_0 AS SupplierCode,
+      BPSUPPLIER.BPSSHO_0 AS SupplierName,
+      PORDERP.ITMDES1_0 AS Description,
+      PORDERP.NETPRI_0 AS NetPrice,
+      PORDERQ.NETCUR_0 AS Currency,
+      PORDERQ.STU_0 AS Unit,
+      PORDERQ.QTYSTU_0 AS QTY,
+      PORDERP.PJT_0 AS ProjectNO
+    FROM
+      TPN
+      INNER JOIN EXPLOIT.PORDERQ PORDERQ ON TPN.PN = PORDERQ.ITMREF_0
+      INNER JOIN EXPLOIT.PORDERP PORDERP ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0
+      AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER PORDER ON PORDERQ.POHNUM_0 = PORDER.POHNUM_0
+      INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON PORDER.BPSNUM_0 = BPSUPPLIER.BPSNUM_0
+    WHERE
+      PORDERP.NETPRI_0 > 0 
+      <include refid="PURCHASE_ORDER_SITE_WHERE" />
+    ORDER BY
+      PORDERQ.POHFCY_0 DESC,
+      PORDERQ.ORDDAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="PURCHASE_RECEIVE">
+    WITH
+      TPN AS (
+      <include refid="com.da.sage.assistant.mapper.PnMapper.TPN" />)
+    SELECT
+      PORDERQ.PRHFCY_0 AS PurchaseSite,
+      PORDERQ.ITMREF_0 AS PN,
+      PORDERP.PJT_0 AS ProjectNO,
+      PORDERQ.POHNUM_0 AS PurchaseNO,
+      PORDERQ.POPLIN_0 As Line,
+      PORDER.BPSNUM_0 AS SupplierCode,
+      BPSUPPLIER.BPSSHO_0 AS SupplierName,
+      PORDERQ.QTYPUU_0 AS Qty,
+      PORDERQ.PUU_0 AS Unit,
+      PORDERQ.ORDDAT_0 AS PurchaseDate,
+      PRECEIPTD.RCPDAT_0 AS ReceiptDate,
+      DateDiff (day, PORDERQ.ORDDAT_0, PRECEIPTD.RCPDAT_0) AS Duration
+    FROM
+      TPN
+      INNER JOIN EXPLOIT.PORDERQ PORDERQ ON PORDERQ.ITMREF_0 = TPN.PN
+      INNER JOIN EXPLOIT.PORDERP PORDERP ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0
+      AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN EXPLOIT.PRECEIPTD PRECEIPTD ON PORDERQ.POHNUM_0 = PRECEIPTD.POHNUM_0
+      AND PORDERQ.POPLIN_0 = PRECEIPTD.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER PORDER ON PORDER.POHNUM_0 = PORDERQ.POHNUM_0
+      INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+    WHERE
+      PORDERQ.POHNUM_0 != ''
+      AND PORDERQ.QTYPUU_0 > 0 
+      <include refid="PURCHASE_ORDER_SITE_WHERE" />
+    ORDER BY
+      PORDERQ.PRHFCY_0 DESC,
+      PORDERQ.ORDDAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+</mapper>
