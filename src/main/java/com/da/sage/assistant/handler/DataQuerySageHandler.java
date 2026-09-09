@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                              *
  * @CreatedDate           : 2025-03-16 11:51:49                                                                        *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
- * @LastEditDate          : 2026-09-03 21:58:02                                                                        *
+ * @LastEditDate          : 2026-09-04 12:01:48                                                                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
  **********************************************************************************************************************/
 package com.da.sage.assistant.handler;
@@ -26,17 +26,17 @@ public class DataQuerySageHandler {
 
   public void pnFindByLike(RoutingContext ctx) {
     JsonObject params = REQUEST.getQueryJson(ctx);
-    RESPONSE.responseArray(ctx, ds.query(params, "PnMapper.FIND_BY_LIKE"));
+    RESPONSE.responseArray(ctx, ds.query(params, "PnMapper.PN_FIND_BY_LIKE"));
   }
 
   public void pnIndustrialization(RoutingContext ctx) {
     JsonObject params = REQUEST.getQueryJson(ctx);
-    RESPONSE.responseArray(ctx, ds.query(params, "PnMapper.INDUSTRIALIZATION"));
+    RESPONSE.responseArray(ctx, ds.query(params, "PnMapper.PN_INDUSTRIALIZATION"));
   }
 
   public void pnAllPnInRoot(RoutingContext ctx) {
     JsonObject params = REQUEST.getQueryJson(ctx);
-    RESPONSE.responseArray(ctx, ds.query(params, "PnMapper.ALL_PN_IN_ROOT"));
+    RESPONSE.responseArray(ctx, ds.query(params, "PnMapper.PN_ALL_IN_ROOT"));
   }
 
   public void pnOptionPN(RoutingContext ctx) {
@@ -46,7 +46,7 @@ public class DataQuerySageHandler {
 
   public void pnStockInfo(RoutingContext ctx) {
     JsonObject params = REQUEST.getQueryJson(ctx);
-    RESPONSE.responseArray(ctx, ds.query(params, "PnMapper.STOCK_INFO"));
+    RESPONSE.responseArray(ctx, ds.query(params, "StockMapper.STOCK_INFO"));
   }
 
   public void salesDelivery(RoutingContext ctx) {
