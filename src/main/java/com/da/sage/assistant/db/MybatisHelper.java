@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                              *
  * @CreatedDate           : 2026-08-28 18:16:51                                                                        *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
- * @LastEditDate          : 2026-08-31 19:40:01                                                                        *
+ * @LastEditDate          : 2026-09-09 10:57:12                                                                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
  **********************************************************************************************************************/
 package com.da.sage.assistant.db;
@@ -77,7 +77,7 @@ public class MybatisHelper {
     return result;
   }
 
-  public static Configuration initMybatisConfig() {
+  public static void initMybatis() {
     mybatisConfig = new Configuration();
 
     List<String> mappers = discoverMapperXml("mapper");
@@ -131,8 +131,6 @@ public class MybatisHelper {
         throw new RuntimeException("Failed to load mapper");
       }
     }
-
-    return mybatisConfig;
   }
 
   public static JsonObject getCacheConfig(String namespace) {

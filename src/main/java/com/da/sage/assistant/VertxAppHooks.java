@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                              *
  * @CreatedDate           : 2025-05-19 16:54:08                                                                        *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
- * @LastEditDate          : 2026-09-03 13:29:09                                                                        *
+ * @LastEditDate          : 2026-09-09 10:18:13                                                                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
  **********************************************************************************************************************/
 package com.da.sage.assistant;
@@ -87,7 +87,7 @@ public class VertxAppHooks implements VertxApplicationHooks {
 
       FS.setup(context.vertx());
       DB.initDB();
-      MybatisHelper.initMybatisConfig();
+      MybatisHelper.initMybatis();
     } catch (Exception e) {
       log.error("{}", e.getMessage());
     }
