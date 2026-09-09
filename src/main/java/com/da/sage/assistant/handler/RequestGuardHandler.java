@@ -2,13 +2,12 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                              *
  * @CreatedDate           : 2025-03-16 11:51:49                                                                        *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
- * @LastEditDate          : 2026-09-01 16:09:54                                                                        *
+ * @LastEditDate          : 2026-09-09 09:44:28                                                                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
  **********************************************************************************************************************/
 package com.da.sage.assistant.handler;
 
 import com.da.sage.assistant.AppConfig;
-import com.da.sage.assistant.service.LogService;
 import com.da.sage.assistant.serviceStatic.REQUEST;
 import com.da.sage.assistant.serviceStatic.RESPONSE;
 
@@ -66,7 +65,6 @@ public class RequestGuardHandler {
       }
 
       // if (REQUEST.isFileUpload(ctx)) {
-      LogService.addLog("ACCESS", ip, userName, requestAction, queryParams.encode());
       // } else {
       // String questBody = Optional.ofNullable(ctx.body().asString()).orElse("");
       // LogService.addLog("ACCESS", ip, userName, requestAction,

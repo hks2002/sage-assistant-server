@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                              *
  * @CreatedDate           : 2026-07-04 21:18:12                                                                        *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
- * @LastEditDate          : 2026-09-01 11:53:29                                                                        *
+ * @LastEditDate          : 2026-09-08 21:27:11                                                                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
  **********************************************************************************************************************/
 package com.da.sage.assistant.db;
@@ -98,10 +98,10 @@ public class DBHelper {
   }
 
   private static SqlWithTuple getSqlWithTupleRaw(BoundSql bondSql, JsonObject params) {
-    String sql = bondSql.getSql(); // contains '?' for parameter placehodler
+    String sql = bondSql.getSql(); // contains '?' for parameter placeholder
     List<ParameterMapping> paramMappings = bondSql.getParameterMappings();
 
-    log.debug("Sql:\n{}\nparamMappings: {}", sql, paramMappings);
+    log.debug("Sql:\n{}", sql);
 
     Tuple tuple = toTuple(paramMappings, params);
     SqlWithTuple sqlWithTuple = new SqlWithTuple(sql, tuple);

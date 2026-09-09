@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                              *
  * @CreatedDate           : 2026-07-04 11:20:50                                                                        *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
- * @LastEditDate          : 2026-09-03 17:22:10                                                                        *
+ * @LastEditDate          : 2026-09-09 10:15:22                                                                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
  **********************************************************************************************************************/
 package com.da.sage.assistant.service;
@@ -73,7 +73,7 @@ public class CurrencyService {
   }
 
   /**
-   * Get currency rate, try extractly date rate first, then use USD convert, then
+   * Get currency rate, try exactly date rate first, then use USD convert, then
    * avg rate, if not find, return 0
    * 
    * @param sour
