@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                              *
  * @CreatedDate           : 2026-03-09 17:28:45                                                                        *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
- * @LastEditDate          : 2026-09-03 21:58:30                                                                        *
+ * @LastEditDate          : 2026-09-04 12:01:23                                                                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
  **********************************************************************************************************************/
 package com.da.sage.assistant.service;
@@ -29,14 +29,6 @@ public class DataQueryOfSystemService {
   public Future<JsonArray> query(JsonObject params, String sqlId) {
     return DB.selectBySqlIdWithCache("sage", namespace + "." + sqlId, params)
         .compose((data) -> {
-          return Future.succeededFuture(data);
-        });
-  }
-
-  public Future<JsonArray> currencyQuery(JsonObject params, String sqlId) {
-    return DB.selectBySqlIdWithCache("sage", namespace + "." + sqlId, params)
-        .compose((v) -> {
-          JsonArray data = v;
           if (params.containsKey("CurrencyTo")
               && params.containsKey("CurrencyDate")) {
             String currencyTo = params.getString("CurrencyTo");
