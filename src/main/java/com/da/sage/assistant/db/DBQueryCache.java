@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                              *
  * @CreatedDate           : 2026-02-09 18:49:46                                                                        *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
- * @LastEditDate          : 2026-09-03 11:54:16                                                                        *
+ * @LastEditDate          : 2026-09-09 10:11:41                                                                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
  **********************************************************************************************************************/
 package com.da.sage.assistant.db;
@@ -125,22 +125,22 @@ public class DBQueryCache {
     }
   }
 
-  public static void scheduleInvalidation(String key, int minutes) {
+  public static void scheduleInvalidation(String key, int milliSeconds) {
     AsyncLoadingCache<String, JsonArray> cache = getCache(key);
     if (cache != null) {
-      FS.vertx.setTimer(minutes * 60 * 1000L, id -> {
+      FS.vertx.setTimer(milliSeconds, id -> {
         cache.synchronous().invalidate(key);
         log.debug("Cache entry expired and invalidated: {}", key);
       });
     }
   }
 
-  public static void put(String key, JsonArray value, int expireAfterMinutes) {
+  public static void put(String key, JsonArray value, int expireAfterMilliSeconds) {
     AsyncLoadingCache<String, JsonArray> cache = getCache(key);
     if (cache != null) {
       cache.synchronous().put(key, value);
-      scheduleInvalidation(key, expireAfterMinutes);
-      log.debug("Added cache entry: {} with expire time: {} minutes", key, expireAfterMinutes);
+      scheduleInvalidation(key, expireAfterMilliSeconds);
+      log.debug("Added cache entry: {} with expire time: {} minutes", key, expireAfterMilliSeconds);
     }
   }
 
