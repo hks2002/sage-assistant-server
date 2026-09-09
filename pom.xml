@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.da</groupId>
   <artifactId>sage-assistant-server</artifactId>
-  <version>5.0.0</version>
+  <version>5.0.1-SNAPSHOT</version>
   <name>SageAssistantServer</name>
   <description>Sage assistant data server</description>
   <properties>
