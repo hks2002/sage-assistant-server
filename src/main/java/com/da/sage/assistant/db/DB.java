@@ -2,7 +2,7 @@
  * @Author                : Robert Huang<56649783@qq.com>                                                              *
  * @CreatedDate           : 2025-03-20 11:15:15                                                                        *
  * @LastEditors           : Robert Huang<56649783@qq.com>                                                              *
- * @LastEditDate          : 2026-09-03 20:03:36                                                                        *
+ * @LastEditDate          : 2026-09-04 21:58:02                                                                        *
  * @CopyRight             : Dedienne Aerospace China ZhuHai                                                            *
  **********************************************************************************************************************/
 package com.da.sage.assistant.db;
@@ -62,7 +62,7 @@ public class DB {
       JsonObject dbConfig = obj.getJsonObject("config");
       JsonObject poolConfig = obj.getJsonObject("options");
       PoolOptions poolOptions = new PoolOptions(poolConfig);
-      Integer idleSize = poolConfig.getInteger("idleSize", 1);
+      // Integer idleSize = poolConfig.getInteger("idleSize", 1);
 
       switch (type) {
         case PG:
@@ -74,7 +74,7 @@ public class DB {
               .using(FS.vertx).build();
           pools.put(name, pgClient);
           pools.put(name, Pool.pool(FS.vertx, pgOptions, poolOptions));
-          ensureMinConnections(name, idleSize);
+          // ensureMinConnections(name, idleSize);
           break;
         case MYSQL:
           MySQLConnectOptions mysqlOptions = new MySQLConnectOptions(dbConfig).setSslOptions(sslOptions);
@@ -83,7 +83,7 @@ public class DB {
               .connectingTo(mysqlOptions)
               .using(FS.vertx).build();
           pools.put(name, mysqlClient);
-          ensureMinConnections(name, idleSize);
+          // ensureMinConnections(name, idleSize);
           break;
         case MSSQL:
         case SQLSERVER:
@@ -91,7 +91,7 @@ public class DB {
           Pool msClient = JDBCPool.pool(FS.vertx, mssqlOptions, poolOptions);
 
           pools.put(name, msClient);
-          ensureMinConnections(name, idleSize);
+          // ensureMinConnections(name, idleSize);
           break;
         default:
           log.warn("Unsupported DB type: {}", type);
