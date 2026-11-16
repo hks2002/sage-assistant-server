@@ -1,0 +1,762 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.SalesOrderMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="S_CUSTOMER">
+    <if test=' WithCustomer == "Y" ' >
+      BPCUSTOMER.BPCNUM_0 AS CustomerCode,
+      BPCUSTOMER.BPCSHO_0 AS CustomerName,
+    </if> 
+    <if test='WithCustomerCategory == "Y"  ' >
+      T_BP_CUSTOMER_CATEGORY.CustomerCategoryCode AS CustomerCategoryCode,
+      T_BP_CUSTOMER_CATEGORY.CustomerCategoryName AS CustomerCategoryName,
+    </if> 
+    <if test='WithCustomerType == "Y"  ' >
+      T_BP_CUSTOMER_TYPE.CustomerTypeCode AS CustomerTypeCode,
+      T_BP_CUSTOMER_TYPE.CustomerTypeName AS CustomerTypeName,
+    </if> 
+    <if test='WithCustomerGeoRegion == "Y"  ' >
+      T_BP_CUSTOMER_GEO_REGION.CustomerGeoRegionCode AS CustomerGeoRegionCode,
+      T_BP_CUSTOMER_GEO_REGION.CustomerGeoRegionName AS CustomerGeoRegionName,
+    </if>
+  </sql>
+  <sql id="S_REPRESENTATIVE">
+    <if test=' WithRepresentative == "Y" ' >
+      SALESREP.REPNUM_0 AS RepresentativeCode,
+      SALESREP.REPNAM_0 AS RepresentativeName,
+    </if>
+  </sql>
+  <sql id="S_PN">
+    <if test=' WithPN == "Y" ' >
+      SORDERP.ITMREF_0 AS PN,
+      SORDERP.ITMDES1_0 + IIF (
+        SORDERP.ITMDES2_0 = '',
+        '',
+        ' ' + SORDERP.ITMDES2_0
+      ) + IIF (
+        SORDERP.ITMDES3_0 = '',
+        '',
+        ' ' + SORDERP.ITMDES3_0
+      ) AS Description,
+    </if> 
+    <if test=' WithPnProgram == "Y" ' >
+      T_PN_PROGRAM.PnProgramCode AS PnProgramCode,
+      T_PN_PROGRAM.PnProgramName AS PnProgramName,
+    </if> 
+    <if test='WithPnFamily == "Y"  ' >
+      T_PN_FAMILY.PnFamilyCode AS PnFamilyCode,
+      T_PN_FAMILY.PnFamilyName AS PnFamilyName,
+    </if> 
+    <if test='WithPnGroup == "Y"  ' >
+      T_PN_GROUP1.PnGroup1Code AS PnGroup1Code,
+      T_PN_GROUP1.PnGroup1Name AS PnGroup1Name,
+      T_PN_GROUP2.PnGroup2Code AS PnGroup2Code,
+      T_PN_GROUP2.PnGroup2Name AS PnGroup2Name,
+      T_PN_GROUP3.PnGroup3Code AS PnGroup3Code,
+      T_PN_GROUP3.PnGroup3Name AS PnGroup3Name,
+    </if>
+  </sql>
+  <sql id="J_CUSTOMER">
+    <if test=' WithCustomer == "Y" or WithCustomerCategory == "Y" ' >
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER ON SORDER.BPCORD_0 = BPCUSTOMER.BPCNUM_0
+    </if> 
+    <if test='WithCustomerCategory == "Y"  ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.BpCustomerMapper.T_BP_CUSTOMER_CATEGORY" />) AS T_BP_CUSTOMER_CATEGORY ON BPCUSTOMER.BCGCOD_0 = T_BP_CUSTOMER_CATEGORY.CustomerCategoryCode
+    </if> 
+    <if test='WithCustomerType == "Y"  ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.BpCustomerMapper.T_BP_CUSTOMER_TYPE" />) AS T_BP_CUSTOMER_TYPE ON SORDER.TSCCOD_0 = T_BP_CUSTOMER_TYPE.CustomerTypeCode
+    </if> 
+    <if test='WithCustomerGeoRegion == "Y" ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.BpCustomerMapper.T_BP_CUSTOMER_GEO_REGION" />) AS T_BP_CUSTOMER_GEO_REGION ON SORDER.TSCCOD_1 = T_BP_CUSTOMER_GEO_REGION.CustomerGeoRegionCode
+    </if>
+  </sql>
+  <sql id="J_REPRESENTATIVE">
+    <if test=' WithRepresentative == "Y" ' >
+      INNER JOIN EXPLOIT.SALESREP SALESREP ON SORDERP.REP1_0 = SALESREP.REPNUM_0
+    </if>
+  </sql>
+  <sql id="J_PN">
+    <if test=' WithPnProgram == "Y"  or WithPnFamily == "Y" or WithPnGroup == "Y" ' >
+      INNER JOIN ITMMASTER ITMMASTER ON SORDERP.ITMREF_0 = ITMMASTER.ITMREF_0
+    </if> 
+    <if test=' WithPnProgram == "Y"  ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_PROGRAM" />) AS T_PN_PROGRAM ON ITMMASTER.CCE_1 = T_PN_PROGRAM.PnProgramCode
+    </if> 
+    <if test='WithPnFamily == "Y"  ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_FAMILY" />) AS T_PN_FAMILY ON ITMMASTER.CCE_1 = T_PN_FAMILY.PnFamilyCode
+    </if> 
+    <if test='WithPnGroup == "Y" ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_GROUP1" />) AS T_PN_GROUP1 ON SORDERP.TSICOD_0 = T_PN_GROUP1.PnGroup1Code
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_GROUP2" />) AS T_PN_GROUP2 ON SORDERP.TSICOD_1 = T_PN_GROUP2.PnGroup2Code
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_GROUP3" />) AS T_PN_GROUP3 ON SORDERP.TSICOD_2 = T_PN_GROUP3.PnGroup3Code
+    </if>
+  </sql>
+  <sql id="W_SALES_ORDER_SITE">
+    -- Order Site       
+    <choose>
+      <when test=' Site == "ALL" or Site == null or Site == "" '></when> 
+      <when test=' Site == "CHINA" '>
+        AND SORDER.SALFCY_0 IN ('ZHU', 'HKG', 'YSH', 'GZH')
+      </when> 
+      <otherwise>
+        AND SORDER.SALFCY_0 = #{Site}
+      </otherwise>
+    </choose> 
+    <choose>
+      <when test=' BetweenSite == "ALL" or BetweenSite == null or BetweenSite == "" '></when> 
+      <when test=' BetweenSite ==  "Y" '>
+        AND SORDER.BETFCY_0 = 2
+      </when> 
+      <when test='  BetweenSite ==  "N" '>
+        AND SORDER.BETFCY_0 = 1
+      </when>
+    </choose>
+  </sql>
+  <sql id="W_SALES_ORDER_ORDER_TYPE">
+    -- Order Type
+    <choose>
+      <when test=' SalesOrderType ==  "ALL" or SalesOrderType == null or SalesOrderType == "" '></when> 
+      <when test=' SalesOrderType ==  "NORMAL" '>
+        AND SORDER.SOHTYP_0 IN ('NOR', 'NOR3', 'YGES')
+        AND SORDERQ.YSOQ_STA_0 != 7
+      </when> 
+      <when test=' SalesOrderType ==  "SERVICES" '>
+        AND (
+          (
+            SORDER.SOHTYP_0 IN ('NOR', 'NOR3', 'YGES', 'LOC', 'LOC3')
+            AND SORDERQ.YSOQ_STA_0 = 7
+          )
+          OR SORDER.SOHTYP_0 IN ('REP', 'REP3')
+        )
+      </when> 
+      <when test=' SalesOrderType ==  "RENT" '>
+        AND SORDER.SOHTYP_0 IN ('LOC', 'LOC3')
+        AND SORDERQ.YSOQ_STA_0 != 7
+      </when>
+    </choose>
+  </sql>
+  <sql id="W_SALES_ORDER_DATE">
+    -- Order Date
+    <choose>
+      <when test=' DateType ==  "ORDER" '>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND SORDERQ.ORDDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateTo != null and DateTo != ''">
+          AND CONVERT(Date, #{DateTo}, 23) > SORDERQ.ORDDAT_0
+        </if>
+      </when> 
+      <when test=' DateType ==  "REQUEST" '>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND SORDERQ.DEMDLVDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateFrom != null and DateFrom != ''">
+          AND CONVERT(DATE, #{DateTo}, 23) > SORDERQ.DEMDLVDAT_0
+        </if>
+      </when> 
+      <when test=' DateType ==  "PLAN" '>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND SORDERQ.YSOQ_DLIVP_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateFrom != null and DateFrom != ''">
+          AND CONVERT(DATE, #{DateTo}, 23) > SORDERQ.YSOQ_DLIVP_0
+        </if>
+      </when> 
+      <otherwise>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND SORDERQ.ORDDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateFrom != null and DateFrom != ''">
+          AND CONVERT(DATE, #{DateTo}, 23) > SORDERQ.ORDDAT_0
+        </if>
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_SALES_ORDER_LINE_STATUS">
+    -- Order Line Status
+    <choose>
+      <when test=' OrderLineStatus == "ALL" or OrderLineStatus == null or OrderLineStatus == "" '></when> 
+      <when test=' OrderLineStatus == "OPEN" '>
+        AND SORDERP.SOQSTA_0 != 3
+      </when> 
+      <when test=' OrderLineStatus == "CLOSED" '>
+        AND SORDERP.SOQSTA_0 = 3
+      </when> 
+      <otherwise>
+        AND SORDERP.SOQSTA_0 = -1
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_SALES_ORDER_CUSTOMER">
+    -- Customer
+    <if test='  ExcludeHK ==  "Y"  ' >
+      AND SORDER.BPCORD_0 != '00870'
+    </if> 
+    <choose>
+      <when test=' Customer == "ALL" or Customer == null or Customer == "" '></when> 
+      <otherwise>
+        AND SORDER.BPCORD_0 = #{Customer}
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_SALES_ORDER_REPRESENTATIVE">
+    -- Representative
+    <if test="Representative != null and Representative != '' ">
+      AND SORDER.REP_0 = #{Representative}
+    </if>
+  </sql>
+  <sql id="W_SALES_PROJECTNO">
+    <if test="ProjectNO != null and ProjectNO != '' ">
+      -- Project NO
+      AND (
+        SORDERQ.YSOH_PJT_0 = #{ProjectNO}
+        OR SORDERQ.YSOQ_PJTORI_0 = #{ProjectNO}
+      )
+    </if>
+  </sql>
+  <sql id="W_SALES_ORDERNO">
+    <if test="OrderNO != null and OrderNO != '' ">
+      -- Order NO
+      AND SORDER.SOHNUM_0 = #{OrderNO}
+    </if>
+  </sql>
+  <sql id="W_SALES_ORDER">
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_SITE"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_ORDER_TYPE"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_DATE"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_CUSTOMER"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_REPRESENTATIVE"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_LINE_STATUS"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_PROJECTNO"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDERNO"/>
+  </sql>
+  <select id="SALES_DELIVERY_OF_PN" resultType="java.util.Map">
+    
+
+    WITH
+      T_PN AS (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN" />)
+    SELECT
+      SORDERP.SALFCY_0 AS SalesSite,
+      SORDERP.ITMREF_0 AS PN,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDER.BPCORD_0 AS CustomerCode,
+      BPCUSTOMER.BPCSHO_0 AS CustomerName,
+      SORDERQ.QTY_0 AS QTY,
+      SORDERP.STU_0 AS Unit,
+      SORDERQ.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO,
+      SDELIVERYD.SHIDAT_0 AS ShipDate,
+      DateDiff (day, SORDER.ORDDAT_0, SDELIVERYD.SHIDAT_0) AS Duration
+    FROM
+      T_PN
+      INNER JOIN EXPLOIT.SORDERP SORDERP ON SORDERP.ITMREF_0 = T_PN.PN
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER ON BPCUSTOMER.BPCNUM_0 = SORDER.BPCORD_0
+      INNER JOIN EXPLOIT.SDELIVERYD SDELIVERYD ON SORDERP.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERP.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="W_SALES_ORDER_SITE"/>
+    ORDER BY
+      SORDERP.SALFCY_0 DESC,
+      SORDER.ORDDAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="SALES_ORDER_OF_PN" resultType="java.util.Map">
+    
+
+    WITH
+      T_PN AS (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN" />)
+    SELECT DISTINCT
+      SORDERQ.SALFCY_0 AS SalesSite,
+      SORDERP.ITMREF_0 AS PN,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDER.BPCORD_0 AS CustomerCode,
+      BPCUSTOMER.BPCSHO_0 AS CustomerName,
+      SORDERQ.QTY_0 AS QTY,
+      SORDERP.STU_0 AS Unit,
+      SORDERP.NETPRI_0 AS NetPrice,
+      SORDER.CUR_0 AS Currency,
+      SORDERQ.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO
+    FROM
+      T_PN
+      INNER JOIN EXPLOIT.SORDERP SORDERP ON T_PN.PN = SORDERP.ITMREF_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER ON BPCUSTOMER.BPCNUM_0 = SORDER.BPCORD_0
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="W_SALES_ORDER_SITE"/>
+    ORDER BY
+      SORDERQ.SALFCY_0 DESC,
+      SORDER.ORDDAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <sql id="T_SALES_ORDER_LINE_DETAILS">
+    SELECT DISTINCT
+      <choose>
+        <when test=' DateType ==  "ORDER" '>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              SORDERP.SALFCY_0 DESC,
+              SORDERQ.ORDDAT_0 DESC
+          ) AS ItemNO,
+        </when> 
+        <when test=' DateType ==  "REQUEST" '>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              SORDERP.SALFCY_0 DESC,
+              SORDERQ.DEMDLVDAT_0 DESC
+          ) AS ItemNO,
+        </when> 
+        <when test=' DateType ==  "PLAN" '>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              SORDERP.SALFCY_0 DESC,
+              SORDERQ.YSOQ_DLIVP_0 DESC
+          ) AS ItemNO,
+        </when> 
+        <otherwise>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              SORDERP.SALFCY_0 DESC,
+              SORDERQ.ORDDAT_0 DESC
+          ) AS ItemNO,
+        </otherwise>
+      </choose> SORDERP.SALFCY_0 AS OrderSite,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      SORDERQ.ORDDAT_0 AS OrderDate,
+      SORDERQ.DEMDLVDAT_0 AS RequestDate,
+      SORDERQ.YSOQ_DLIVP_0 AS DeliveryPlanDate,
+      SORDERQ.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO,
+      SORDER.CUSORDREF_0 AS CustomerOrderNO,
+      <include refid="S_REPRESENTATIVE" /> 
+      <include refid="S_CUSTOMER" /> 
+      <include refid="S_PN" /> CASE
+        WHEN SORDERQ.YSOQ_PRIO_0 = 1 THEN ''
+        WHEN SORDERQ.YSOQ_PRIO_0 = 2 THEN 'CRI'
+        WHEN SORDERQ.YSOQ_PRIO_0 = 3 THEN 'AOG'
+        ELSE ''
+      END AS Priority,
+      CASE
+        WHEN SORDERQ.YSOQ_STA_0 = 1 THEN SORDER.SOHTYP_0 + '-Methods'
+        WHEN SORDERQ.YSOQ_STA_0 = 2 THEN SORDER.SOHTYP_0 + '-InteralProd'
+        WHEN SORDERQ.YSOQ_STA_0 = 3 THEN SORDER.SOHTYP_0 + '-ExternalProd'
+        WHEN SORDERQ.YSOQ_STA_0 = 4 THEN SORDER.SOHTYP_0 + '-Design'
+        WHEN SORDERQ.YSOQ_STA_0 = 5 THEN SORDER.SOHTYP_0 + '-Stock'
+        WHEN SORDERQ.YSOQ_STA_0 = 6 THEN SORDER.SOHTYP_0 + '-Trading'
+        WHEN SORDERQ.YSOQ_STA_0 = 7 THEN SORDER.SOHTYP_0 + '-Services'
+        WHEN SORDERQ.YSOQ_STA_0 = 8 THEN SORDER.SOHTYP_0 + '-SalesAdmin'
+        ELSE SORDER.SOHTYP_0 + '-UNK'
+      END AS OrderAssignStatus,
+      CAST(SORDERQ.YWR_STA_0 AS SMALLINT) AS ProjectStatusCode,
+      CASE
+        WHEN SORDERQ.YWR_STA_0 = 0 THEN ''
+        WHEN SORDERQ.YWR_STA_0 = 1 THEN 'In hold'
+        WHEN SORDERQ.YWR_STA_0 = 2 THEN 'In progress'
+        WHEN SORDERQ.YWR_STA_0 = 3 THEN 'PO Cancelled'
+        WHEN SORDERQ.YWR_STA_0 = 4 THEN 'Delivered'
+        WHEN SORDERQ.YWR_STA_0 = 5 THEN 'Customer StandBy'
+        ELSE 'UNK'
+      END AS ProjectStatus,
+      CAST(SORDERQ.YWR_CBLOC_0 AS SMALLINT) AS ProjectBlockReasonCode,
+      CASE
+        WHEN SORDERQ.YWR_CBLOC_0 = 0 THEN ''
+        WHEN SORDERQ.YWR_CBLOC_0 = 1 THEN '-'
+        WHEN SORDERQ.YWR_CBLOC_0 = 2 THEN 'AMENDMENT'
+        WHEN SORDERQ.YWR_CBLOC_0 = 3 THEN 'PAYMENT'
+        WHEN SORDERQ.YWR_CBLOC_0 = 4 THEN 'TECHNICAL DATA'
+        WHEN SORDERQ.YWR_CBLOC_0 = 5 THEN 'DEVIATION REQUEST'
+        WHEN SORDERQ.YWR_CBLOC_0 = 6 THEN 'QUALIFICATION'
+        WHEN SORDERQ.YWR_CBLOC_0 = 7 THEN 'WAITING TOOL'
+        ELSE 'UNK'
+      END AS ProjectBlockReason,
+      RTRIM (LTRIM (SORDERQ.YWR_COM_0)) AS ProjectComment,
+      RTRIM (LTRIM (SORDERQ.YWR_ACT_0)) AS ProjectAction,
+      SORDERQ.YSOQ_MARK_0 AS Mark,
+      SORDERQ.YSOQ_PAINT_0 AS Paint,
+      SORDER.CUR_0 AS Currency,
+      SORDERP.NETPRINOT_0 AS NetPrice,
+      SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 AS LineAmount,
+      -- Tax definition error cause NetPriceWithTax is not equal to NetPrice + Tax
+      IIF (
+        SORDERP.NETPRIATI_0 > 0,
+        SORDERP.NETPRIATI_0,
+        SORDERP.NETPRINOT_0
+      ) AS NetPriceWithTax,
+      IIF (
+        SORDERP.NETPRIATI_0 > 0,
+        SORDERP.NETPRIATI_0 * SORDERQ.QTY_0,
+        SORDERP.NETPRINOT_0 * SORDERQ.QTY_0
+      ) AS LineAmountWithTax,
+      SORDERQ.QTY_0 AS Qty,
+      SORDERQ.DLVQTY_0 AS DeliveredQty,
+      SORDERQ.QTY_0 - SORDERQ.DLVQTY_0 AS RemainingQty,
+      SORDERP.STU_0 AS Unit,
+      NULLIF(SORDERQ.YWR_DAT_0, '1753-01-01') AS LastDeliveryDate,
+      SORDERQ.SDHNUM_0 AS LastDeliveryNO,
+      IIF (
+        SORDERQ.YSOQ_DLIVP_0 > GETDATE ()
+        OR SORDERQ.SDHNUM_0 IS NULL
+        OR SORDERQ.QTY_0 > SORDERQ.DLVQTY_0,
+        DATEDIFF (day, SORDERQ.YSOQ_DLIVP_0, GETDATE ()),
+        DATEDIFF (
+          day,
+          SORDERQ.YSOQ_DLIVP_0,
+          COALESCE(
+            NULLIF(SORDERQ.YWR_DAT_0, '1753-01-01'),
+            NULLIF(SORDERQ.YWR_DLIVR_0, '1753-01-01')
+          )
+        )
+      ) AS DaysDelay
+    FROM
+      EXPLOIT.SORDERP SORDERP
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0 
+      <include refid="J_REPRESENTATIVE" /> 
+      <include refid="J_CUSTOMER" /> 
+      <include refid="J_PN" />
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="W_SALES_ORDER"/>
+  </sql>
+  <select id="SALES_ORDER_LINE_DETAILS" resultType="java.util.Map">
+    
+
+    <include refid="T_SALES_ORDER_LINE_DETAILS" />
+    ORDER BY
+      OrderSite DESC,
+      ItemNO ASC,
+      ProjectNO DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="SALES_ORDER_LINE_DETAILS_CNT" resultType="java.util.Map">
+    
+
+    SELECT DISTINCT
+      COUNT(1) AS Total
+    FROM
+      EXPLOIT.SORDERP SORDERP
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0 
+      <include refid="J_REPRESENTATIVE" /> 
+      <include refid="J_CUSTOMER" /> 
+      <include refid="J_PN" />
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="W_SALES_ORDER"/>
+  </select>
+  <sql id="T_SALES_ORDER_LINE_AMOUNT">
+    SELECT DISTINCT
+      SORDERP.SALFCY_0 AS OrderSite,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      SORDERQ.ORDDAT_0 AS OrderDate,
+      SORDERQ.DEMDLVDAT_0 AS RequestDate,
+      SORDERQ.YSOQ_DLIVP_0 AS DeliveryPlanDate,
+      <include refid="S_REPRESENTATIVE" /> 
+      <include refid="S_CUSTOMER" /> 
+      <include refid="S_PN" /> SORDER.CUR_0 AS Currency,
+      SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 AS SalesAmount,
+      IIF (
+        SORDERP.NETPRIATI_0 > 0,
+        SORDERP.NETPRIATI_0 * SORDERQ.QTY_0,
+        SORDERP.NETPRINOT_0 * SORDERQ.QTY_0
+      ) AS SalesAmountWithTax
+    FROM
+      EXPLOIT.SORDERP SORDERP
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0 
+      <include refid="J_REPRESENTATIVE" /> 
+      <include refid="J_CUSTOMER" /> 
+      <include refid="J_PN" />
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="W_SALES_ORDER"/>
+  </sql>
+  <sql id="T_SALES_ORDER_T00_YEAR_MONTH_TARGET">
+    SELECT
+      T00.*,
+      <choose>
+        <when test=' Interval == "YEAR"'>
+          <choose>
+            <when test=' DateType ==  "ORDER" '>
+              FORMAT (Year (T00.OrderDate), '0000') AS Target
+            </when> 
+            <when test=' DateType ==  "REQUEST" '>
+              FORMAT (Year (T00.RequestDate), '0000') AS Target
+            </when> 
+            <when test=' DateType ==  "PLAN" '>
+              FORMAT (Year (T00.DeliveryPlanDate), '0000') AS Target
+            </when> 
+            <otherwise>
+              FORMAT (Year (T00.OrderDate), '0000') AS Target
+            </otherwise>
+          </choose>
+        </when> 
+        <when test=' Interval == "MONTH"'>
+          <choose>
+            <when test=' DateType ==  "ORDER" '>
+              FORMAT (Year (T00.OrderDate), '0000') + '-' + FORMAT (MONTH (T00.OrderDate), '00') AS Target
+            </when> 
+            <when test=' DateType ==  "REQUEST" '>
+              FORMAT (Year (T00.RequestDate), '0000') + '-' + FORMAT (MONTH (T00.RequestDate), '00') AS Target
+            </when> 
+            <when test=' DateType ==  "PLAN" '>
+              FORMAT (Year (T00.DeliveryPlanDate), '0000') + '-' + FORMAT (MONTH (T00.DeliveryPlanDate), '00') AS Target
+            </when> 
+            <otherwise>
+              FORMAT (Year (T00.OrderDate), '0000') + '-' + FORMAT (MONTH (T00.OrderDate), '00') AS Target
+            </otherwise>
+          </choose>
+        </when> 
+        <otherwise>
+          FORMAT (Year (T00.OrderDate), '0000') AS Target
+        </otherwise>
+      </choose>
+    FROM
+      T00
+  </sql>
+  <select id="SALES_ORDER_LINE_AMOUNT_BY_TARGET" resultType="java.util.Map">
+    
+
+    WITH
+      T00 AS (
+      <include refid="T_SALES_ORDER_LINE_AMOUNT"/>) 
+      <include refid="T_SALES_ORDER_T00_YEAR_MONTH_TARGET"/>
+    ORDER BY
+      T00.OrderSite DESC,
+      Target ASC
+  </select>
+  <sql id="T_SALES_ORDER_LINE_COUNT">
+    SELECT DISTINCT
+      SORDERP.SALFCY_0 AS OrderSite,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      SORDERQ.ORDDAT_0 AS OrderDate,
+      SORDERQ.DEMDLVDAT_0 AS RequestDate,
+      SORDERQ.YSOQ_DLIVP_0 AS DeliveryPlanDate,
+      <include refid="S_REPRESENTATIVE" /> 
+      <include refid="S_CUSTOMER" /> 
+      <include refid="S_PN" /> 1 AS LineCount
+    FROM
+      EXPLOIT.SORDERP SORDERP
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0 
+      <include refid="J_REPRESENTATIVE" /> 
+      <include refid="J_CUSTOMER" /> 
+      <include refid="J_PN" />
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="W_SALES_ORDER"/>
+  </sql>
+  <select id="SALES_ORDER_LINE_COUNT_BY_TARGET" resultType="java.util.Map">
+    
+
+    WITH
+      T00 AS (
+      <include refid="T_SALES_ORDER_LINE_COUNT"/>) 
+      <include refid="T_SALES_ORDER_T00_YEAR_MONTH_TARGET"/>
+    ORDER BY
+      T00.OrderSite DESC,
+      Target ASC
+  </select>
+  <sql id="T_SALES_ORDER_LINE_DELAYS">
+    SELECT DISTINCT
+      SORDERP.SALFCY_0 AS OrderSite,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      SORDERQ.ORDDAT_0 AS OrderDate,
+      SORDERQ.DEMDLVDAT_0 AS RequestDate,
+      SORDERQ.YSOQ_DLIVP_0 AS DeliveryPlanDate,
+      SORDERQ.QTY_0 - SORDERQ.DLVQTY_0 AS RemainingQty,
+      <include refid="S_REPRESENTATIVE" /> 
+      <include refid="S_CUSTOMER" /> 
+      <include refid="S_PN" /> IIF (
+        SORDERQ.YSOQ_DLIVP_0 > GETDATE ()
+        OR SORDERQ.SDHNUM_0 IS NULL
+        OR SORDERQ.QTY_0 > SORDERQ.DLVQTY_0,
+        DATEDIFF (day, SORDERQ.YSOQ_DLIVP_0, GETDATE ()),
+        DATEDIFF (
+          day,
+          SORDERQ.YSOQ_DLIVP_0,
+          COALESCE(
+            NULLIF(SORDERQ.YWR_DAT_0, '1753-01-01'),
+            NULLIF(SORDERQ.YWR_DLIVR_0, '1753-01-01')
+          )
+        )
+      ) AS DaysDelay,
+      1 AS LineCount
+    FROM
+      EXPLOIT.SORDERP SORDERP
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0 
+      <include refid="J_REPRESENTATIVE" /> 
+      <include refid="J_CUSTOMER" /> 
+      <include refid="J_PN" />
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="W_SALES_ORDER"/>
+  </sql>
+  <sql id="T_SALES_ORDER_T00_YEAR_MONTH_TARGET_OTD">
+    SELECT DISTINCT
+      T00.OrderSite,
+      <choose>
+        <when test=' Interval == "YEAR"'>
+          FORMAT (Year (T00.DeliveryPlanDate), '0000') AS Target,
+          COUNT(
+            IIF (
+              T00.DaysDelay > 0,
+              NULL,
+              IIF (T00.RemainingQty = 0, 1, NULL)
+            )
+          ) OVER (
+            PARTITION BY
+              T00.OrderSite,
+              FORMAT (Year (T00.DeliveryPlanDate), '0000')
+          ) AS OTCnt,
+          COUNT(1) OVER (
+            PARTITION BY
+              T00.OrderSite,
+              FORMAT (Year (T00.DeliveryPlanDate), '0000')
+          ) AS AllCnt
+        </when> 
+        <when test=' Interval == "MONTH"'>
+          FORMAT (Year (T00.DeliveryPlanDate), '0000') + '-' + FORMAT (MONTH (T00.DeliveryPlanDate), '00') AS Target,
+          COUNT(
+            IIF (
+              T00.DaysDelay > 0,
+              NULL,
+              IIF (T00.RemainingQty = 0, 1, NULL)
+            )
+          ) OVER (
+            PARTITION BY
+              T00.OrderSite,
+              FORMAT (Year (T00.DeliveryPlanDate), '0000') + '-' + FORMAT (MONTH (T00.DeliveryPlanDate), '00')
+          ) AS OTCnt,
+          COUNT(1) OVER (
+            PARTITION BY
+              T00.OrderSite,
+              FORMAT (Year (T00.DeliveryPlanDate), '0000') + '-' + FORMAT (MONTH (T00.DeliveryPlanDate), '00')
+          ) AS AllCnt
+        </when> 
+        <otherwise>
+          FORMAT (Year (T00.DeliveryPlanDate), '0000') AS Target,
+          COUNT(
+            IIF (
+              T00.DaysDelay > 0,
+              NULL,
+              IIF (T00.RemainingQty = 0, 1, NULL)
+            )
+          ) OVER (
+            PARTITION BY
+              T00.OrderSite,
+              FORMAT (Year (T00.DeliveryPlanDate), '0000')
+          ) AS OTCnt,
+          COUNT(1) OVER (
+            PARTITION BY
+              T00.OrderSite,
+              FORMAT (Year (T00.DeliveryPlanDate), '0000')
+          ) AS AllCnt
+        </otherwise>
+      </choose>
+    FROM
+      T00
+  </sql>
+  <select id="SALES_ORDER_LINE_OTD_BY_TARGET" resultType="java.util.Map">
+    
+
+    WITH
+      T00 AS (
+        <include refid="T_SALES_ORDER_LINE_DELAYS"/>
+        --- exclude Customer StandBy
+        AND SORDERQ.YWR_STA_0 != 5
+      ),
+      T01 AS (
+      <include refid="T_SALES_ORDER_T00_YEAR_MONTH_TARGET_OTD" />)
+    SELECT
+      T01.OrderSite,
+      T01.Target,
+      T01.OTCnt,
+      T01.AllCnt,
+      ROUND(T01.OTCnt * 100.0 / T01.AllCnt, 0) AS OTD
+    FROM
+      T01
+    ORDER BY
+      T01.OrderSite DESC,
+      T01.Target ASC
+  </select>
+  <select id="SALES_ORDER_LINE_DOD" resultType="java.util.Map">
+    
+
+    WITH
+      T00 AS (
+        <include refid="T_SALES_ORDER_LINE_DELAYS"/>
+        --- exclude Customer StandBy
+        AND SORDERQ.YWR_STA_0 != 5
+      ),
+      T01 AS (
+        SELECT DISTINCT
+          T00.OrderSite,
+          T00.DaysDelay,
+          COUNT(T00.LineCount) OVER (
+            PARTITION BY
+              T00.OrderSite,
+              T00.DaysDelay
+          ) AS Cnt
+        FROM
+          T00
+      )
+    SELECT
+      T01.OrderSite,
+      T01.DaysDelay,
+      T01.Cnt,
+      SUM(T01.DaysDelay * T01.Cnt) OVER (
+        PARTITION BY
+          T01.OrderSite
+      ) / SUM(T01.Cnt) OVER (
+        PARTITION BY
+          T01.OrderSite
+      ) AS DOD
+    FROM
+      T01
+    ORDER BY
+      T01.OrderSite DESC,
+      T01.DaysDelay ASC
+  </select>
+</mapper>

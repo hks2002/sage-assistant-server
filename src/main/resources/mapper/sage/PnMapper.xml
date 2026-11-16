@@ -1,0 +1,658 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.PnMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="10000" />
+  <sql id="T_PN_PROGRAM">
+    SELECT DISTINCT
+      IDENT2_0 AS PnProgramCode,
+      TEXTE_0 AS PnProgramName
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '1005' -- Program  
+      <choose>
+        <when test=' PnProgram == "ALL" or PnProgram == null or PnProgram == "" '></when> 
+        <otherwise>
+          AND (
+            UPPER(ATEXTRA.IDENT2_0) = UPPER(#{PnProgram})
+            OR UPPER(ATEXTRA.TEXTE_0) = UPPER(#{PnProgram})
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="PN_PROGRAM" resultType="java.util.Map">
+    
+
+    <include refid="T_PN_PROGRAM" />
+    ORDER BY
+      PnProgramName ASC
+  </select>
+  <sql id="T_PN_FAMILY">
+    SELECT DISTINCT
+      IDENT2_0 AS PnFamilyCode,
+      TEXTE_0 AS PnFamilyName
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '1004' -- Family
+      <choose>
+        <when test=' PnFamily == "ALL" or PnFamily == null or PnFamily == "" '></when> 
+        <otherwise>
+          AND (
+            UPPER(ATEXTRA.IDENT2_0) = UPPER(#{PnFamily})
+            OR UPPER(ATEXTRA.TEXTE_0) = UPPER(#{PnFamily})
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="PN_FAMILY" resultType="java.util.Map">
+    
+
+    <include refid="T_PN_FAMILY" />
+    ORDER BY
+      PnFamilyName ASC
+  </select>
+  <sql id="T_PN_GROUP1">
+    SELECT DISTINCT
+      IDENT2_0 AS PnGroup1Code,
+      TEXTE_0 AS PnGroup1Name
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '20' -- Group1
+      <choose>
+        <when test=' PNGroup1 == "ALL" or PNGroup1 == null or PNGroup1 == "" '></when> 
+        <otherwise>
+          AND (
+            UPPER(ATEXTRA.IDENT2_0) = UPPER(#{PNGroup1})
+            OR UPPER(ATEXTRA.TEXTE_0) LIKE UPPER('%' + #{PNGroup1} + '%')
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="PN_GROUP1" resultType="java.util.Map">
+    
+
+    <include refid="T_PN_GROUP1" />
+    ORDER BY
+      PnGroup1Name ASC
+  </select>
+  <sql id="T_PN_GROUP2">
+    SELECT DISTINCT
+      IDENT2_0 AS PnGroup2Code,
+      TEXTE_0 AS PnGroup2Name
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '21' -- Group2
+      <choose>
+        <when test=' PNGroup2 == "ALL" or PNGroup2 == null or PNGroup2 == "" '></when> 
+        <otherwise>
+          AND (
+            UPPER(ATEXTRA.IDENT2_0) = UPPER(#{PNGroup2})
+            OR UPPER(ATEXTRA.TEXTE_0) LIKE UPPER('%' + #{PNGroup2} + '%')
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="PN_GROUP2" resultType="java.util.Map">
+    
+
+    <include refid="T_PN_GROUP2" />
+    ORDER BY
+      PnGroup2Name ASC
+  </select>
+  <sql   id="T_PN_GROUP3">
+    SELECT DISTINCT
+      IDENT2_0 AS PnGroup3Code,
+      TEXTE_0 AS PnGroup3Name
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND LANGUE_0 = 'ENG'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '22' -- Group3
+      <choose>
+        <when test=' PNGroup3 == "ALL" or PNGroup3 == null or PNGroup3 == "" '></when> 
+        <otherwise>
+          AND (
+            UPPER(ATEXTRA.IDENT2_0) = UPPER(#{PNGroup2})
+            OR UPPER(ATEXTRA.TEXTE_0) LIKE UPPER('%' + #{PNGroup2} + '%')
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="PN_GROUP3" resultType="java.util.Map">
+    
+
+    <include refid="T_PN_GROUP3" />
+    ORDER BY
+      PnGroup3Name ASC
+  </select>
+  <sql id="T_PN">
+    SELECT
+      #{PN} AS PN 
+      <if test=' WithPN == "Y" '>
+        UNION
+        SELECT DISTINCT
+          ITMMASTER.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+          LEFT JOIN EXPLOIT.ECCSTA ECCSTA ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
+        WHERE
+          ITMMASTER.ITMREF_0 LIKE #{PN} + '%'
+          OR (
+            ECCSTA.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0 = #{PN}
+          )
+      </if> 
+      <if test=' WithPNOG == "Y" '>
+        UNION
+        SELECT
+          ITMMASTER.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+        WHERE
+          LEFT (ITMMASTER.ITMREF_0, 4) = 'PNOG'
+          AND ITMMASTER.ITMDES1_0 LIKE '%' + #{PN} + '%'
+      </if> 
+      <if test='  WithCSPN == "Y" '>
+        UNION
+        SELECT
+          ITMMASTER.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+        WHERE
+          LEFT (ITMMASTER.ITMREF_0, 4) = 'PNOG'
+          AND ITMMASTER.ITMDES2_0 LIKE '%' + #{PN} + '%'
+      </if> 
+      <if test=' WithOptionPN == "Y" '>
+        UNION
+        SELECT
+          TRIM(ITMBPS.ITMREFBPS_0) AS PN
+        FROM
+          EXPLOIT.ITMBPS ITMBPS
+        WHERE
+          TRIM(ITMBPS.ITMREF_0) = #{PN}
+        UNION
+        SELECT
+          ITMBPS.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMBPS ITMBPS
+        WHERE
+          TRIM(ITMBPS.ITMREFBPS_0) = #{PN}
+        UNION
+        SELECT
+          ITMBPC.ITMREF_0 AS PN
+        FROM
+          EXPLOIT.ITMBPC ITMBPC
+        WHERE
+          TRIM(ITMBPC.ITMREFBPC_0) = #{PN}
+        UNION
+        SELECT
+          TRIM(ITMBPC.ITMREFBPC_0) AS PN
+        FROM
+          EXPLOIT.ITMBPC ITMBPC
+        WHERE
+          TRIM(ITMBPC.ITMREF_0) = #{PN}
+      </if>
+  </sql>
+  <select id="PN_FIND_BY_LIKE" resultType="java.util.Map">
+    
+
+    WITH
+      T_PN AS (
+      <include refid="T_PN" />),
+      T_PN_PROGRAM AS (
+      <include refid="T_PN_PROGRAM" />),
+      T_PN_FAMILY AS (
+      <include refid="T_PN_FAMILY" />),
+      T_PN_GROUP1 AS (
+      <include refid="T_PN_GROUP1" />),
+      T_PN_GROUP2 AS (
+      <include refid="T_PN_GROUP2" />),
+      T_PN_GROUP3 AS (
+      <include refid="T_PN_GROUP3" />)
+    SELECT DISTINCT
+      ITMMASTER.ITMREF_0 AS PNROOT,
+      ITMMASTER.ITMREF_0 AS PN,
+      ITMMASTER.ITMDES1_0 + IIF (
+        ITMMASTER.ITMDES2_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES2_0
+      ) + IIF (
+        ITMMASTER.ITMDES3_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES3_0
+      ) AS Description,
+      T_PN_PROGRAM.PnProgramCode,
+      T_PN_PROGRAM.PnProgramName,
+      T_PN_FAMILY.PnFamilyCode,
+      T_PN_FAMILY.PnFamilyName,
+      T_PN_GROUP1.PnGroup1Code,
+      T_PN_GROUP1.PnGroup1Name,
+      T_PN_GROUP2.PnGroup2Code,
+      T_PN_GROUP2.PnGroup2Name,
+      T_PN_GROUP3.PnGroup3Code,
+      T_PN_GROUP3.PnGroup3Name
+    FROM
+      T_PN
+      INNER JOIN EXPLOIT.ITMMASTER ON ITMMASTER.ITMREF_0 = T_PN.PN
+      LEFT JOIN T_PN_PROGRAM ON ITMMASTER.CCE_1 = T_PN_PROGRAM.PnProgramCode
+      LEFT JOIN T_PN_FAMILY ON ITMMASTER.CCE_1 = T_PN_FAMILY.PnFamilyCode
+      LEFT JOIN T_PN_GROUP1 ON ITMMASTER.TSICOD_0 = T_PN_GROUP1.PnGroup1Code
+      LEFT JOIN T_PN_GROUP2 ON ITMMASTER.TSICOD_1 = T_PN_GROUP2.PnGroup2Code
+      LEFT JOIN T_PN_GROUP3 ON ITMMASTER.TSICOD_2 = T_PN_GROUP3.PnGroup3Code
+    ORDER BY
+      ITMMASTER.ITMREF_0 ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="PN_OPTION_PN" resultType="java.util.Map">
+    
+
+    -- Suppliers PN
+    SELECT
+      BPARTNER.BPRNUM_0 AS BPCode,
+      BPARTNER.BPRSHO_0 AS BPName,
+      ITMREFBPS_0 AS OptionPN,
+      IIF (
+        ITMDESBPS_0 != '',
+        ITMDESBPS_0,
+        ITMMASTER.ITMDES1_0 + IIF (
+          ITMMASTER.ITMDES2_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES2_0
+        ) + IIF (
+          ITMMASTER.ITMDES3_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES3_0
+        )
+      ) AS Description
+    FROM
+      EXPLOIT.ITMBPS ITMBPS
+      LEFT JOIN EXPLOIT.BPARTNER ON ITMBPS.BPSNUM_0 = BPARTNER.BPRNUM_0
+      LEFT JOIN EXPLOIT.ITMMASTER ON ITMBPS.ITMREF_0 = ITMMASTER.ITMREF_0
+    WHERE
+      ITMBPS.ITMREF_0 = #{PN}
+      AND ITMBPS.ITMREF_0 != ITMBPS.ITMREFBPS_0
+      -- Suppliers PN2
+    UNION
+    SELECT
+      '00000' AS BPCode,
+      'DEDIENNE' AS BPName,
+      ITMREFBPS_0 AS OptionPN,
+      IIF (
+        ITMDESBPS_0 != '',
+        ITMDESBPS_0,
+        ITMMASTER.ITMDES1_0 + IIF (
+          ITMMASTER.ITMDES2_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES2_0
+        ) + IIF (
+          ITMMASTER.ITMDES3_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES3_0
+        )
+      ) AS Description
+    FROM
+      EXPLOIT.ITMBPS ITMBPS
+      LEFT JOIN EXPLOIT.ITMMASTER ON ITMBPS.ITMREF_0 = ITMMASTER.ITMREF_0
+    WHERE
+      TRIM(ITMBPS.ITMREFBPS_0) = #{PN}
+      AND ITMBPS.ITMREF_0 != ITMBPS.ITMREFBPS_0
+      -- Customer PN
+    UNION
+    SELECT
+      BPARTNER.BPRNUM_0 AS BPCode,
+      BPARTNER.BPRSHO_0 AS BPName,
+      ITMREFBPC_0 AS OptionPN,
+      IIF (
+        ITMDESBPC_0 != '',
+        ITMDESBPC_0,
+        ITMMASTER.ITMDES1_0 + IIF (
+          ITMMASTER.ITMDES2_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES2_0
+        ) + IIF (
+          ITMMASTER.ITMDES3_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES3_0
+        )
+      ) AS Description
+    FROM
+      EXPLOIT.ITMBPC ITMBPC
+      LEFT JOIN EXPLOIT.BPARTNER ON ITMBPC.BPCNUM_0 = BPARTNER.BPRNUM_0
+      LEFT JOIN EXPLOIT.ITMMASTER ON ITMBPC.ITMREF_0 = ITMMASTER.ITMREF_0
+    WHERE
+      ITMBPC.ITMREF_0 = #{PN}
+      AND ITMBPC.ITMREF_0 != ITMBPC.ITMREFBPC_0
+      -- Customer PN2
+    UNION
+    SELECT
+      '00000' AS BPCode,
+      'DEDIENNE' AS BPName,
+      ITMREFBPC_0 AS OptionPN,
+      IIF (
+        ITMDESBPC_0 != '',
+        ITMDESBPC_0,
+        ITMMASTER.ITMDES1_0 + IIF (
+          ITMMASTER.ITMDES2_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES2_0
+        ) + IIF (
+          ITMMASTER.ITMDES3_0 = '',
+          '',
+          ' ' + ITMMASTER.ITMDES3_0
+        )
+      ) AS Description
+    FROM
+      EXPLOIT.ITMBPC ITMBPC
+      LEFT JOIN EXPLOIT.ITMMASTER ON ITMBPC.ITMREF_0 = ITMMASTER.ITMREF_0
+    WHERE
+      TRIM(ITMBPC.ITMREFBPC_0) = #{PN}
+      AND ITMBPC.ITMREF_0 != ITMBPC.ITMREFBPC_0 
+      <if test='  WithPNOG == "Y" '>
+        UNION
+        SELECT
+          '00000' AS BPCode,
+          'DEDIENNE' AS BPName,
+          ITMMASTER.ITMREF_0 AS OptionPN,
+          ITMMASTER.ITMDES1_0 + IIF (
+            ITMMASTER.ITMDES2_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES2_0
+          ) + IIF (
+            ITMMASTER.ITMDES3_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES3_0
+          ) AS Description
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+        WHERE
+          LEFT (ITMMASTER.ITMREF_0, 4) = 'PNOG'
+          AND ITMMASTER.ITMDES1_0 LIKE '%' + #{PN} + '%'
+      </if> 
+      <if test='  WithCSPN == "Y" '>
+        UNION
+        SELECT
+          '00000' AS BPCode,
+          'DEDIENNE' AS BPName,
+          ITMMASTER.ITMREF_0 AS OptionPN,
+          ITMMASTER.ITMDES1_0 + IIF (
+            ITMMASTER.ITMDES2_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES2_0
+          ) + IIF (
+            ITMMASTER.ITMDES3_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES3_0
+          ) AS Description
+        FROM
+          EXPLOIT.ITMMASTER ITMMASTER
+        WHERE
+          LEFT (ITMMASTER.ITMREF_0, 4) = 'PNOG'
+          AND ITMMASTER.ITMDES2_0 LIKE '%' + #{PN} + '%'
+      </if>
+  </select>
+  <select id="PN_ALL_IN_ROOT" resultType="map">
+    
+
+    WITH
+      T_PN AS (
+      <include refid="T_PN" />),
+      T_PN_PROGRAM AS (
+      <include refid="T_PN_PROGRAM" />),
+      T_PN_FAMILY AS (
+      <include refid="T_PN_FAMILY" />),
+      T_PN_GROUP1 AS (
+      <include refid="T_PN_GROUP1" />),
+      T_PN_GROUP2 AS (
+      <include refid="T_PN_GROUP2" />),
+      T_PN_GROUP3 AS (
+      <include refid="T_PN_GROUP3" />),
+      T0 AS (
+        SELECT
+          ITMMASTER.ITMREF_0 AS PNROOT,
+          IIF (
+            ITMMASTER.ECCFLG_0 = 2,
+            ITMMASTER.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0,
+            ITMMASTER.ITMREF_0
+          ) AS PN,
+          ITMMASTER.TCLCOD_0 AS Cat,
+          ECCSTA.ECCVALMAJ_0 AS Version,
+          ITMMASTER.ITMDES1_0 + IIF (
+            ITMMASTER.ITMDES2_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES2_0
+          ) + IIF (
+            ITMMASTER.ITMDES3_0 = '',
+            '',
+            ' ' + ITMMASTER.ITMDES3_0
+          ) AS Description,
+          ITMMASTER.YITM_COMSTA_0 AS Comment,
+          IIF (ECCSTA.EXNFLG_0 = 2, 5, ITMMASTER.ITMSTA_0) AS Status,
+          ITMMASTER.CREDAT_0 AS CreateDate,
+          T_PN_PROGRAM.PnProgramCode,
+          T_PN_PROGRAM.PnProgramName,
+          T_PN_FAMILY.PnFamilyCode,
+          T_PN_FAMILY.PnFamilyName,
+          T_PN_GROUP1.PnGroup1Code,
+          T_PN_GROUP1.PnGroup1Name,
+          T_PN_GROUP2.PnGroup2Code,
+          T_PN_GROUP2.PnGroup2Name,
+          T_PN_GROUP3.PnGroup3Code,
+          T_PN_GROUP3.PnGroup3Name
+        FROM
+          T_PN
+          INNER JOIN EXPLOIT.ITMMASTER ON T_PN.PN = ITMMASTER.ITMREF_0
+          LEFT JOIN EXPLOIT.ECCSTA ECCSTA ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
+          LEFT JOIN T_PN_PROGRAM ON ITMMASTER.CCE_1 = T_PN_PROGRAM.PnProgramCode
+          LEFT JOIN T_PN_FAMILY ON ITMMASTER.CCE_1 = T_PN_FAMILY.PnFamilyCode
+          LEFT JOIN T_PN_GROUP1 ON ITMMASTER.TSICOD_0 = T_PN_GROUP1.PnGroup1Code
+          LEFT JOIN T_PN_GROUP2 ON ITMMASTER.TSICOD_1 = T_PN_GROUP2.PnGroup2Code
+          LEFT JOIN T_PN_GROUP3 ON ITMMASTER.TSICOD_2 = T_PN_GROUP3.PnGroup3Code
+      )
+    SELECT
+      ROW_NUMBER() OVER (
+        ORDER BY
+          T0.Version DESC
+      ) AS ID,
+      T0.PNROOT,
+      T0.PN,
+      T0.Cat,
+      T0.Version,
+      T0.Description,
+      T0.Comment,
+      T0.Status,
+      T0.CreateDate,
+      PnProgramCode,
+      PnProgramName,
+      PnFamilyCode,
+      PnFamilyName,
+      PnGroup1Code,
+      PnGroup1Name,
+      PnGroup2Code,
+      PnGroup2Name,
+      PnGroup3Code,
+      PnGroup3Name
+    FROM
+      T0
+  </select>
+  <select id="PN_INDUSTRIALIZATION" resultType="java.util.Map">
+    
+
+    SELECT
+      CAST(YITMINDUS.YCHKDWG_0 AS SMALLINT) AS checkDrawing,
+      APLSTD.LANMES_0 typo,
+      YITMINDUS.YCOMPLEX_0 complex,
+      CAST(YITMINDUS.YWAROUT_0 AS SMALLINT) AS warnManufTool,
+      CAST(YITMINDUS.YWARCE_0 AS SMALLINT) AS warnCE,
+      CAST(YITMINDUS.YWAREXTRA_0 AS SMALLINT) AS warnExtraSize,
+      CAST(YITMINDUS.YWARCAST_0 AS SMALLINT) AS warnCasters,
+      CAST(YITMINDUS.YWARLIFT_0 AS SMALLINT) AS warnLifting,
+      CAST(YITMINDUS.YCOMCOM_0 AS SMALLINT) AS isComponents,
+      CAST(YITMINDUS.YMATALU_0 AS SMALLINT) AS rawAluminum,
+      CAST(YITMINDUS.YMATSTL_0 AS SMALLINT) AS rawSteel,
+      CAST(YITMINDUS.YMATPLA_0 AS SMALLINT) AS rawPlastic,
+      CAST(YITMINDUS.YMATVAR_0 AS SMALLINT) AS rawVariousMaterial,
+      CAST(YITMINDUS.YMATSPE_0 AS SMALLINT) AS rawSpecific,
+      CAST(YITMINDUS.YTTHHTRT_0 AS SMALLINT) AS heatTreatment,
+      CAST(YITMINDUS.YMACGEA_0 AS SMALLINT) AS machineGrinding,
+      CAST(YITMINDUS.YMACGRI_0 AS SMALLINT) AS machineGear,
+      CAST(YITMINDUS.YTTSSTD_0 AS SMALLINT) AS ttsStand,
+      CAST(YITMINDUS.YTTSSPE_0 AS SMALLINT) AS ttsSpecific,
+      CAST(YITMINDUS.YTTSPAI_0 AS SMALLINT) AS ttsPainting,
+      CAST(YITMINDUS.YTTSPLC_0 AS SMALLINT) AS ttsPlastic,
+      CAST(YITMINDUS.YPCKSPB_0 AS SMALLINT) AS specialPackingBox,
+      CAST(YITMINDUS.YCONLOT_0 AS SMALLINT) AS testLoad,
+      CAST(YITMINDUS.YCONHYD_0 AS SMALLINT) AS testHydraulic,
+      CAST(YITMINDUS.YCONBAT_0 AS SMALLINT) AS testBalancing,
+      CAST(YITMINDUS.YCONVAR_0 AS SMALLINT) AS testVarious,
+      CAST(YITMINDUS.YCONCAL_0 AS SMALLINT) AS controlCalibration,
+      CAST(YITMINDUS.YCONSPE_0 AS SMALLINT) AS controlSpecific,
+      CAST(YITMINDUS.YCONGEO_0 AS SMALLINT) AS control3D
+    FROM
+      EXPLOIT.YITMINDUS YITMINDUS
+      LEFT JOIN EXPLOIT.APLSTD APLSTD ON APLSTD.LAN_0 = 'ENG'
+      AND LANCHP_0 = '6557'
+      AND APLSTD.LANNUM_0 = YITMINDUS.YFAMPN_0
+    WHERE
+      ITMREF_0 = #{PN}
+  </select>
+  <select id="CHECK_PN" resultType="java.util.Map">
+    
+
+    SELECT
+      TOP 1 ITMMASTER.ITMREF_0
+    FROM
+      ITMMASTER
+    WHERE
+      ITMMASTER.ITMREF_0 = #{PN}
+  </select>
+  <select id="CHECK_PN_VERSION" resultType="java.util.Map">
+    
+
+    SELECT
+      ECCSTA.ECCVALMAJ_0 AS Version
+    FROM
+      ITMMASTER
+      LEFT JOIN EXPLOIT.ECCSTA AS ECCSTA ON ITMMASTER.ITMREF_0 = ECCSTA.ITMREF_0
+    WHERE
+      ITMMASTER.ITMREF_0 = #{PN}
+      AND ECCSTA.ECCSTA_0 = 2
+  </select>
+  <select id="OBSOLETE_PN" resultType="java.util.Map">
+    
+
+    SELECT
+      IIF (
+        ITMMASTER.ECCFLG_0 = 2,
+        ITMMASTER.ITMREF_0 + '_' + ECCSTA.ECCVALMAJ_0,
+        ITMMASTER.ITMREF_0
+      ) AS PN,
+      ITMMASTER.ITMDES1_0 + IIF (
+        ITMMASTER.ITMDES2_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES2_0
+      ) + IIF (
+        ITMMASTER.ITMDES3_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES3_0
+      ) AS Description,
+      IIF (
+        ECCSTA.EXNFLG_0 = 2,
+        'Obsolete',
+        (
+          CASE
+            WHEN ITMMASTER.ITMSTA_0 = 1 THEN 'Active'
+            WHEN ITMMASTER.ITMSTA_0 = 2 THEN 'InDevelopment'
+            WHEN ITMMASTER.ITMSTA_0 = 3 THEN 'OnShortage'
+            WHEN ITMMASTER.ITMSTA_0 = 4 THEN 'NotRenewed'
+            WHEN ITMMASTER.ITMSTA_0 = 5 THEN 'Obsolete'
+            WHEN ITMMASTER.ITMSTA_0 = 6 THEN 'NotUsable'
+            ELSE 'UNK'
+          END
+        )
+      ) AS PNStatus,
+      ITMMASTER.YITM_SUP_0 AS WC,
+      IIF (
+        SORDERQ.YSOQ_PJTORI_0 = '',
+        SORDERQ.YSOH_PJT_0,
+        SORDERQ.YSOQ_PJTORI_0
+      ) AS ProjectNO,
+      SORDER.BPCORD_0 AS CustomerCode,
+      SORDER.BPCNAM_0 AS CustomerName
+    FROM
+      EXPLOIT.SORDERQ AS SORDERQ
+      LEFT JOIN EXPLOIT.SORDER ON SORDERQ.SOHNUM_0 = SORDER.SOHNUM_0
+      LEFT JOIN EXPLOIT.ECCSTA AS ECCSTA ON SORDERQ.ITMREF_0 = ECCSTA.ITMREF_0
+      AND SORDERQ.ECCVALMAJ_0 = ECCSTA.ECCVALMAJ_0
+      LEFT JOIN EXPLOIT.ITMMASTER AS ITMMASTER ON ITMMASTER.ITMREF_0 = SORDERQ.ITMREF_0
+    WHERE
+      SORDERQ.SOQSTA_0 != 3
+      AND ITMMASTER.ITMSTA_0 != 1
+      AND SORDERQ.SALFCY_0 = #{Site}
+  </select>
+  <select id="PN_OPTION_PN_SHORT" resultType="java.util.Map">
+    
+
+    SELECT
+      STRING_AGG (T_PN.PN, ';') AS OptionPN
+    FROM
+      <include refid="T_PN"/> AS T_PN
+    WHERE
+      T_PN.PN != #{PN}
+  </select>
+</mapper>

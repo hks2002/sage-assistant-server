@@ -1,0 +1,791 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.PurchaseOrderMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="S_SUPPLIER">
+    <if test=' WithSupplier == "Y" ' >
+      BPSUPPLIER.BPSNUM_0 AS SupplierCode,
+      BPSUPPLIER.BPSSHO_0 AS SupplierName,
+    </if> 
+    <if test='WithSupplierCategory == "Y"  ' >
+      T_BP_SUPPLIER_CATEGORY.SupplierCategoryCode AS SupplierCategoryCode,
+      T_BP_SUPPLIER_CATEGORY.SupplierCategoryName AS SupplierCategoryName,
+    </if> 
+    <if test='WithSupplierType == "Y"  ' >
+      T_BP_SUPPLIER_TYPE.SupplierTypeCode AS SupplierTypeCode,
+      T_BP_SUPPLIER_TYPE.SupplierTypeName AS SupplierTypeName,
+    </if> 
+    <if test='WithSupplierSubType == "Y"  ' >
+      T_BP_SUPPLIER_SUB_TYPE.SupplierSubTypeCode AS SupplierSubTypeCode,
+      T_BP_SUPPLIER_SUB_TYPE.SupplierSubTypeName AS SupplierSubTypeName,
+    </if> 
+    <if test='WithSupplierGeoRegion == "Y"  ' >
+      T_BP_SUPPLIER_GEO_REGION.SupplierGeoRegionCode AS SupplierGeoRegionCode,
+      T_BP_SUPPLIER_GEO_REGION.SupplierGeoRegionName AS SupplierGeoRegionName,
+    </if>
+  </sql>
+  <sql id="S_BUYER">
+    <if test=' WithBuyer == "Y" ' >
+      T_BUYERS.BuyerCode AS BuyerCode,
+      T_BUYERS.BuyerName AS BuyerName,
+    </if>
+  </sql>
+  <sql id="S_PN">
+    <if test=' WithPN == "Y" ' >
+      PORDERP.ITMREF_0 AS PN,
+      PORDERP.ITMDES1_0 + IIF (
+        PORDERP.ITMDES2_0 = '',
+        '',
+        ' ' + PORDERP.ITMDES2_0
+      ) + IIF (
+        PORDERP.ITMDES3_0 = '',
+        '',
+        ' ' + PORDERP.ITMDES3_0
+      ) AS Description,
+    </if> 
+    <if test=' WithPnProgram == "Y" ' >
+      T_PN_PROGRAM.PnProgramCode AS PnProgramCode,
+      T_PN_PROGRAM.PnProgramName AS PnProgramName,
+    </if> 
+    <if test='WithPnFamily == "Y"  ' >
+      T_PN_FAMILY.PnFamilyCode AS PnFamilyCode,
+      T_PN_FAMILY.PnFamilyName AS PnFamilyName,
+    </if> 
+    <if test='WithPnGroup == "Y"  ' >
+      T_PN_GROUP1.PnGroup1Code AS PnGroup1Code,
+      T_PN_GROUP1.PnGroup1Name AS PnGroup1Name,
+      T_PN_GROUP2.PnGroup2Code AS PnGroup2Code,
+      T_PN_GROUP2.PnGroup2Name AS PnGroup2Name,
+      T_PN_GROUP3.PnGroup3Code AS PnGroup3Code,
+      T_PN_GROUP3.PnGroup3Name AS PnGroup3Name,
+    </if>
+  </sql>
+  <sql id="J_SUPPLIER">
+    <if test=' WithSupplier == "Y" ' >
+      INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON PORDER.BPSNUM_0 = BPSUPPLIER.BPSNUM_0
+    </if> 
+    <if test='WithSupplierCategory == "Y"  ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.BpSupplierMapper.T_BP_SUPPLIER_CATEGORY" />) AS T_BP_SUPPLIER_CATEGORY ON BPSUPPLIER.BSGCOD_0 = T_BP_SUPPLIER_CATEGORY.SupplierCategoryCode
+    </if> 
+    <if test='WithSupplierType == "Y"  ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.BpSupplierMapper.T_BP_SUPPLIER_TYPE" />) AS T_BP_SUPPLIER_TYPE ON PORDER.TSSCOD_0 = T_BP_SUPPLIER_TYPE.SupplierTypeCode
+    </if> 
+    <if test='WithSupplierSubType == "Y"  ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.BpSupplierMapper.T_BP_SUPPLIER_SUB_TYPE" />) AS T_BP_SUPPLIER_SUB_TYPE ON PORDER.TSSCOD_1 = T_BP_SUPPLIER_SUB_TYPE.SupplierSubTypeCode
+    </if> 
+    <if test='WithSupplierGeoRegion == "Y" ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.BpSupplierMapper.T_BP_SUPPLIER_GEO_REGION" />) AS T_BP_SUPPLIER_GEO_REGION ON PORDER.TSSCOD_2 = T_BP_SUPPLIER_GEO_REGION.SupplierGeoRegionCode
+    </if>
+  </sql>
+  <sql id="J_BUYER">
+    <if test=' WithBuyer == "Y" ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.CommonMapper.T_BUYERS" />) AS T_BUYERS ON PORDER.BUY_0 = T_BUYERS.BuyerCode
+    </if>
+  </sql>
+  <sql id="J_PN">
+    <if test=' WithPnProgram == "Y"  or WithPnFamily == "Y" or WithPnGroup == "Y" ' >
+      INNER JOIN ITMMASTER ITMMASTER ON PORDERP.ITMREF_0 = ITMMASTER.ITMREF_0
+    </if> 
+    <if test=' WithPnProgram == "Y"  ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_PROGRAM" />) AS T_PN_PROGRAM ON ITMMASTER.CCE_1 = T_PN_PROGRAM.PnProgramCode
+    </if> 
+    <if test='WithPnFamily == "Y"  ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_FAMILY" />) AS T_PN_FAMILY ON ITMMASTER.CCE_1 = T_PN_FAMILY.PnFamilyCode
+    </if> 
+    <if test='WithPnGroup == "Y" ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_GROUP1" />) AS T_PN_GROUP1 ON PORDERP.TSICOD_0 = T_PN_GROUP1.PnGroup1Code
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_GROUP2" />) AS T_PN_GROUP2 ON PORDERP.TSICOD_1 = T_PN_GROUP2.PnGroup2Code
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN_GROUP3" />) AS T_PN_GROUP3 ON PORDERP.TSICOD_2 = T_PN_GROUP3.PnGroup3Code
+    </if>
+  </sql>
+  <sql id="J_SALES_ORDER">
+    <if test=' SalesOrderType !=  "ALL" and SalesOrderType != null and SalesOrderType != "" '>
+      INNER JOIN EXPLOIT.SORDERQ AS SORDERQ ON PORDERP.PRHFCY_0 = SORDERQ.SALFCY_0
+      AND PORDERP.PJT_0 = SORDERQ.YSOH_PJT_0
+      AND LEN (PORDERP.PJT_0) != 5
+      INNER JOIN EXPLOIT.SORDER AS SORDER ON SORDERQ.SOHNUM_0 = SORDER.SOHNUM_0
+    </if>
+  </sql>
+  <sql id="W_PURCHASE_ORDER_SITE">
+    <choose>
+      <when test=' Site == "ALL" '></when> 
+      <when test=' Site == "CHINA" '>
+        AND PORDERQ.POHFCY_0 IN ('ZHU', 'HKG', 'YSH', 'GZH')
+      </when> 
+      <otherwise>
+        AND PORDERQ.POHFCY_0 = #{Site}
+      </otherwise>
+    </choose> 
+    <choose>
+      <when test=' BetweenSite == "ALL" '></when> 
+      <when test=' BetweenSite ==  "Y" '>
+        AND PORDER.BETFCY_0 = 2
+      </when> 
+      <when test='BetweenSite ==  "N" '>
+        AND PORDER.BETFCY_0 = 1
+      </when> 
+      <otherwise></otherwise>
+    </choose>
+  </sql>
+  <sql id="W_PURCHASE_ORDER_ORDER_TYPE">
+    -- Order Type
+    <choose>
+      <when test=' PurchaseOrderType ==  "ALL" or PurchaseOrderType == null or PurchaseOrderType == "" '></when> 
+      <when test=' PurchaseOrderType ==  "NORMAL" '>
+        AND PORDER.ZPOH_CATEG_0 IN ('FOU', 'D')
+      </when> 
+      <when test=' PurchaseOrderType ==  "TRP" '>
+        AND PORDER.ZPOH_CATEG_0 = 'TRP'
+        AND PORDER.BPSNUM_0 != '27698'
+      </when> 
+      <when test=' PurchaseOrderType ==  "E_PORT" '>
+        AND PORDER.ZPOH_CATEG_0 = 'TRP'
+        AND PORDER.BPSNUM_0 = '27698'
+      </when> 
+      <when test=' PurchaseOrderType ==  "GENERAL" '>
+        AND PORDER.ZPOH_CATEG_0 = 'GEN'
+      </when>
+    </choose>
+  </sql>
+  <sql id="W_PURCHASE_ORDER_DATE">
+    -- Order Date
+    <choose>
+      <when test=' DateType ==  "ORDER" '>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND PORDER.ORDDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateTo != null and DateTo != ''">
+          AND CONVERT(Date, #{DateTo}, 23) > PORDER.ORDDAT_0
+        </if>
+      </when> 
+      <when test=' DateType ==  "ACK" '>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND IIF (
+            PORDERQ.LINOCNDAT_0 = '1753-01-01',
+            PORDERQ.EXTRCPDAT_0,
+            PORDERQ.LINOCNDAT_0
+          ) >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateFrom != null and DateFrom != ''">
+          AND CONVERT(DATE, #{DateTo}, 23) > IIF (
+            PORDERQ.LINOCNDAT_0 = '1753-01-01',
+            PORDERQ.EXTRCPDAT_0,
+            PORDERQ.LINOCNDAT_0
+          )
+        </if>
+      </when> 
+      <when test=' DateType ==  "EXP" '>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND PORDERQ.EXTRCPDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateFrom != null and DateFrom != ''">
+          AND CONVERT(DATE, #{DateTo}, 23) > PORDERQ.EXTRCPDAT_0
+        </if>
+      </when> 
+      <when test=' DateType ==  "RCP" '>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND PRECEIPTD.RCPDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateFrom != null and DateFrom != ''">
+          AND CONVERT(DATE, #{DateTo}, 23) > PRECEIPTD.RCPDAT_0
+        </if>
+      </when> 
+      <otherwise>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND PORDER.ORDDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateFrom != null and DateFrom != ''">
+          AND CONVERT(DATE, #{DateTo}, 23) > PORDER.ORDDAT_0
+        </if>
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_PURCHASE_ORDER_LINE_STATUS">
+    -- Order Line Status
+    <choose>
+      <when test=' OrderLineStatus == "ALL" or OrderLineStatus == null or OrderLineStatus == "" '></when> 
+      <when test=' OrderLineStatus == "OPEN" '>
+        AND PORDERQ.LINCLEFLG_0 = 1
+      </when> 
+      <when test=' OrderLineStatus == "CLOSED" '>
+        AND PORDERQ.LINCLEFLG_0 = 2
+      </when> 
+      <otherwise>
+        AND PORDERQ.LINCLEFLG_0 = -1
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_PURCHASE_ORDER_SUPPLIER_TYPE">
+    -- Supplier Type
+    <choose>
+      <when test=' SupplierType == "ALL" or SupplierType == null or SupplierType == "" '></when> 
+      <otherwise>
+        AND PORDER.TSSCOD_0 = #{SupplierType}
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_PURCHASE_ORDER_SUPPLIER">
+    -- Supplier
+    <if test='  ExcludeHK ==  "Y"  ' >
+      AND PORDER.BPSNUM_0 != '00870'
+    </if> 
+    <choose>
+      <when test=' Supplier == "ALL" or Supplier == null or Supplier == "" '></when> 
+      <otherwise>
+        AND PORDER.BPSNUM_0 = #{Supplier}
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_PURCHASE_ORDER_BUYER">
+    -- Buyer
+    <if test="Buyer != null and Buyer != '' ">
+      AND PORDER.BUY_0 = #{Buyer}
+    </if>
+  </sql>
+  <sql id="W_PURCHASE_ORDER">
+    <include refid="W_PURCHASE_ORDER_SITE" /> 
+    <include refid="W_PURCHASE_ORDER_ORDER_TYPE" /> 
+    <include refid="W_PURCHASE_ORDER_DATE" /> 
+    <include refid="W_PURCHASE_ORDER_LINE_STATUS" /> 
+    <include refid="W_PURCHASE_ORDER_SUPPLIER_TYPE" /> 
+    <include refid="W_PURCHASE_ORDER_SUPPLIER" /> 
+    <include refid="W_PURCHASE_ORDER_BUYER" /> 
+    <if test=' SalesOrderType !=  "ALL" and SalesOrderType != null and SalesOrderType != "" '>
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_ORDER_TYPE"/>
+    </if>
+  </sql>
+  <select id="PURCHASE_ORDER_OF_PN" resultType="java.util.Map">
+    
+
+    WITH
+      T_PN AS (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN" />)
+    SELECT DISTINCT
+      PORDERQ.POHFCY_0 AS PurchaseSite,
+      PORDERP.ITMREF_0 AS PN,
+      PORDERQ.POHNUM_0 AS PurchaseNO,
+      PORDERQ.POPLIN_0 AS PurchaseLine,
+      PORDERQ.ORDDAT_0 AS PurchaseDate,
+      PORDER.BPSNUM_0 AS SupplierCode,
+      BPSUPPLIER.BPSSHO_0 AS SupplierName,
+      PORDERP.ITMDES1_0 AS Description,
+      PORDERP.NETPRI_0 AS NetPrice,
+      PORDERQ.NETCUR_0 AS Currency,
+      PORDERQ.STU_0 AS Unit,
+      PORDERQ.QTYSTU_0 AS QTY,
+      PORDERP.PJT_0 AS ProjectNO
+    FROM
+      T_PN
+      INNER JOIN EXPLOIT.PORDERQ PORDERQ ON T_PN.PN = PORDERQ.ITMREF_0
+      INNER JOIN EXPLOIT.PORDERP PORDERP ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0
+      AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER PORDER ON PORDERQ.POHNUM_0 = PORDER.POHNUM_0
+      INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON PORDER.BPSNUM_0 = BPSUPPLIER.BPSNUM_0
+    WHERE
+      PORDERP.NETPRI_0 > 0 
+      <include refid="W_PURCHASE_ORDER_SITE" />
+    ORDER BY
+      PORDERQ.POHFCY_0 DESC,
+      PORDERQ.ORDDAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="PURCHASE_RECEIVE_OF_PN" resultType="java.util.Map">
+    
+
+    WITH
+      T_PN AS (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN" />)
+    SELECT
+      PORDERQ.PRHFCY_0 AS PurchaseSite,
+      PORDERQ.ITMREF_0 AS PN,
+      PORDERP.PJT_0 AS ProjectNO,
+      PORDERQ.POHNUM_0 AS PurchaseNO,
+      PORDERQ.POPLIN_0 As Line,
+      PORDER.BPSNUM_0 AS SupplierCode,
+      BPSUPPLIER.BPSSHO_0 AS SupplierName,
+      PORDERQ.QTYPUU_0 AS Qty,
+      PORDERQ.PUU_0 AS Unit,
+      PORDERQ.ORDDAT_0 AS PurchaseDate,
+      PRECEIPTD.RCPDAT_0 AS ReceiptDate,
+      DateDiff (day, PORDERQ.ORDDAT_0, PRECEIPTD.RCPDAT_0) AS Duration
+    FROM
+      T_PN
+      INNER JOIN EXPLOIT.PORDERQ PORDERQ ON PORDERQ.ITMREF_0 = T_PN.PN
+      INNER JOIN EXPLOIT.PORDERP PORDERP ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0
+      AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN EXPLOIT.PRECEIPTD PRECEIPTD ON PORDERQ.POHNUM_0 = PRECEIPTD.POHNUM_0
+      AND PORDERQ.POPLIN_0 = PRECEIPTD.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER PORDER ON PORDER.POHNUM_0 = PORDERQ.POHNUM_0
+      INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+    WHERE
+      PORDERQ.POHNUM_0 != ''
+      AND PORDERQ.QTYPUU_0 > 0 
+      <include refid="W_PURCHASE_ORDER_SITE" />
+    ORDER BY
+      PORDERQ.PRHFCY_0 DESC,
+      PORDERQ.ORDDAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <sql id="T_PURCHASE_ORDER_LINE_DETAILS">
+    SELECT DISTINCT
+      PORDERQ.PRHFCY_0 AS PurchaseSite,
+      PORDER.ZPOH_CATEG_0 AS OrderType,
+      <include refid="S_BUYER" /> 
+      <include refid="S_SUPPLIER" /> PORDERP.POHNUM_0 AS PurchaseNO,
+      PORDERP.POPLIN_0 AS PurchaseLine,
+      PORDERP.PJT_0 AS ProjectNO,
+      <include refid="S_PN" /> PORDERQ.QTYSTU_0 AS Qty,
+      PORDERP.NETPRI_0 AS NetPrice,
+      IIF (
+        PORDERQ.LINAMT_0 = 0,
+        PORDERP.NETPRI_0,
+        PORDERP.NETPRI_0 * (PORDERQ.LINATIAMT_0 / PORDERQ.LINAMT_0)
+      ) AS NetPriceWithTax,
+      PORDERQ.LINAMT_0 AS PurchaseAmount,
+      PORDERQ.LINATIAMT_0 AS PurchaseAmountWithTax,
+      PORDERQ.NETCUR_0 AS Currency,
+      PORDER.ORDDAT_0 AS OrderDate,
+      IIF (
+        PORDERQ.LINOCNDAT_0 = '1753-01-01',
+        PORDERQ.EXTRCPDAT_0,
+        PORDERQ.LINOCNDAT_0
+      ) AS AckDate,
+      PORDERQ.EXTRCPDAT_0 AS ExpDate,
+      MAX(PRECEIPTD.PTHNUM_0) OVER (
+        PARTITION BY
+          PORDERP.POHNUM_0,
+          PORDERP.POPLIN_0
+      ) AS LastReceiveNO,
+      CASE
+        WHEN PORDER.ZPOH_CATEG_0 = 'TRP' THEN PORDER.ORDDAT_0
+        ELSE MAX(PRECEIPTD.RCPDAT_0) OVER (
+          PARTITION BY
+            PORDERP.POHNUM_0,
+            PORDERP.POPLIN_0
+        )
+      END AS LastReceiveDate,
+      SUM(PRECEIPTD.QTYSTU_0) OVER (
+        PARTITION BY
+          PORDERP.POHNUM_0,
+          PORDERP.POPLIN_0
+      ) AS ReceivedQty,
+      CASE
+        WHEN PORDER.ZPOH_CATEG_0 = 'TRP' THEN 0
+        ELSE PORDERQ.QTYSTU_0 - SUM(PRECEIPTD.QTYSTU_0) OVER (
+          PARTITION BY
+            PORDERP.POHNUM_0,
+            PORDERP.POPLIN_0
+        )
+      END AS RemainingQty
+    FROM
+      EXPLOIT.PORDERP AS PORDERP
+      INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+      AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0
+      LEFT JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD ON PORDERP.POHNUM_0 = PRECEIPTD.POHNUM_0
+      AND PORDERP.POPLIN_0 = PRECEIPTD.POPLIN_0 
+      <include refid="J_SUPPLIER" /> 
+      <include refid="J_BUYER" /> 
+      <include refid="J_PN" /> 
+      <include refid="J_SALES_ORDER" />
+    WHERE
+      1 = 1 
+      <include refid="W_PURCHASE_ORDER"/>
+  </sql>
+  <select id="PURCHASE_ORDER_LINE_DETAILS" resultType="java.util.Map">
+    
+
+    WITH
+      T0 AS (
+      <include refid="T_PURCHASE_ORDER_LINE_DETAILS" />)
+    SELECT DISTINCT
+      <choose>
+        <when test=' DateType == "ORDER" '>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              T0.OrderDate DESC
+          ) AS ItemNO,
+        </when> 
+        <when test=' DateType == "ACK" '>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              T0.AckDate DESC
+          ) AS ItemNO,
+        </when> 
+        <when test=' DateType == "EXP" '>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              T0.ExpDate DESC
+          ) AS ItemNO,
+        </when> 
+        <when test=' DateType == "RCP" '>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              T0.LastReceiveDate DESC
+          ) AS ItemNO,
+        </when> 
+        <otherwise>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              T0.OrderDate DESC
+          ) AS ItemNO,
+        </otherwise>
+      </choose> T0.*,
+      IIF (
+        T0.LastReceiveDate IS NULL,
+        DATEDIFF (day, T0.AckDate, getDate ()),
+        IIF (
+          T0.RemainingQty = 0,
+          DATEDIFF (day, T0.AckDate, T0.LastReceiveDate),
+          DATEDIFF (day, T0.AckDate, getDate ())
+        )
+      ) AS DaysDelay
+    FROM
+      T0
+    ORDER BY
+      ItemNO ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <sql id="T_PURCHASE_ORDER_LINE_DETAILS_CNT">
+    SELECT DISTINCT
+      COUNT(1) AS Total
+    FROM
+      EXPLOIT.PORDERP AS PORDERP
+      INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+      AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0 
+      <include refid="J_SUPPLIER" /> 
+      <include refid="J_BUYER" /> 
+      <include refid="J_PN" /> 
+      <include refid="J_SALES_ORDER" />
+    WHERE
+      1 = 1 
+      <include refid="W_PURCHASE_ORDER"/>
+  </sql>
+  <select id="PURCHASE_ORDER_LINE_DETAILS_CNT" resultType="java.util.Map">
+    
+
+    <include refid="T_PURCHASE_ORDER_LINE_DETAILS_CNT" />
+  </select>
+  <sql id="T_PURCHASE_ORDER_LINE_AMOUNT">
+    SELECT DISTINCT
+      PORDERP.PRHFCY_0 AS PurchaseSite,
+      PORDERP.POHNUM_0 AS PurchaseNO,
+      PORDERP.POPLIN_0 AS PurchaseLine,
+      PORDER.ORDDAT_0 AS PurchaseDate,
+      NULLIF(PORDERQ.LINOCNDAT_0, '1753-01-01') AS AckDate,
+      NULLIF(PORDERQ.EXTRCPDAT_0, '1753-01-01') AS ExpDate,
+      <include refid="S_BUYER" /> 
+      <include refid="S_SUPPLIER" /> 
+      <include refid="S_PN" /> PORDERQ.NETCUR_0 AS Currency,
+      PORDERQ.LINAMT_0 AS PurchaseAmount,
+      PORDERQ.LINATIAMT_0 AS PurchaseAmountWithTax
+    FROM
+      EXPLOIT.PORDERP PORDERP
+      INNER JOIN EXPLOIT.PORDERQ PORDERQ ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0
+      AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0 
+      <include refid="J_SUPPLIER" /> 
+      <include refid="J_BUYER" /> 
+      <include refid="J_PN" /> 
+      <include refid="J_SALES_ORDER" />
+    WHERE
+      1 = 1 
+      <include refid="W_PURCHASE_ORDER"/>
+  </sql>
+  <sql id="T_PURCHASE_ORDER_YEAR_MONTH_TARGET_FROM_T00">
+    SELECT
+      T00.*,
+      <choose>
+        <when test=' Interval == "YEAR"'>
+          <choose>
+            <when test=' DateType ==  "ORDER" '>
+              FORMAT (Year (T00.PurchaseDate), '0000') AS Target
+            </when> 
+            <when test=' DateType ==  "ACK" '>
+              FORMAT (Year (T00.AckDate), '0000') AS Target
+            </when> 
+            <when test=' DateType ==  "EXP" '>
+              FORMAT (Year (T00.ExprDate), '0000') AS Target
+            </when> 
+            <otherwise>
+              FORMAT (Year (T00.PurchaseDate), '0000') AS Target
+            </otherwise>
+          </choose>
+        </when> 
+        <when test=' Interval == "MONTH"'>
+          <choose>
+            <when test=' DateType ==  "ORDER" '>
+              FORMAT (Year (T00.PurchaseDate), '0000') + '-' + FORMAT (MONTH (T00.PurchaseDate), '00') AS Target
+            </when> 
+            <when test=' DateType ==  "ACK" '>
+              FORMAT (Year (T00.AckDate), '0000') + '-' + FORMAT (MONTH (T00.AckDate), '00') AS Target
+            </when> 
+            <when test=' DateType ==  "EXP" '>
+              FORMAT (Year (T00.ExpDate), '0000') + '-' + FORMAT (MONTH (T00.ExpDate), '00') AS Target
+            </when> 
+            <otherwise>
+              FORMAT (Year (T00.PurchaseDate), '0000') + '-' + FORMAT (MONTH (T00.PurchaseDate), '00') AS Target
+            </otherwise>
+          </choose>
+        </when> 
+        <otherwise>
+          FORMAT (Year (T00.PurchaseDate), '0000') AS Target
+        </otherwise>
+      </choose>
+    FROM
+      T00
+  </sql>
+  <select id="PURCHASE_ORDER_LINE_AMOUNT" resultType="java.util.Map">
+    
+
+    WITH
+      T00 AS (
+      <include refid="T_PURCHASE_ORDER_LINE_AMOUNT"/>) 
+      <include refid="T_PURCHASE_ORDER_YEAR_MONTH_TARGET_FROM_T00"/>
+    ORDER BY
+      T00.PurchaseSite DESC,
+      Target ASC
+  </select>
+  <sql id="T_PURCHASE_ORDER_LINE_COUNT">
+    SELECT DISTINCT
+      PORDERP.PRHFCY_0 AS PurchaseSite,
+      PORDERP.POHNUM_0 AS PurchaseNO,
+      PORDERP.POPLIN_0 AS PurchaseLine,
+      PORDER.ORDDAT_0 AS PurchaseDate,
+      NULLIF(PORDERQ.LINOCNDAT_0, '1753-01-01') AS AckDate,
+      NULLIF(PORDERQ.EXTRCPDAT_0, '1753-01-01') AS ExpDate,
+      <include refid="S_BUYER" /> 
+      <include refid="S_SUPPLIER" /> 
+      <include refid="S_PN" /> 1 AS LineCount
+    FROM
+      EXPLOIT.PORDERP PORDERP
+      INNER JOIN EXPLOIT.PORDERQ PORDERQ ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0
+      AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0 
+      <include refid="J_SUPPLIER" /> 
+      <include refid="J_BUYER" /> 
+      <include refid="J_PN" /> 
+      <include refid="J_SALES_ORDER" />
+    WHERE
+      PORDERQ.LINAMT_0 > 0 
+      <include refid="W_PURCHASE_ORDER"/>
+  </sql>
+  <select id="PURCHASE_ORDER_LINE_COUNT" resultType="java.util.Map">
+    
+
+    WITH
+      T00 AS (
+      <include refid="T_PURCHASE_ORDER_LINE_COUNT"/>) 
+      <include refid="T_PURCHASE_ORDER_YEAR_MONTH_TARGET_FROM_T00"/>
+    ORDER BY
+      T00.PurchaseSite DESC,
+      Target ASC
+  </select>
+  <sql id="T_PURCHASE_ORDER_LINE_REMAINING_QTY">
+    -- The main query for OTD ad DOD
+    SELECT DISTINCT
+      PORDERP.PRHFCY_0 AS PurchaseSite,
+      PORDERP.POHNUM_0 AS PurchaseNO,
+      PORDERP.POPLIN_0 AS PurchaseLine,
+      PORDER.ORDDAT_0 AS PurchaseDate,
+      IIF (
+        PORDERQ.LINOCNDAT_0 = '1753-01-01',
+        PORDERQ.EXTRCPDAT_0,
+        PORDERQ.LINOCNDAT_0
+      ) AS AckDate,
+      PORDERQ.EXTRCPDAT_0 AS ExpDate,
+      CASE
+        WHEN PORDER.ZPOH_CATEG_0 = 'TRP' THEN PORDER.ORDDAT_0
+        ELSE MAX(PRECEIPTD.RCPDAT_0) OVER (
+          PARTITION BY
+            PORDERP.POHNUM_0,
+            PORDERP.POPLIN_0
+        )
+      END AS RepDate,
+      CASE
+        WHEN PORDER.ZPOH_CATEG_0 = 'TRP' THEN 0
+        ELSE PORDERQ.QTYSTU_0 - SUM(PRECEIPTD.QTYSTU_0) OVER (
+          PARTITION BY
+            PORDERP.POHNUM_0,
+            PORDERP.POPLIN_0
+        )
+      END AS RemainingQty,
+      <include refid="S_BUYER" /> 
+      <include refid="S_SUPPLIER" /> 
+      <include refid="S_PN" /> 1 AS LineCount
+    FROM
+      EXPLOIT.PORDERP PORDERP
+      INNER JOIN EXPLOIT.PORDERQ PORDERQ ON PORDERQ.POHNUM_0 = PORDERP.POHNUM_0
+      AND PORDERQ.POPLIN_0 = PORDERP.POPLIN_0
+      INNER JOIN EXPLOIT.PORDER PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0
+      LEFT JOIN EXPLOIT.PRECEIPTD AS PRECEIPTD ON PORDERP.POHNUM_0 = PRECEIPTD.POHNUM_0
+      AND PORDERP.POPLIN_0 = PRECEIPTD.POPLIN_0 
+      <include refid="J_BUYER" /> 
+      <include refid="J_SUPPLIER" /> 
+      <include refid="J_PN" /> 
+      <include refid="J_SALES_ORDER" />
+    WHERE
+      PORDERQ.LINAMT_0 > 0 
+      <include refid="W_PURCHASE_ORDER"/>
+  </sql>
+  <sql id ="T_PURCHASE_ORDER_DAYS_DELAY_FROM_T0">
+    SELECT
+      T0.*,
+      IIF (
+        T0.RepDate IS NULL,
+        DATEDIFF (day, T0.AckDate, getDate ()),
+        IIF (
+          T0.RemainingQty = 0,
+          DATEDIFF (day, T0.AckDate, T0.RepDate),
+          DATEDIFF (day, T0.AckDate, getDate ())
+        )
+      ) AS DaysDelay
+    FROM
+      T0
+  </sql>
+  <sql id="T_PURCHASE_ORDER_YEAR_MONTH_TARGET_OTD_FROM_T00">
+    SELECT DISTINCT
+      T00.*,
+      <choose>
+        <when test=' Interval == "YEAR"'>
+          FORMAT (Year (T00.AckDate), '0000') AS Target,
+          COUNT(
+            IIF (
+              T00.DaysDelay > 0,
+              NULL,
+              IIF (T00.RemainingQty = 0, 1, NULL)
+            )
+          ) OVER (
+            PARTITION BY
+              T00.PurchaseSite,
+              FORMAT (Year (T00.AckDate), '0000')
+          ) AS OTCnt,
+          COUNT(1) OVER (
+            PARTITION BY
+              T00.PurchaseSite,
+              FORMAT (Year (T00.AckDate), '0000')
+          ) AS AllCnt
+        </when> 
+        <when test=' Interval == "MONTH"'>
+          FORMAT (Year (T00.AckDate), '0000') + '-' + FORMAT (MONTH (T00.AckDate), '00') AS Target,
+          COUNT(
+            IIF (
+              T00.DaysDelay > 0,
+              NULL,
+              IIF (T00.RemainingQty = 0, 1, NULL)
+            )
+          ) OVER (
+            PARTITION BY
+              T00.PurchaseSite,
+              FORMAT (Year (T00.AckDate), '0000') + '-' + FORMAT (MONTH (T00.AckDate), '00')
+          ) AS OTCnt,
+          COUNT(1) OVER (
+            PARTITION BY
+              T00.PurchaseSite,
+              FORMAT (Year (T00.AckDate), '0000') + '-' + FORMAT (MONTH (T00.AckDate), '00')
+          ) AS AllCnt
+        </when> 
+        <otherwise>
+          FORMAT (Year (T00.AckDate), '0000') AS Target,
+          COUNT(
+            IIF (
+              T00.DaysDelay > 0,
+              NULL,
+              IIF (T00.RemainingQty = 0, 1, NULL)
+            )
+          ) OVER (
+            PARTITION BY
+              T00.PurchaseSite,
+              FORMAT (Year (T00.AckDate), '0000')
+          ) AS OTCnt,
+          COUNT(1) OVER (
+            PARTITION BY
+              T00.PurchaseSite,
+              FORMAT (Year (T00.AckDate), '0000')
+          ) AS AllCnt
+        </otherwise>
+      </choose>
+    FROM
+      T00
+  </sql>
+  <select id="PURCHASE_ORDER_LINE_OTD_BY_TARGET" resultType="java.util.Map">
+    
+
+    WITH
+      T0 AS (
+      <include refid="T_PURCHASE_ORDER_LINE_REMAINING_QTY"/>),
+      T00 AS (
+      <include refid="T_PURCHASE_ORDER_DAYS_DELAY_FROM_T0"/>),
+      T01 AS (
+      <include refid="T_PURCHASE_ORDER_YEAR_MONTH_TARGET_OTD_FROM_T00" />)
+    SELECT
+      T01.PurchaseSite,
+      T01.Target,
+      T01.OTCnt,
+      T01.AllCnt,
+      ROUND(T01.OTCnt * 100.0 / T01.AllCnt, 0) AS OTD
+    FROM
+      T01
+    ORDER BY
+      T01.PurchaseSite DESC,
+      T01.Target ASC
+  </select>
+  <select id="PURCHASE_ORDER_LINE_DOD" resultType="java.util.Map">
+    
+
+    WITH
+      T0 AS (
+      <include refid="T_PURCHASE_ORDER_LINE_REMAINING_QTY"/>),
+      T00 AS (
+      <include refid="T_PURCHASE_ORDER_DAYS_DELAY_FROM_T0"/>),
+      T01 AS (
+        SELECT DISTINCT
+          T00.PurchaseSite,
+          T00.DaysDelay,
+          COUNT(T00.LineCount) OVER (
+            PARTITION BY
+              T00.PurchaseSite,
+              T00.DaysDelay
+          ) AS Cnt
+        FROM
+          T00
+      )
+    SELECT
+      T01.PurchaseSite,
+      T01.DaysDelay,
+      T01.Cnt,
+      SUM(T01.DaysDelay * T01.Cnt) OVER (
+        PARTITION BY
+          T01.PurchaseSite
+      ) / SUM(T01.Cnt) OVER (
+        PARTITION BY
+          T01.PurchaseSite
+      ) AS DOD
+    FROM
+      T01
+    ORDER BY
+      T01.PurchaseSite DESC,
+      T01.DaysDelay ASC
+  </select>
+</mapper>

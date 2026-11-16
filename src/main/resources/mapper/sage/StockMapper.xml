@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.StockMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="W_STOCK_SITE">
+    <choose>
+      <when test=' Site == "ALL" '></when> 
+      <when test=' Site == "CHINA" '>
+        AND STOCK.STOFCY_0 IN ('ZHU', 'HKG', 'YSH')
+      </when> 
+      <otherwise>
+        AND STOCK.STOFCY_0 = #{Site}
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_STOCK_PN">
+    <if test=' PN != null and PN != "" '>
+      AND STOCK.ITMREF_0 = #{PN}
+    </if>
+  </sql>
+  <select id="STOCK_INFO" resultType="java.util.Map">
+    
+
+    WITH
+      T_PN AS (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN" />),
+      -- normal stock
+      T00 AS (
+        SELECT
+          STOCK.STOFCY_0 AS StockSite,
+          STOCK.ITMREF_0 AS PN,
+          SUM(STOCK.QTYSTU_0) OVER (
+            PARTITION BY
+              STOCK.ITMREF_0,
+              STOCK.STOFCY_0
+          ) AS Qty,
+          'NORM' AS Type
+        FROM
+          T_PN
+          INNER JOIN EXPLOIT.STOCK STOCK ON STOCK.ITMREF_0 = T_PN.PN
+        WHERE
+          STOCK.STA_0 != 'RE' 
+          <include refid="W_STOCK_SITE" />
+          -- Repair return stock
+        UNION
+        SELECT
+          STOCK.STOFCY_0 AS StockSite,
+          STOCK.ITMREF_0 + '(RE)' AS PN,
+          SUM(STOCK.QTYSTU_0) OVER (
+            PARTITION BY
+              STOCK.ITMREF_0,
+              STOCK.STOFCY_0
+          ) AS Qty,
+          'RE' AS Type
+        FROM
+          T_PN
+          INNER JOIN EXPLOIT.STOCK STOCK ON T_PN.PN = STOCK.ITMREF_0
+        WHERE
+          STOCK.STA_0 = 'RE' 
+          <include refid="W_STOCK_SITE" />
+          -- purchase stock
+        UNION
+        SELECT
+          PORDERQ.POHFCY_0 AS StockSite,
+          PORDERQ.ITMREF_0 + '(PO)' AS PN,
+          SUM(QTYSTU_0 - RCPQTYSTU_0) OVER (
+            PARTITION BY
+              PORDERQ.ITMREF_0,
+              PORDERQ.POHFCY_0
+          ) AS Qty,
+          'PO' AS Type
+        FROM
+          T_PN
+          INNER JOIN EXPLOIT.PORDERQ PORDERQ ON T_PN.PN = PORDERQ.ITMREF_0
+          INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERQ.POHNUM_0 = PORDER.POHNUM_0
+        WHERE
+          WIPSTA_0 IN (1, 2) --exclude completed/cloased order
+          AND QTYSTU_0 - RCPQTYSTU_0 > 0 
+          <include refid="com.da.sage.assistant.mapper.sage.PurchaseOrderMapper.W_PURCHASE_ORDER_SITE" />
+      )
+    SELECT
+      *
+    FROM
+      T00
+    ORDER BY
+      StockSite DESC,
+      Type DESC
+  </select>
+  <select id="STOCK_HISTORY" resultType="java.util.Map">
+    
+
+    SELECT DISTINCT
+      ROW_NUMBER() OVER (
+        ORDER BY
+          STOJOU.STOFCY_0 DESC,
+          STOJOU.CREDAT_0 DESC,
+          STOJOU.CSTCOU_0 DESC
+      ) AS ItemNO,
+      STOJOU.STOFCY_0 AS StockSite,
+      STOJOU.LOC_0 AS Location,
+      STOJOU.CSTCOU_0 AS Seq,
+      STOJOU.ITMREF_0 AS PN,
+      ITMMASTER.ITMDES1_0 + IIF (
+        ITMMASTER.ITMDES2_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES2_0
+      ) + IIF (
+        ITMMASTER.ITMDES3_0 = '',
+        '',
+        ' ' + ITMMASTER.ITMDES3_0
+      ) AS Description,
+      STOJOU.QTYSTU_0 AS Qty,
+      STOJOU.STU_0 AS Unit,
+      ROUND(STOJOU.AMTVAL_0, 2) AS Cost,
+      STOJOU.PJT_0 AS ProjectNO,
+      STOJOU.VCRNUMORI_0 AS SourceNO,
+      STOJOU.VCRLINORI_0 AS SourceLine,
+      STOJOU.VCRNUM_0 AS EntryNO,
+      STOJOU.VCRLIN_0 AS EntryLine,
+      STOJOU.CREUSR_0 AS CreateUser,
+      STOJOU.CREDAT_0 AS CreateDate
+    FROM
+      EXPLOIT.STOJOU STOJOU
+      LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER ON ITMMASTER.ITMREF_0 = STOJOU.ITMREF_0
+    WHERE
+      STOJOU.STOFCY_0 = #{Site}
+      AND (
+        STOJOU.CREDAT_0 BETWEEN CONVERT(DATE, #{DateFrom}, 23) AND CONVERT(DATE, #{DateTo}, 23)
+      ) 
+      <if test=' PnOrName != null and PnOrName!= "" '>
+        AND (
+          STOJOU.ITMREF_0 LIKE #{PnOrName}
+          OR ITMMASTER.ITMDES1_0 LIKE #{PnOrName}
+          OR ITMMASTER.ITMDES2_0 LIKE #{PnOrName}
+        )
+      </if>
+      --  6: Receive 
+      --  10: workorder
+      --  17: Supplier Invoice
+      AND STOJOU.VCRTYPREG_0 != 17
+    ORDER BY
+      ItemNO ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="STOCK_HISTORY_CNT" resultType="java.util.Map">
+    
+
+    SELECT DISTINCT
+      COUNT(1) AS Total
+    FROM
+      EXPLOIT.STOJOU STOJOU
+      LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER ON ITMMASTER.ITMREF_0 = STOJOU.ITMREF_0
+    WHERE
+      STOJOU.STOFCY_0 = #{Site}
+      AND (
+        STOJOU.CREDAT_0 BETWEEN CONVERT(DATE, #{DateFrom}, 23) AND CONVERT(DATE, #{DateTo}, 23)
+      ) 
+      <if test=" PnOrName != '%%' ">
+        AND (
+          STOJOU.ITMREF_0 LIKE #{PnOrName}
+          OR ITMMASTER.ITMDES1_0 LIKE #{PnOrName}
+          OR ITMMASTER.ITMDES2_0 LIKE #{PnOrName}
+        )
+      </if>
+      --  6: Receive 
+      --  10: workorder
+      --  17: Supplier Invoice
+      AND STOJOU.VCRTYPREG_0 != 17
+  </select>
+  <select id="STOCK_SUMMARY" resultType="java.util.Map">
+    
+
+    SELECT DISTINCT
+      STOCK.LOC_0 AS Location,
+      STOCK.ITMREF_0 AS PN,
+      ITMMASTER.ITMDES1_0 + IIF (
+        ITMMASTER.ITMDES2_0 != '',
+        ' ' + ITMMASTER.ITMDES2_0,
+        ''
+      ) + IIF (
+        ITMMASTER.ITMDES3_0 != '',
+        ' ' + ITMMASTER.ITMDES3_0,
+        ''
+      ) AS Description,
+      (
+        SELECT
+          STRING_AGG (t.OptionPN, ';')
+        FROM
+          (
+            SELECT
+              ITMBPS.ITMREFBPS_0 AS OptionPN
+            FROM
+              EXPLOIT.ITMBPS ITMBPS
+            WHERE
+              ITMBPS.ITMREF_0 = STOCK.ITMREF_0
+              AND ITMBPS.ITMREF_0 != ITMBPS.ITMREFBPS_0
+            UNION
+            SELECT
+              ITMBPS.ITMREF_0 AS OptionPN
+            FROM
+              EXPLOIT.ITMBPS ITMBPS
+            WHERE
+              ITMBPS.ITMREFBPS_0 = STOCK.ITMREF_0
+              AND ITMBPS.ITMREF_0 != ITMBPS.ITMREFBPS_0
+            UNION
+            SELECT
+              T2.ITMREFBPS_0 AS OptionPN
+            FROM
+              EXPLOIT.ITMBPS T1
+              INNER JOIN EXPLOIT.ITMBPS T2 ON T1.ITMREF_0 = T2.ITMREF_0
+            WHERE
+              T1.ITMREFBPS_0 = STOCK.ITMREF_0
+              AND T2.ITMREFBPS_0 != STOCK.ITMREF_0
+          ) t
+      ) AS OptionPN,
+      SUM(STOCK.QTYSTU_0) OVER (
+        PARTITION BY
+          STOCK.STOFCY_0,
+          STOCK.ITMREF_0,
+          STOCK.LOC_0
+      ) AS Qty
+    FROM
+      EXPLOIT.STOCK STOCK
+      LEFT JOIN EXPLOIT.ITMMASTER ITMMASTER ON ITMMASTER.ITMREF_0 = STOCK.ITMREF_0
+    WHERE
+      STOCK.STA_0 != 'RE' 
+      <include refid="W_STOCK_SITE" /> 
+      <include refid="W_STOCK_PN" />
+  </select>
+</mapper>

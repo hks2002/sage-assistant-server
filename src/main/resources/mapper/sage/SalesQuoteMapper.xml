@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.SalesQuoteMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="W_SALES_QUOTE_SITE">
+    <choose>
+      <when test=' Site == "ALL" or Site == null or Site == "" '></when> 
+      <when test=' Site == "CHINA" '>
+        AND SQUOTED.SALFCY_0 IN ('ZHU', 'HKG', 'YSH')
+      </when> 
+      <otherwise>
+        AND SQUOTED.SALFCY_0 = #{Site}
+      </otherwise>
+    </choose> 
+    <choose>
+      <when test=' BetweenSite == "ALL" or BetweenSite == null or BetweenSite == "" '></when> 
+      <when test='  BetweenSite ==  "Y" '>
+        AND UPPER(SQUOTE.BPCNAM_0) LIKE '%DEDIENNE%%'
+      </when> 
+      <when test=' BetweenSite ==  "N" '>
+        AND UPPER(SQUOTE.BPCNAM_0) NOT LIKE '%DEDIENNE%%'
+      </when>
+    </choose>
+  </sql>
+  <sql id="W_SALES_QUOTE_CUSTOMER">
+    <if test='  ExcludeHK ==  "Y"  ' >
+      AND SQUOTED.BPCORD_0 != '00870'
+    </if> 
+    <choose>
+      <when test=' Customer == "ALL" or Customer == null or Customer == "" '></when> 
+      <otherwise>
+        AND SQUOTED.BPCORD_0 = #{Customer}
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_SALES_QUOTE_DATE">
+    <if test="DateFrom != null and DateFrom != ''">
+      AND SQUOTED.QUOTDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+    </if> 
+    <if test="DateTo != null and DateTo != ''">
+      AND CONVERT(DATE, #{DateTo}, 23) > SQUOTED.QUOTDAT_0
+    </if>
+  </sql>
+  <sql id="W_SALES_QUOTE_TYPE">
+    <choose>
+      <when test=' OrderType ==  "ALL" or OrderType == null or OrderType == "" '></when> 
+      <when test=' OrderType ==  "NORM" '>
+        AND SQUOTE.SOHTYP_0 IN ('NOR', 'NOR3', 'YGES')
+      </when> 
+      <when test=' OrderType ==  "SERVICES" '>
+        AND SQUOTE.SOHTYP_0 IN ('REP', 'REP3')
+      </when> 
+      <when test=' OrderType ==  "RENT" '>
+        AND SQUOTE.SOHTYP_0 IN ('LOC', 'LOC3')
+      </when>
+    </choose>
+  </sql>
+  <sql id="W_SALES_QUOTE_STATUS">
+    <choose>
+      <when test=' OrderFlag == "ALL" or OrderFlag == null or OrderFlag == "" '></when> 
+      <when test=' OrderFlag ==  "Y" '>
+        AND SQUOTE.ORDFLG_0 = 2
+      </when> 
+      <when test=' OrderFlag ==  "N" '>
+        AND SQUOTE.ORDFLG_0 = 1
+      </when>
+    </choose>
+  </sql>
+  <select id="SALES_QUOTE_OF_PN" resultType="java.util.Map">
+    
+
+    WITH
+      T_PN AS (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN" />)
+    SELECT DISTINCT
+      SQUOTED.SALFCY_0 AS SalesSite,
+      SQUOTED.ITMREF_0 AS PN,
+      SQUOTED.SQHNUM_0 AS QuoteNO,
+      SQUOTED.SQDLIN_0 AS QuoteLine,
+      SQUOTED.QUODAT_0 AS QuoteDate,
+      SQUOTED.BPCORD_0 AS CustomerCode,
+      BPCUSTOMER.BPCSHO_0 AS CustomerName,
+      SQUOTED.QTY_0 AS QTY,
+      SQUOTED.STU_0 AS Unit,
+      SQUOTED.NETPRI_0 AS NetPrice,
+      SQUOTE.CUR_0 AS Currency,
+      CAST(SQUOTED.ORDFLG_0 AS SMALLINT) AS OrderFlag,
+      SQUOTED.SOHNUM_0 AS OrderNO,
+      ISNULL (CONVERT(VARCHAR, SORDER.ORDDAT_0, 120), '') AS OrderDate,
+      SORDERQ.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO
+    FROM
+      T_PN
+      INNER JOIN EXPLOIT.SQUOTED SQUOTED ON T_PN.PN = SQUOTED.ITMREF_0
+      INNER JOIN EXPLOIT.SQUOTE SQUOTE ON SQUOTED.SQHNUM_0 = SQUOTE.SQHNUM_0
+      LEFT JOIN EXPLOIT.SORDER SORDER ON SQUOTED.SOHNUM_0 = SORDER.SOHNUM_0
+      AND SQUOTED.SOHNUM_0 != ''
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SQUOTED.SOHNUM_0 = SORDERQ.SOHNUM_0
+      AND SQUOTED.SOPLIN_0 = SORDERQ.SOPLIN_0
+      INNER JOIN EXPLOIT.BPCUSTOMER BPCUSTOMER ON BPCUSTOMER.BPCNUM_0 = SQUOTED.BPCORD_0
+    WHERE
+      SQUOTED.NETPRI_0 > 0 
+      <include refid="W_SALES_QUOTE_SITE"/>
+    ORDER BY
+      SQUOTED.SALFCY_0 DESC,
+      SQUOTED.QUODAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+</mapper>

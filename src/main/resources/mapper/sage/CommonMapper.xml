@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.CommonMapper">
+  <cache flushInterval="3600000" size="100" />
+  <select id="ALL_SITES" resultType="java.util.Map">
+    
+
+    SELECT DISTINCT
+      TOP 100 FCY_0 AS Site
+    FROM
+      EXPLOIT.FACILITY
+    WHERE
+      MFGFLG_0 != 1
+      OR SALFLG_0 != 1
+      OR PURFLG_0 != 1
+      OR WRHFLG_0 != 1
+    ORDER BY
+      FCY_0 DESC
+  </select>
+  <sql id="T_USERS">
+    SELECT
+      AUTILIS.USR_0 AS UserCode,
+      AUTILIS.NOMUSR_0 AS UserName,
+      AUTILIS.ADDEML_0 AS Email,
+      AUTILIS.ENAFLG_0 AS Enabled
+    FROM
+      EXPLOIT.AUTILIS AUTILIS
+    WHERE
+      1 = 1 
+      <if test=' User != null and User != "" '>
+        AND (
+          AUTILIS.USR_0 = #{User}
+          OR UPPER(AUTILIS.NOMUSR_0) LIKE '%' + UPPER(#{User}) + '%'
+          OR UPPER(AUTILIS.ADDEML_0) LIKE '%' + UPPER(#{User}) + '%'
+        )
+      </if>
+  </sql>
+  <select id="USERS" resultType="java.util.Map">
+    
+
+    <include refid="T_USERS" />
+    ORDER BY
+      UserName ASC
+  </select>
+  <sql id="T_BUYERS">
+    SELECT DISTINCT
+      AUTILIS.USR_0 AS BuyerCode,
+      AUTILIS.NOMUSR_0 AS BuyerName
+    FROM
+      EXPLOIT.AUTILIS AUTILIS
+    WHERE
+      1 = 1 
+      <if test=' Buyer != null and Buyer != "" '>
+        AND (
+          AUTILIS.USR_0 = #{Buyer}
+          OR UPPER(AUTILIS.NOMUSR_0) LIKE '%' + UPPER(#{Buyer}) + '%'
+        )
+      </if>
+  </sql>
+  <select id="BUYER_FIND_BY_LIKE" resultType="java.util.Map">
+    
+
+    <include refid="T_BUYERS" />
+    ORDER BY
+      BuyerName ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <sql id="T_LOGISTICS_OPERATOR">
+    SELECT DISTINCT
+      AUTILIS.USR_0 AS LogisticsOperatorCode,
+      AUTILIS.NOMUSR_0 AS LogisticsOperatorName
+    FROM
+      EXPLOIT.AUTILIS AUTILIS
+    WHERE
+      1 = 1 
+      <if test=' LogisticsOperator != null and LogisticsOperator != "" '>
+        AND (
+          AUTILIS.USR_0 = #{LogisticsOperator}
+          OR UPPER(AUTILIS.NOMUSR_0) LIKE '%' + UPPER(#{LogisticsOperator}) + '%'
+        )
+      </if>
+  </sql>
+  <select id="LOGISTICS_OPERATOR_FIND_BY_LIKE" resultType="java.util.Map">
+    
+
+    <include refid="T_LOGISTICS_OPERATOR" />
+    ORDER BY
+      LogisticsOperatorName ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <sql id="T_SALES_REPRESENTATIVE">
+    SELECT
+      SALESREP.REPNUM_0 AS RepresentativeCode,
+      SALESREP.REPNAM_0 AS RepresentativeName
+    FROM
+      EXPLOIT.SALESREP SALESREP
+    WHERE
+      1 = 1 
+      <if test=' Representative != null and Representative != "" '>
+        AND (
+          SALESREP.REPNUM_0 LIKE #{Representative} + '%'
+          OR UPPER(SALESREP.REPNAM_0) LIKE '%' + UPPER(#{Representative}) + '%'
+        )
+      </if>
+  </sql>
+  <select id="SALES_REPRESENTATIVE_FIND_BY_LIKE" resultType="java.util.Map">
+    
+
+    <include refid="T_SALES_REPRESENTATIVE" />
+    ORDER BY
+      RepresentativeName ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="SO_FIND_BY_LIKE" resultType="java.util.Map">
+    
+
+    SELECT DISTINCT
+      SORDERQ.SOHNUM_0 AS OrderNO
+    FROM
+      EXPLOIT.SORDERQ SORDERQ
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERQ.SOHNUM_0 = SORDER.SOHNUM_0
+    WHERE
+      UPPER(SORDERQ.SOHNUM_0) LIKE UPPER(#{OrderNO}) + '%' 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_SITE"/> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_DATE"/>
+    ORDER BY
+      SORDERQ.SOHNUM_0 ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="PROJECT_FIND_BY_LIKE" resultType="java.util.Map">
+    
+
+    WITH
+      T0 AS (
+        SELECT DISTINCT
+          SORDERQ.YSOH_PJT_0 AS ProjectNO
+        FROM
+          EXPLOIT.SORDERQ SORDERQ
+          INNER JOIN EXPLOIT.SORDER SORDER ON SORDERQ.SOHNUM_0 = SORDER.SOHNUM_0
+        WHERE
+          UPPER(SORDERQ.YSOH_PJT_0) LIKE UPPER(#{ProjectNO}) + '%' 
+          <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_SITE"/> 
+          <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_DATE"/>
+        UNION ALL
+        SELECT DISTINCT
+          SORDERQ.YSOQ_PJTORI_0 AS ProjectNO
+        FROM
+          EXPLOIT.SORDERQ SORDERQ
+          INNER JOIN EXPLOIT.SORDER SORDER ON SORDERQ.SOHNUM_0 = SORDER.SOHNUM_0
+        WHERE
+          UPPER(SORDERQ.YSOQ_PJTORI_0) LIKE UPPER(#{ProjectNO}) + '%' 
+          <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_SITE"/> 
+          <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_DATE"/>
+      )
+    SELECT
+      ProjectNO
+    FROM
+      T0
+    ORDER BY
+      ProjectNO ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+</mapper>

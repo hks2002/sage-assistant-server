@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.BpCustomerMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="T_BP_CUSTOMER_CATEGORY">
+    SELECT DISTINCT
+      IDENT1_0 AS CustomerCategoryCode,
+      TEXTE_0 AS CustomerCategoryName
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'BPCCATEG'
+      AND ATEXTRA.ZONE_0 = 'DESAXX' 
+      <choose>
+        <when test=' CustomerCategory == "ALL" or CustomerCategory == null or CustomerCategory == "" '></when> 
+        <otherwise>
+          AND (
+            ATEXTRA.IDENT1_0 = #{CustomerCategory}
+            OR UPPER(ATEXTRA.TEXTE_0) = UPPER(#{CustomerCategory})
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="BP_CUSTOMER_CATEGORY" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_CUSTOMER_CATEGORY" />
+    ORDER BY
+      CustomerCategoryCode ASC
+  </select>
+  <sql id="T_BP_CUSTOMER_TYPE">
+    SELECT DISTINCT
+      IDENT2_0 AS CustomerTypeCode,
+      TEXTE_0 AS CustomerTypeName
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '30' -- customer type, airline, cargo, mro, constructor, broker
+      <choose>
+        <when test=' CustomerType == "ALL" or CustomerType == null or CustomerType == "" '></when> 
+        <otherwise>
+          AND (
+            ATEXTRA.IDENT2_0 = #{CustomerType}
+            OR UPPER(ATEXTRA.TEXTE_0) = UPPER(#{CustomerType})
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="BP_CUSTOMER_TYPE" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_CUSTOMER_TYPE" />
+    ORDER BY
+      CustomerTypeCode ASC
+  </select>
+  <sql id="T_BP_CUSTOMER_GEO_REGION" >
+    SELECT DISTINCT
+      IDENT2_0 AS CustomerGeoRegionCode,
+      TEXTE_0 AS CustomerGeoRegionName
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '31' -- geo region, Asia, Europe, America, Africa, Middle East, Other
+      <choose>
+        <when test=' CustomerGeoRegion == "ALL" or CustomerGeoRegion == null or CustomerGeoRegion == "" '></when> 
+        <otherwise>
+          AND (
+            ATEXTRA.IDENT2_0 = #{CustomerGeoRegion}
+            OR UPPER(ATEXTRA.TEXTE_0) = UPPER(#{CustomerGeoRegion})
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="BP_CUSTOMER_GEO_REGION" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_CUSTOMER_GEO_REGION" />
+    ORDER BY
+      CustomerGeoRegionName ASC
+  </select>
+  <sql id="T_BP_CUSTOMER_FIND_BY_LIKE">
+    SELECT
+      BPARTNER.BPRNUM_0 AS CustomerCode,
+      BPARTNER.BPRNAM_0 + IIF (BPARTNER.BPRNAM_1 = '', '', BPARTNER.BPRNAM_1) AS CustomerName
+    FROM
+      EXPLOIT.BPCUSTOMER BPCUSTOMER
+      INNER JOIN EXPLOIT.BPARTNER BPARTNER ON BPARTNER.BPRNUM_0 = BPCUSTOMER.BPCNUM_0
+    WHERE
+      1 = 1 
+      <if test=' Customer != null and Customer != "" '>
+        AND (
+          BPARTNER.BPRNUM_0 = #{Customer}
+          OR UPPER(BPARTNER.BPRNAM_0) LIKE '%' + UPPER(#{Customer}) + '%'
+          OR UPPER(BPARTNER.BPRNAM_1) LIKE '%' + UPPER(#{Customer}) + '%'
+        )
+      </if>
+  </sql>
+  <select id="BP_CUSTOMER_FIND_BY_LIKE" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_CUSTOMER_FIND_BY_LIKE" />
+    ORDER BY
+      CustomerCode ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="BP_CUSTOMER_INFO" resultType="java.util.Map">
+    
+
+    WITH
+      T_BP_CUSTOMER_CATEGORY AS (
+      <include refid="T_BP_CUSTOMER_CATEGORY" />),
+      T_BP_CUSTOMER_TYPE AS (
+      <include refid="T_BP_CUSTOMER_TYPE" />),
+      T_BP_CUSTOMER_GEO_REGION AS (
+      <include refid="T_BP_CUSTOMER_GEO_REGION" />),
+      T_BP_COUNTRY AS (
+      <include refid="com.da.sage.assistant.mapper.sage.BpLocationMapper.T_BP_COUNTRY" />)
+    SELECT
+      BPARTNER.BPRNUM_0 AS CustomerCode,
+      BPARTNER.BPRNAM_0 + IIF (BPARTNER.BPRNAM_1 = '', '', BPARTNER.BPRNAM_1) AS CustomerName,
+      BPARTNER.BRRSHO_0 AS CustomerShortName,
+      BPARTNER.ENAFLG_0 AS Enabled,
+      T_BP_CUSTOMER_CATEGORY.CustomerCategoryCode AS CustomerCategoryCode,
+      T_BP_CUSTOMER_CATEGORY.CustomerCategoryName AS CustomerCategoryName,
+      T_BP_CUSTOMER_TYPE.CustomerTypeCode AS CustomerTypeCode,
+      T_BP_CUSTOMER_TYPE.TypeName AS CustomerTypeName,
+      T_BP_CUSTOMER_GEO_REGION.CustomerGeoRegionCode AS CustomerGeoRegionCode,
+      T_BP_CUSTOMER_GEO_REGION.CustomerGeoRegionName AS CustomerGeoRegionName,
+      T_BP_COUNTRY.CountryCode AS CountryCode,
+      T_BP_COUNTRY.CountryName AS CountryName,
+      BPADDRESS.POSCOD_0 AS PostalCode,
+      BPADDRESS.SAT_0 AS UsStateCode,
+      BPADDRESS.CTY_0 AS CityName,
+      BPADDRESS.BPAADDLIG_0 AS Address0,
+      BPADDRESS.BPAADDLIG_1 AS Address1,
+      BPADDRESS.BPAADDLIG_2 AS Address2,
+      BPADDRESS.TEL_0 AS Tel0,
+      BPADDRESS.TEL_1 AS Tel1,
+      BPADDRESS.TEL_2 AS Tel2,
+      BPADDRESS.TEL_3 AS Tel3,
+      BPADDRESS.TEL_4 AS Tel4,
+      BPADDRESS.FAX_0 AS Fax0,
+      BPADDRESS.MOB_0 AS Mobile0,
+      BPADDRESS.WEB_0 AS Web0,
+      BPADDRESS.WEB_1 AS Web1,
+      BPADDRESS.WEB_2 AS Web2,
+      BPADDRESS.WEB_3 AS Web3,
+      BPADDRESS.WEB_4 AS Web4
+    FROM
+      EXPLOIT.BPCUSTOMER BPCUSTOMER
+      INNER JOIN EXPLOIT.BPARTNER BPARTNER ON BPARTNER.BPRNUM_0 = BPCUSTOMER.BPCNUM_0
+      LEFT JOIN T_BP_CUSTOMER_CATEGORY ON BPCUSTOMER.BCGCOD_0 = T_BP_CUSTOMER_CATEGORY.CustomerCategoryCode
+      LEFT JOIN T_BP_CUSTOMER_TYPE ON BPCUSTOMER.TSCCOD_0 = T_BP_CUSTOMER_TYPE.CustomerTypeCode
+      LEFT JOIN T_BP_CUSTOMER_GEO_REGION ON BPCUSTOMER.TSCCOD_1 = T_BP_CUSTOMER_GEO_REGION.CustomerGeoRegionCode
+      LEFT JOIN T_BP_COUNTRY ON BPARTNER.CRY_0 = T_BP_COUNTRY.CountryCode
+      LEFT JOIN EXPLOIT.BPADDRESS BPADDRESS ON BPARTNER.BPRNUM_0 = BPADDRESS.BPANUM_0
+      AND BPADDRESS.BPAADDFLG_0 = 2
+    WHERE
+      1 = 1 
+      <if test=' Customer != null and Customer != "" '>
+        AND BPARTNER.BPRNUM_0 = #{Customer}
+      </if>
+  </select>
+</mapper>

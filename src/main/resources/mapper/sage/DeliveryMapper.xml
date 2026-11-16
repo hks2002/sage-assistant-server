@@ -1,0 +1,317 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.DeliveryMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="S_LOGISTICS_OPERATOR">
+    <if test=' WithLogisticsOperator == "Y" ' >
+      T_LOGISTICS_OPERATOR.LogisticsOperatorCode AS LogisticsOperatorCode,
+      T_LOGISTICS_OPERATOR.LogisticsOperatorName AS LogisticsOperatorName,
+    </if>
+  </sql>
+  <sql id="J_LOGISTICS_OPERATOR">
+    <if test=' WithLogisticsOperator == "Y" ' >
+      INNER JOIN (
+      <include refid="com.da.sage.assistant.mapper.sage.CommonMapper.T_LOGISTICS_OPERATOR" />) AS T_LOGISTICS_OPERATOR ON SDELIVERYD.CREUSR_0 = T_LOGISTICS_OPERATOR.LogisticsOperatorCode
+    </if>
+  </sql>
+  <sql id="W_DELIVERY_SITE">
+    -- Delivery Site       
+    <choose>
+      <when test=' Site == "ALL" or Site == null or Site == "" '></when> 
+      <when test=' Site == "CHINA" '>
+        AND SDELIVERY.SALFCY_0 IN ('ZHU', 'HKG', 'YSH', 'GZH')
+      </when> 
+      <otherwise>
+        AND SDELIVERY.SALFCY_0 = #{Site}
+      </otherwise>
+    </choose> 
+    <choose>
+      <when test=' BetweenSite == "ALL" or BetweenSite == null or BetweenSite == "" '></when> 
+      <when test=' BetweenSite ==  "Y" '>
+        AND SDELIVERY.BETFCY_0 = 2GBVM,C
+      </when> 
+      <when test='  BetweenSite ==  "N" '>
+        AND SDELIVERY.BETFCY_0 = 1
+      </when>
+    </choose>
+  </sql>
+  <sql id="W_DELIVERY_DATE">
+    -- Delivery Date
+    <choose>
+      <when test=' DateType ==  "SHIP" '>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND SDELIVERYD.SHIDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateTo != null and DateTo != ''">
+          AND CONVERT(Date, #{DateTo}, 23) > SDELIVERYD.SHIDAT_0
+        </if>
+      </when> 
+      <when test=' DateType ==  "PLAN" '>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND SORDERQ.YSOQ_DLIVP_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateFrom != null and DateFrom != ''">
+          AND CONVERT(DATE, #{DateTo}, 23) > SORDERQ.YSOQ_DLIVP_0
+        </if>
+      </when> 
+      <otherwise>
+        <if test="DateFrom != null and DateFrom != ''">
+          AND SDELIVERYD.SHIDAT_0 >= CONVERT(DATE, #{DateFrom}, 23)
+        </if> 
+        <if test="DateTo != null and DateTo != ''">
+          AND CONVERT(Date, #{DateTo}, 23) > SDELIVERYD.SHIDAT_0
+        </if>
+      </otherwise>
+    </choose>
+  </sql>
+  <sql id="W_DELIVERY">
+    <include refid="W_DELIVERY_SITE"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_ORDER_TYPE"/> 
+    <include refid="W_DELIVERY_DATE"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_CUSTOMER"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_REPRESENTATIVE"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_PROJECTNO"/> 
+    <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDERNO"/>
+  </sql>
+  <sql id="T_DELIVERY_LINE_DETAILS">
+    SELECT DISTINCT
+      <choose>
+        <when test=' DateType ==  "SHIP" '>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              SDELIVERY.SALFCY_0 DESC,
+              SDELIVERYD.SHIDAT_0 DESC
+          ) AS ItemNO,
+        </when> 
+        <when test=' DateType ==  "PLAN" '>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              SDELIVERY.SALFCY_0 DESC,
+              SORDERQ.YSOQ_DLIVP_0 DESC
+          ) AS ItemNO,
+        </when> 
+        <otherwise>
+          ROW_NUMBER() OVER (
+            ORDER BY
+              SDELIVERY.SALFCY_0 DESC,
+              SDELIVERYD.SHIDAT_0 DESC
+          ) AS ItemNO,
+        </otherwise>
+      </choose> SDELIVERY.SALFCY_0 AS OrderSite,
+      SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+      SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+      SDELIVERYD.SOHNUM_0 AS OrderNO,
+      SDELIVERYD.SOPLIN_0 AS OrderLine,
+      CASE
+        WHEN SORDERQ.YSOQ_STA_0 = 1 THEN SORDER.SOHTYP_0 + '-Methods'
+        WHEN SORDERQ.YSOQ_STA_0 = 2 THEN SORDER.SOHTYP_0 + '-InteralProd'
+        WHEN SORDERQ.YSOQ_STA_0 = 3 THEN SORDER.SOHTYP_0 + '-ExternalProd'
+        WHEN SORDERQ.YSOQ_STA_0 = 4 THEN SORDER.SOHTYP_0 + '-Design'
+        WHEN SORDERQ.YSOQ_STA_0 = 5 THEN SORDER.SOHTYP_0 + '-Stock'
+        WHEN SORDERQ.YSOQ_STA_0 = 6 THEN SORDER.SOHTYP_0 + '-Trading'
+        WHEN SORDERQ.YSOQ_STA_0 = 7 THEN SORDER.SOHTYP_0 + '-Services'
+        WHEN SORDERQ.YSOQ_STA_0 = 8 THEN SORDER.SOHTYP_0 + '-SalesAdmin'
+        ELSE SORDER.SOHTYP_0 + '-UNK'
+      END AS OrderAssignStatus,
+      SORDERQ.ORDDAT_0 AS OrderDate,
+      SORDERQ.YSOQ_DLIVP_0 AS DeliveryPlanDate,
+      SDELIVERYD.SHIDAT_0 AS ShipDate,
+      SORDERQ.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO,
+      SORDER.CUSORDREF_0 AS CustomerOrderNO,
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_REPRESENTATIVE" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_CUSTOMER" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_PN" /> 
+      <include refid="S_LOGISTICS_OPERATOR" /> SDELIVERY.CUR_0 AS Currency,
+      SDELIVERYD.NETPRINOT_0 AS NetPrice,
+      -- Tax definition error cause NetPriceWithTax is not equal to NetPrice + Tax
+      IIF (
+        SDELIVERYD.NETPRIATI_0 > 0,
+        SDELIVERYD.NETPRIATI_0,
+        SDELIVERYD.NETPRINOT_0
+      ) AS NetPriceWithTax,
+      SDELIVERYD.NETPRINOT_0 * SDELIVERYD.QTY_0 AS LineAmount,
+      IIF (
+        SDELIVERYD.NETPRIATI_0 > 0,
+        SDELIVERYD.NETPRIATI_0 * SDELIVERYD.QTY_0,
+        SDELIVERYD.NETPRINOT_0 * SDELIVERYD.QTY_0
+      ) AS LineAmountWithTax,
+      SDELIVERYD.QTY_0 AS Qty,
+      SDELIVERYD.STU_0 AS Unit
+    FROM
+      EXPLOIT.SDELIVERY SDELIVERY
+      INNER JOIN EXPLOIT.SDELIVERYD SDELIVERYD ON SDELIVERYD.SDHNUM_0 = SDELIVERY.SDHNUM_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDERP SORDERP ON SORDERP.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERP.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_REPRESENTATIVE" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_CUSTOMER" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_PN" /> 
+      <include refid="J_LOGISTICS_OPERATOR" />
+    WHERE
+      1 = 1 
+      <include refid="W_DELIVERY"/>
+  </sql>
+  <select id="DELIVERY_LINE_DETAILS" resultType="java.util.Map">
+    
+
+    <include refid="T_DELIVERY_LINE_DETAILS" />
+    ORDER BY
+      OrderSite DESC,
+      ItemNO ASC,
+      ProjectNO DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <sql id="T_DELIVERY_LINE_DETAILS_CNT">
+    SELECT DISTINCT
+      COUNT(1) AS Total
+    FROM
+      EXPLOIT.SDELIVERY SDELIVERY
+      INNER JOIN EXPLOIT.SDELIVERYD SDELIVERYD ON SDELIVERYD.SDHNUM_0 = SDELIVERY.SDHNUM_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDERP SORDERP ON SORDERP.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERP.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_REPRESENTATIVE" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_CUSTOMER" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_PN" /> 
+      <include refid="J_LOGISTICS_OPERATOR" />
+    WHERE
+      1 = 1 
+      <include refid="W_DELIVERY"/>
+  </sql>
+  <select id="DELIVERY_LINE_DETAILS_CNT" resultType="java.util.Map">
+    
+
+    <include refid="T_DELIVERY_LINE_DETAILS_CNT" />
+  </select>
+  <sql id="T_DELIVERY_LINE_AMOUNT">
+    SELECT DISTINCT
+      SDELIVERY.SALFCY_0 AS OrderSite,
+      SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+      SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+      SORDERQ.ORDDAT_0 AS OrderDate,
+      SORDERQ.YSOQ_DLIVP_0 AS DeliveryPlanDate,
+      SDELIVERYD.SHIDAT_0 AS ShipDate,
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_REPRESENTATIVE" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_CUSTOMER" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_PN" /> 
+      <include refid="S_LOGISTICS_OPERATOR" /> SDELIVERY.CUR_0 AS Currency,
+      SORDERP.NETPRINOT_0 * SORDERQ.QTY_0 AS SalesAmount,
+      SDELIVERYD.NETPRINOT_0 * SDELIVERYD.QTY_0 AS DeliveryAmount,
+      IIF (
+        SDELIVERYD.NETPRIATI_0 > 0,
+        SDELIVERYD.NETPRIATI_0 * SDELIVERYD.QTY_0,
+        SDELIVERYD.NETPRINOT_0 * SDELIVERYD.QTY_0
+      ) AS DeliveryAmountWithTax
+    FROM
+      EXPLOIT.SDELIVERY SDELIVERY
+      INNER JOIN EXPLOIT.SDELIVERYD SDELIVERYD ON SDELIVERYD.SDHNUM_0 = SDELIVERY.SDHNUM_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDERP SORDERP ON SORDERP.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERP.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_REPRESENTATIVE" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_CUSTOMER" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_PN" /> 
+      <include refid="J_LOGISTICS_OPERATOR" />
+    WHERE
+      1 = 1 
+      <include refid="W_DELIVERY"/>
+  </sql>
+  <sql id="T_DELIVERY_T00_YEAR_MONTH_TARGET">
+    SELECT
+      T00.*,
+      <choose>
+        <when test=' Interval == "YEAR"'>
+          <choose>
+            <when test=' DateType ==  "SHIP" '>
+              FORMAT (Year (T00.ShipDate), '0000') AS Target
+            </when> 
+            <when test=' DateType ==  "PLAN" '>
+              FORMAT (Year (T00.DeliveryPlanDate), '0000') AS Target
+            </when> 
+            <otherwise>
+              FORMAT (Year (T00.ShipDate), '0000') AS Target
+            </otherwise>
+          </choose>
+        </when> 
+        <when test=' Interval == "MONTH"'>
+          <choose>
+            <when test=' DateType ==  "SHIP" '>
+              FORMAT (Year (T00.ShipDate), '0000') + '-' + FORMAT (MONTH (T00.ShipDate), '00') AS Target
+            </when> 
+            <when test=' DateType ==  "PLAN" '>
+              FORMAT (Year (T00.DeliveryPlanDate), '0000') + '-' + FORMAT (MONTH (T00.DeliveryPlanDate), '00') AS Target
+            </when> 
+            <otherwise>
+              FORMAT (Year (T00.ShipDate), '0000') + '-' + FORMAT (MONTH (T00.ShipDate), '00') AS Target
+            </otherwise>
+          </choose>
+        </when> 
+        <otherwise>
+          FORMAT (Year (T00.ShipDate), '0000') AS Target
+        </otherwise>
+      </choose>
+    FROM
+      T00
+  </sql>
+  <select id="DELIVERY_LINE_AMOUNT_BY_TARGET" resultType="java.util.Map">
+    
+
+    WITH
+      T00 AS (
+      <include refid="T_DELIVERY_LINE_AMOUNT"/>) 
+      <include refid="T_DELIVERY_T00_YEAR_MONTH_TARGET"/>
+    ORDER BY
+      T00.OrderSite DESC,
+      Target ASC
+  </select>
+  <sql id="T_DELIVERY_LINE_COUNT">
+    SELECT DISTINCT
+      SDELIVERY.SALFCY_0 AS OrderSite,
+      SDELIVERYD.SDHNUM_0 AS DeliveryNO,
+      SDELIVERYD.SDDLIN_0 AS DeliveryLine,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDERQ.YSOQ_DLIVP_0 AS DeliveryPlanDate,
+      SDELIVERYD.SHIDAT_0 AS ShipDate,
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_REPRESENTATIVE" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_CUSTOMER" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_PN" /> 
+      <include refid="S_LOGISTICS_OPERATOR" /> 1 AS LineCount
+    FROM
+      EXPLOIT.SDELIVERY SDELIVERY
+      INNER JOIN EXPLOIT.SDELIVERYD SDELIVERYD ON SDELIVERYD.SDHNUM_0 = SDELIVERY.SDHNUM_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDERP SORDERP ON SORDERP.SOHNUM_0 = SDELIVERYD.SOHNUM_0
+      AND SORDERP.SOPLIN_0 = SDELIVERYD.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_REPRESENTATIVE" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_CUSTOMER" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_PN" /> 
+      <include refid="J_LOGISTICS_OPERATOR" />
+    WHERE
+      1 = 1 
+      <include refid="W_DELIVERY"/>
+  </sql>
+  <select id="DELIVERY_LINE_COUNT_BY_TARGET" resultType="java.util.Map">
+    
+
+    WITH
+      T00 AS (
+      <include refid="T_DELIVERY_LINE_COUNT"/>) 
+      <include refid="T_DELIVERY_T00_YEAR_MONTH_TARGET"/>
+    ORDER BY
+      T00.OrderSite DESC,
+      Target ASC
+  </select>
+</mapper>

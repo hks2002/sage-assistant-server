@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.BpSupplierMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="T_BP_SUPPLIER_CATEGORY" >
+    SELECT DISTINCT
+      IDENT1_0 AS SupplierCategoryCode,
+      TEXTE_0 AS SupplierCategoryName
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'BPSCATEG'
+      AND ATEXTRA.ZONE_0 = 'DESAXX' 
+      <choose>
+        <when test=' SupplierCategory == "ALL" or SupplierCategory == null or SupplierCategory == "" '></when> 
+        <otherwise>
+          AND (
+            ATEXTRA.IDENT1_0 = #{SupplierCategory}
+            OR UPPER(ATEXTRA.TEXTE_0) = UPPER(#{SupplierCategory})
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="BP_SUPPLIER_CATEGORY" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_SUPPLIER_CATEGORY" />
+    ORDER BY
+      SupplierCategoryCode ASC
+  </select>
+  <sql id="T_BP_SUPPLIER_TYPE" >
+    SELECT DISTINCT
+      IDENT2_0 AS SupplierTypeCode,
+      TEXTE_0 AS SupplierTypeName
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '40' -- type
+      <choose>
+        <when test=' SupplierType == "ALL" or SupplierType == null or SupplierType == "" '></when> 
+        <otherwise>
+          AND (
+            ATEXTRA.IDENT2_0 = #{SupplierType}
+            OR UPPER(ATEXTRA.TEXTE_0) = UPPER(#{SupplierType})
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="BP_SUPPLIER_TYPE" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_SUPPLIER_TYPE" />
+    ORDER BY
+      SupplierTypeCode ASC
+  </select>
+  <sql id="T_BP_SUPPLIER_SUB_TYPE" >
+    SELECT DISTINCT
+      IDENT2_0 AS SupplierSubTypeCode,
+      TEXTE_0 AS SupplierSubTypeName
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '41' -- sub type
+      <choose>
+        <when test=' SupplierSubType == "ALL" or SupplierSubType == null or SupplierSubType == "" '></when> 
+        <otherwise>
+          AND (
+            ATEXTRA.IDENT2_0 = #{SupplierSubType}
+            OR UPPER(ATEXTRA.TEXTE_0) = UPPER(#{SupplierSubType})
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="BP_SUPPLIER_SUB_TYPE" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_SUPPLIER_SUB_TYPE" />
+    ORDER BY
+      SupplierSubTypeCode ASC
+  </select>
+  <sql id="T_BP_SUPPLIER_GEO_REGION" >
+    SELECT DISTINCT
+      IDENT2_0 AS SupplierGeoRegionCode,
+      TEXTE_0 AS SupplierGeoRegionName
+    FROM
+      EXPLOIT.ATEXTRA ATEXTRA
+    WHERE
+      ATEXTRA.CODFIC_0 = 'ATABDIV'
+      AND ATEXTRA.ZONE_0 = 'LNGDES'
+      AND ATEXTRA.IDENT1_0 = '42' -- category3 region, Asia, Europe, America, Africa, Middle East, Other
+      <choose>
+        <when test=' SupplierGeoRegion == "ALL" or SupplierGeoRegion == null or SupplierGeoRegion == "" '></when> 
+        <otherwise>
+          AND (
+            ATEXTRA.IDENT2_0 = #{SupplierGeoRegion}
+            OR UPPER(ATEXTRA.TEXTE_0) = UPPER(#{SupplierGeoRegion})
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="BP_SUPPLIER_GEO_REGION" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_SUPPLIER_GEO_REGION" />
+    ORDER BY
+      SupplierGeoRegionCode ASC
+  </select>
+  <sql id="T_BP_SUPPLIER_FIND_BY_LIKE">
+    SELECT
+      BPARTNER.BPRNUM_0 AS SupplierCode,
+      BPARTNER.BPRNAM_0 + IIF (BPARTNER.BPRNAM_1 = '', '', BPARTNER.BPRNAM_1) AS SupplierName
+    FROM
+      EXPLOIT.BPSUPPLIER BPSUPPLIER
+      INNER JOIN EXPLOIT.BPARTNER BPARTNER ON BPARTNER.BPRNUM_0 = BPSUPPLIER.BPSNUM_0
+    WHERE
+      1 = 1 
+      <if test=' Supplier != null and Supplier != "" '>
+        AND (
+          BPARTNER.BPRNUM_0 LIKE #{Supplier} + '%'
+          OR UPPER(BPARTNER.BPRNAM_0) LIKE '%' + UPPER(#{Supplier}) + '%'
+          OR UPPER(BPARTNER.BPRNAM_1) LIKE '%' + UPPER(#{Supplier}) + '%'
+        )
+      </if>
+  </sql>
+  <select id="BP_SUPPLIER_FIND_BY_LIKE" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_SUPPLIER_FIND_BY_LIKE" />
+    ORDER BY
+      BPRNUM_0 ASC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </select>
+  <select id="BP_SUPPLIER_INFO" resultType="java.util.Map">
+    
+
+    WITH
+      T_BP_SUPPLIER_CATEGORY AS (
+      <include refid="T_BP_SUPPLIER_CATEGORY" />),
+      T_BP_SUPPLIER_TYPE AS (
+      <include refid="T_BP_SUPPLIER_TYPE" />),
+      T_BP_SUPPLIER_SUB_TYPE AS (
+      <include refid="T_BP_SUPPLIER_SUB_TYPE" />),
+      T_BP_SUPPLIER_GEO_REGION AS (
+      <include refid="T_BP_SUPPLIER_GEO_REGION" />),
+      T_BP_COUNTRY AS (
+      <include refid="com.da.sage.assistant.mapper.sage.BpLocationMapper.T_BP_COUNTRY" />)
+    SELECT
+      BPARTNER.BPRNUM_0 AS SupplierCode,
+      BPARTNER.BPRNAM_0 + IIF (BPARTNER.BPRNAM_1 = '', '', BPARTNER.BPRNAM_1) AS SupplierName,
+      BPARTNER.BRRSHO_0 AS SupplierShortName,
+      BPARTNER.ENAFLG_0 AS Enabled,
+      T_BP_SUPPLIER_CATEGORY.SupplierCategoryCode AS SupplierCategoryCode,
+      T_BP_SUPPLIER_CATEGORY.SupplierCategoryName AS SupplierCategoryName,
+      T_BP_SUPPLIER_TYPE.SupplierTypeCode AS SupplierTypeCode,
+      T_BP_SUPPLIER_TYPE.SupplierTypeName AS SupplierTypeName,
+      T_BP_SUPPLIER_SUB_TYPE.SupplierSubTypeCode AS SupplierSubTypeCode,
+      T_BP_SUPPLIER_SUB_TYPE.SupplierSubTypeName AS SupplierSubTypeName,
+      T_BP_SUPPLIER_GEO_REGION.SupplierGeoRegionCode AS SupplierGeoRegionCode,
+      T_BP_SUPPLIER_GEO_REGION.SupplierGeoRegionName AS SupplierGeoRegionName,
+      T_BP_COUNTRY.CountryCode AS CountryCode,
+      T_BP_COUNTRY.CountryName AS CountryName,
+      BPADDRESS.POSCOD_0 AS PostalCode,
+      BPADDRESS.SAT_0 AS UsStateCode,
+      BPADDRESS.CTY_0 AS CityName,
+      BPADDRESS.BPAADDLIG_0 AS Address0,
+      BPADDRESS.BPAADDLIG_1 AS Address1,
+      BPADDRESS.BPAADDLIG_2 AS Address2,
+      BPADDRESS.TEL_0 AS Tel0,
+      BPADDRESS.TEL_1 AS Tel1,
+      BPADDRESS.TEL_2 AS Tel2,
+      BPADDRESS.TEL_3 AS Tel3,
+      BPADDRESS.TEL_4 AS Tel4,
+      BPADDRESS.FAX_0 AS Fax0,
+      BPADDRESS.MOB_0 AS Mobile0,
+      BPADDRESS.WEB_0 AS Web0,
+      BPADDRESS.WEB_1 AS Web1,
+      BPADDRESS.WEB_2 AS Web2,
+      BPADDRESS.WEB_3 AS Web3,
+      BPADDRESS.WEB_4 AS Web4
+    FROM
+      EXPLOIT.BPSUPPLIER BPSUPPLIER
+      INNER JOIN EXPLOIT.BPARTNER BPARTNER ON BPARTNER.BPRNUM_0 = BPSUPPLIER.BPSNUM_0
+      LEFT JOIN T_BP_SUPPLIER_CATEGORY ON BPSUPPLIER.BSGCOD_0 = T_BP_SUPPLIER_CATEGORY.SupplierCategoryCode
+      LEFT JOIN T_BP_SUPPLIER_TYPE ON BPSUPPLIER.TSSCOD_0 = T_BP_SUPPLIER_TYPE.SupplierTypeCode
+      LEFT JOIN T_BP_SUPPLIER_SUB_TYPE ON BPSUPPLIER.TSSCOD_1 = T_BP_SUPPLIER_SUB_TYPE.SupplierSubTypeCode
+      LEFT JOIN T_BP_SUPPLIER_GEO_REGION ON BPSUPPLIER.TSSCOD_2 = T_BP_SUPPLIER_GEO_REGION.SupplierGeoRegionCode
+      LEFT JOIN T_BP_COUNTRY ON BPADDRESS.CRY_0 = T_BP_COUNTRY.CountryCode
+      LEFT JOIN EXPLOIT.BPADDRESS BPADDRESS ON BPARTNER.BPRNUM_0 = BPADDRESS.BPANUM_0
+      AND BPADDRESS.BPAADDFLG_0 = 2
+    WHERE
+      1 = 1 
+      <if test=' Supplier != null and Supplier != "" '>
+        AND BPARTNER.BPRNUM_0 = #{Supplier}
+      </if>
+  </select>
+</mapper>

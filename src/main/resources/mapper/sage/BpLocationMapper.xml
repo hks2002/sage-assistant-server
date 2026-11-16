@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.BpLocationMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="T_BP_COUNTRY">
+    SELECT DISTINCT
+      TABCOUNTRY.CRY_0 AS CountryCode,
+      ATEXTRA.TEXTE_0 AS CountryName
+    FROM
+      EXPLOIT.TABCOUNTRY TABCOUNTRY
+      LEFT JOIN EXPLOIT.ATEXTRA ATEXTRA ON TABCOUNTRY.CRY_0 = ATEXTRA.IDENT1_0
+    WHERE
+      1 = 1 
+      <choose>
+        <when test=' Country == "ALL" or Country == null or Country == "" '></when> 
+        <otherwise>
+          AND (
+            UPPER(TABCOUNTRY.CRY_0) = UPPER(#{Country})
+            OR UPPER(ATEXTRA.TEXTE_0) LIKE UPPER('%' + #{Country} + '%')
+          )
+        </otherwise>
+      </choose> 
+      <choose>
+        <when test=' Language == null or Language == "" '>
+          AND ATEXTRA.LANGUE_0 = 'ENG'
+        </when> 
+        <otherwise>
+          AND ATEXTRA.LANGUE_0 = #{Language}
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="BP_COUNTRY" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_COUNTRY" />
+    ORDER BY
+      CountryCode ASC
+  </select>
+  <sql id="T_BP_US_STATE">
+    -- Only for US (America)
+    SELECT DISTINCT
+      IIF (BPADDRESS.SAT_0 = '', 'OTHERS', BPADDRESS.SAT_0) AS StateCode,
+      BPADDRESS.SAT_0 AS StateName
+    FROM
+      EXPLOIT.BPADDRESS BPADDRESS
+    WHERE
+      BPADDRESS.CRY_0 = 'US' 
+      <choose>
+        <when test=' UsState == "ALL" or UsState == null or UsState == "" '></when> 
+        <otherwise>
+          AND (
+            UPPER(BPADDRESS.SAT_0) = UPPER(#{UsState})
+            OR UPPER(BPADDRESS.SAT_0) LIKE UPPER('%' + #{UsState} + '%')
+          )
+        </otherwise>
+      </choose>
+  </sql>
+  <select id="BP_US_STATE" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_US_STATE" />
+    ORDER BY
+      StateCode ASC
+  </select>
+  <sql id="T_BP_CITY">
+    SELECT DISTINCT
+      IIF (BPADDRESS.CTY_0 = '', 'OTHERS', BPADDRESS.CTY_0) AS CityCode,
+      BPADDRESS.CTY_0 AS CityName
+    FROM
+      EXPLOIT.BPADDRESS BPADDRESS
+    WHERE
+      1 = 1 
+      <choose>
+        <when test=' City == "ALL" or City == null or City == "" '></when> 
+        <otherwise>
+          AND (
+            UPPER(BPADDRESS.CTY_0) = UPPER(#{City})
+            OR UPPER(BPADDRESS.CTY_0) LIKE UPPER('%' + #{City} + '%')
+          )
+        </otherwise>
+      </choose> 
+      <if test=' CountryCode != null and CountryCode != "" '>
+        AND BPADDRESS.CRY_0 = #{CountryCode}
+      </if>
+  </sql>
+  <select id="BP_CITY" resultType="java.util.Map">
+    
+
+    <include refid="T_BP_CITY" />
+    ORDER BY
+      CityCode ASC
+  </select>
+</mapper>

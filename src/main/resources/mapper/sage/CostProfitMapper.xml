@@ -1,0 +1,518 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.da.sage.assistant.mapper.sage.CostProfitMapper">
+  <!-- Open L2 Cache under Namespace: 1 Hour -->
+  <cache flushInterval="3600000" size="100" />
+  <sql id="T_SALES_ORDER_LOCALE_AMOUNT_OF_ORDER">
+    SELECT
+      SORDERQ.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO,
+      SORDERP.SALFCY_0 AS OrderSite,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDERQ.QTY_0 AS ProjectQty,
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_PN" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_CUSTOMER"/> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.S_REPRESENTATIVE"/> COMPANY.ACCCUR_0 AS Currency,
+      ROUND(
+        SORDERP.NETPRI_0 * SORDERQ.QTY_0 * SORDER.CHGRAT_0,
+        2
+      ) AS SalesAmount,
+      ROUND(
+        SORDERP.NETPRI_0 * SORDERQ.QTY_0 * SORDER.CHGRAT_0 * SORDER.ORDATI_0 / NULLIF(SORDER.ORDNOT_0, 0),
+        2
+      ) AS SalesAmountWithTax,
+      IIF (SORDERQ.SOQSTA_0 = 3, 'Closed', 'Open') AS OrderStatus
+    FROM
+      EXPLOIT.SORDERP SORDERP
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+      INNER JOIN EXPLOIT.COMPANY COMPANY ON COMPANY.MAIFCY_0 = SORDER.SALFCY_0 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_REPRESENTATIVE" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_CUSTOMER" /> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.J_PN" />
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER"/>
+  </sql>
+  <sql id="T_SALES_ORDER_LOCALE_AMOUNT_OF_PN">
+    -- The sales order
+    SELECT
+      SORDERQ.YSOH_PJT_0 AS ProjectNO,
+      SORDERQ.YSOQ_PJTORI_0 AS OriProjectNO,
+      SORDERP.SALFCY_0 AS OrderSite,
+      T_PN.PN AS PN,
+      SORDERQ.QTY_0 AS ProjectQty,
+      SORDER.ORDDAT_0 AS OrderDate,
+      SORDERP.SOHNUM_0 AS OrderNO,
+      SORDERP.SOPLIN_0 AS OrderLine,
+      IIF (SORDERQ.SOQSTA_0 = 3, 'Closed', 'Open') AS OrderStatus,
+      COMPANY.ACCCUR_0 AS Currency,
+      ROUND(
+        SORDERP.NETPRI_0 * SORDERQ.QTY_0 * SORDER.CHGRAT_0,
+        2
+      ) AS SalesAmount,
+      ROUND(
+        SORDERP.NETPRI_0 * SORDERQ.QTY_0 * SORDER.CHGRAT_0 * SORDER.ORDATI_0 / NULLIF(SORDER.ORDNOT_0, 0),
+        2
+      ) AS SalesAmountWithTax
+    FROM
+      (
+      <include refid="com.da.sage.assistant.mapper.sage.PnMapper.T_PN" />) AS T_PN
+      INNER JOIN EXPLOIT.SORDERP SORDERP ON T_PN.PN = SORDERP.ITMREF_0
+      INNER JOIN EXPLOIT.SORDERQ SORDERQ ON SORDERQ.SOHNUM_0 = SORDERP.SOHNUM_0
+      AND SORDERQ.SOPLIN_0 = SORDERP.SOPLIN_0
+      INNER JOIN EXPLOIT.SORDER SORDER ON SORDERP.SOHNUM_0 = SORDER.SOHNUM_0
+      INNER JOIN EXPLOIT.COMPANY COMPANY ON COMPANY.MAIFCY_0 = SORDER.SALFCY_0
+    WHERE
+      SORDERP.NETPRI_0 > 0 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_SITE"/> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_LINE_STATUS"/> 
+      <include refid="com.da.sage.assistant.mapper.sage.SalesOrderMapper.W_SALES_ORDER_CUSTOMER"/>
+    ORDER BY
+      SORDER.ORDDAT_0 DESC
+    OFFSET
+      #{offset} ROWS
+    FETCH NEXT
+      #{limit} ROWS ONLY
+  </sql>
+  <sql id="T_SALES_ORDER_COST_PROVIDE_QTY_FROM_T00">
+    -- The provided projectNO and Qty for closed sales order
+    -- The provided projectNO maybe from other project / stock project
+    SELECT DISTINCT
+      T00.OrderSite,
+      T00.OrderNO,
+      T00.OrderLine,
+      CASE
+        WHEN LEN (STOJOU.LOT_0) > 5 THEN STOJOU.LOT_0
+        WHEN LEN (STOJOU.SERNUM_0) > 4 THEN LEFT (STOJOU.SERNUM_0, LEN (STOJOU.SERNUM_0) -4)
+        ELSE NULL
+      END AS ProvideProjectNO,
+      COUNT(STOJOU.SERNUM_0) OVER (
+        PARTITION BY
+          T00.OrderSite,
+          T00.ProjectNO,
+          STOJOU.LOT_0
+      ) AS ProvideQty
+    FROM
+      T00
+      INNER JOIN EXPLOIT.STOJOU STOJOU ON STOJOU.STOFCY_0 = T00.OrderSite
+      AND STOJOU.VCRTYP_0 = 4 -- 4: delivery do not delete, index required, otherwise performance issue
+      AND STOJOU.VCRNUMORI_0 = T00.OrderNO
+      AND STOJOU.VCRLINORI_0 = T00.OrderLine
+    WHERE
+      T00.OrderStatus = 'Closed'
+  </sql>
+  <sql id="T_SALES_ORDER_COST_PROVIDE_TOTAL_QTY_FROM_T01">
+    -- The provided projectNO and total Qty for closed sales order
+    -- The provided projectNO maybe from other project / stock project
+    SELECT DISTINCT
+      src.OrderSite,
+      src.ProvideProjectNO,
+      SUM(src.QTYSTU_0) OVER (
+        PARTITION BY
+          src.OrderSite,
+          src.ProvideProjectNO
+      ) AS ProvideTotalQty
+    FROM
+      (
+        -- 分支1:精确匹配
+        SELECT
+          T01.OrderSite,
+          T01.ProvideProjectNO,
+          PORDERQ.QTYSTU_0
+        FROM
+          T01
+          INNER JOIN EXPLOIT.OPPOR OPPOR ON T01.ProvideProjectNO = OPPOR.OPPNUM_0
+          INNER JOIN EXPLOIT.PORDERP PORDERP ON T01.OrderSite = PORDERP.PRHFCY_0
+          AND OPPOR.OPPNUM_0 = PORDERP.PJT_0
+          AND PORDERP.ITMREF_0 = OPPOR.OPPEXTNUM_0
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+        WHERE
+          PORDERQ.LINAMT_0 > 0
+        UNION ALL
+        -- 分支2:文本包含匹配
+        SELECT
+          T01.OrderSite,
+          T01.ProvideProjectNO,
+          PORDERQ.QTYSTU_0
+        FROM
+          T01
+          INNER JOIN EXPLOIT.OPPOR OPPOR ON T01.ProvideProjectNO = OPPOR.OPPNUM_0
+          INNER JOIN EXPLOIT.PORDERP PORDERP ON T01.OrderSite = PORDERP.PRHFCY_0
+          AND OPPOR.OPPNUM_0 = PORDERP.PJT_0
+          AND CHARINDEX (OPPOR.OPPEXTNUM_0, PORDERP.ITMDES1_0) > 0
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+        WHERE
+          PORDERQ.LINAMT_0 > 0
+      ) src
+  </sql>
+  <select id="COST_OF_PN" resultType="java.util.Map">
+    -- T00: sales order
+    -- T01: The provided projectNO and Qty for closed sales order
+    -- T02: The provided projectNO and total Qty for closed sales order
+    WITH
+      T00 AS (
+        -- wrap it to allow pagination in CTE
+        SELECT
+          *
+        FROM
+          (
+          <include refid="T_SALES_ORDER_LOCALE_AMOUNT_OF_PN" />) AS T
+      ),
+      T01 AS (
+      <include refid="T_SALES_ORDER_COST_PROVIDE_QTY_FROM_T00" />),
+      T02 AS (
+      <include refid="T_SALES_ORDER_COST_PROVIDE_TOTAL_QTY_FROM_T01" />),
+      T03 AS (
+        SELECT DISTINCT
+          T00.*,
+          <if test='  Details ==  "Y"  ' >
+            T01.ProvideProjectNO,
+            T01.ProvideQty,
+            PORDERP.PJT_0 AS PurchaseProjectNO,
+            PORDERQ.POHNUM_0 AS PurchaseNO,
+            PORDERQ.POPLIN_0 AS PurchaseLine,
+            PORDERQ.ITMREF_0 AS PurchasePN,
+            PORDERP.ITMDES1_0 AS Description,
+            PORDER.ORDDAT_0 AS PurchaseDate,
+            PORDER.BPSNUM_0 AS SupplierCode,
+            BPSUPPLIER.BPSSHO_0 AS SupplierName,
+            PORDERQ.QTYSTU_0 AS PurchaseQty,
+            PORDERQ.STU_0 AS Unit,
+            PORDERQ.NETCUR_0 AS LineCurrency,
+            PORDERP.NETPRI_0 AS LineNetPrice,
+            PORDERQ.LINAMT_0 AS LineAmount,
+            PORDERQ.LINATI_0 AS LineAmountWithTax,
+          </if> 
+          <trim>
+            ROUND(
+              T01.ProvideQty / T02.ProvideTotalQty / T00.ProjectQty * SUM(PORDERQ.LINAMTCPR_0) OVER (
+                PARTITION BY
+                  T01.OrderSite,
+                  T01.ProvideProjectNO
+              ),
+              2
+            ) AS Cost,
+            ROUND(
+              T01.ProvideQty / T02.ProvideTotalQty / T00.ProjectQty * SUM(
+                PORDERQ.LINATI_0 / NULLIF(PORDERQ.LINAMT_0, 0) * PORDERQ.LINAMTCPR_0
+              ) OVER (
+                PARTITION BY
+                  T01.OrderSite,
+                  T01.ProvideProjectNO
+              ),
+              2
+            ) AS CostWithTax
+          </trim>
+        FROM
+          T00
+          INNER JOIN T01 ON T00.OrderNO = T01.OrderNO
+          AND T00.OrderLine = T01.OrderLine
+          INNER JOIN T02 ON T02.OrderSite = T01.OrderSite
+          AND T02.ProvideProjectNO = T01.ProvideProjectNO
+          INNER JOIN EXPLOIT.PORDERP AS PORDERP ON T01.ProvideProjectNO = PORDERP.PJT_0
+          AND T01.OrderSite = PORDERP.PRHFCY_0
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0 
+          <if test='  Details ==  "Y"  ' >
+            INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0
+            INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+          </if>
+        WHERE
+          PORDERQ.LINAMT_0 > 0
+      ),
+      T10 AS (
+        SELECT DISTINCT
+          T00.*,
+          <if test='Details == "Y" '>
+            '' AS ProvideProjectNO,
+            '' AS ProvideQty,
+            PORDERP.PJT_0 AS PurchaseProjectNO,
+            PORDERQ.POHNUM_0 AS PurchaseNO,
+            PORDERQ.POPLIN_0 AS PurchaseLine,
+            PORDERQ.ITMREF_0 AS PurchasePN,
+            PORDERP.ITMDES1_0 AS Description,
+            PORDER.ORDDAT_0 AS PurchaseDate,
+            PORDER.BPSNUM_0 AS SupplierCode,
+            BPSUPPLIER.BPSSHO_0 AS SupplierName,
+            PORDERQ.QTYSTU_0 AS PurchaseQty,
+            PORDERQ.STU_0 AS Unit,
+            PORDERQ.NETCUR_0 AS LineCurrency,
+            PORDERP.NETPRI_0 AS LineNetPrice,
+            PORDERQ.LINAMT_0 AS LineAmount,
+            PORDERQ.LINATI_0 AS LineAmountWithTax,
+          </if> 
+          <trim>
+            ROUND(
+              SUM(PORDERQ.LINAMTCPR_0) OVER (
+                PARTITION BY
+                  T00.OrderSite,
+                  T00.ProjectNO
+              ),
+              2
+            ) AS Cost,
+            ROUND(
+              SUM(
+                PORDERQ.LINAMTCPR_0 * PORDERQ.LINATI_0 / NULLIF(PORDERQ.LINAMT_0, 0)
+              ) OVER (
+                PARTITION BY
+                  T00.OrderSite,
+                  T00.ProjectNO
+              ),
+              2
+            ) AS CostWithTax
+          </trim>
+        FROM
+          T00
+          INNER JOIN EXPLOIT.PORDERP AS PORDERP ON (
+            T00.ProjectNO = PORDERP.PJT_0
+            OR (
+              T00.OriProjectNO = PORDERP.PJT_0
+              AND LEN (T00.OriProjectNO) > 5
+            ) -- exclude T0001 cross site project
+          )
+          AND T00.OrderSite = PORDERP.PRHFCY_0
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+          INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0
+          INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+        WHERE
+          PORDERQ.LINAMT_0 > 0
+          AND T00.OrderStatus = 'Open' --- Only include open orders
+      )
+    SELECT
+      *,
+      T03.SalesAmount - T03.Cost AS Profit,
+      T03.SalesAmountWithTax - T03.CostWithTax AS ProfitWithTax,
+      T03.SalesAmount / NULLIF(T03.Cost, 0) AS ProfitRate
+    FROM
+      T03
+    UNION ALL
+    SELECT
+      *,
+      T10.SalesAmount - T10.Cost AS Profit,
+      T10.SalesAmountWithTax - T10.CostWithTax AS ProfitWithTax,
+      T10.SalesAmount / NULLIF(T10.Cost, 0) AS ProfitRate
+    FROM
+      T10
+    ORDER BY
+      OrderSite DESC,
+      OrderDate DESC,
+      ProjectNO DESC 
+      <if test='  Details ==  "Y"  ' >
+        ,
+        LineAmountWithTax DESC -- Let the biggest cost be the first line
+      </if>
+  </select>
+  <sql id="T_PROJECT_PROFIT">
+    WITH
+      T00 AS (
+      <include refid="T_SALES_ORDER_LOCALE_AMOUNT_OF_ORDER" />),
+      T01 AS (
+      <include refid="T_SALES_ORDER_COST_PROVIDE_QTY_FROM_T00" />),
+      T02 AS (
+      <include refid="T_SALES_ORDER_COST_PROVIDE_TOTAL_QTY_FROM_T01"/>),
+      T03 AS (
+        SELECT DISTINCT
+          T00.*,
+          <if test='  Details ==  "Y"  ' >
+            T01.ProvideProjectNO,
+            T01.ProvideQty,
+            PORDERP.PJT_0 AS PurchaseProjectNO,
+            PORDERQ.POHNUM_0 AS PurchaseNO,
+            PORDERQ.POPLIN_0 AS PurchaseLine,
+            PORDERQ.ITMREF_0 AS PurchasePN,
+            PORDERP.ITMDES1_0 AS PurchasePnDescription,
+            PORDER.ORDDAT_0 AS PurchaseDate,
+            PORDER.BPSNUM_0 AS SupplierCode,
+            BPSUPPLIER.BPSSHO_0 AS SupplierName,
+            PORDERQ.QTYSTU_0 AS PurchaseQty,
+            PORDERQ.STU_0 AS Unit,
+            PORDERQ.NETCUR_0 AS LineCurrency,
+            PORDERP.NETPRI_0 AS LineNetPrice,
+            PORDERQ.LINAMT_0 AS LineAmount,
+            PORDERQ.LINATI_0 AS LineAmountWithTax,
+          </if> 
+          <trim>
+            ROUND(
+              T01.ProvideQty / T02.ProvideTotalQty / T00.ProjectQty * SUM(PORDERQ.LINAMTCPR_0) OVER (
+                PARTITION BY
+                  T01.OrderSite,
+                  T01.ProvideProjectNO
+              ),
+              2
+            ) AS Cost,
+            ROUND(
+              T01.ProvideQty / T02.ProvideTotalQty / T00.ProjectQty * SUM(
+                PORDERQ.LINATI_0 / NULLIF(PORDERQ.LINAMT_0, 0) * PORDERQ.LINAMTCPR_0
+              ) OVER (
+                PARTITION BY
+                  T01.OrderSite,
+                  T01.ProvideProjectNO
+              ),
+              2
+            ) AS CostWithTax
+          </trim>
+        FROM
+          T00
+          INNER JOIN T01 ON T00.OrderNO = T01.OrderNO
+          AND T00.OrderLine = T01.OrderLine
+          INNER JOIN T02 ON T02.OrderSite = T01.OrderSite
+          AND T02.ProvideProjectNO = T01.ProvideProjectNO
+          INNER JOIN EXPLOIT.PORDERP AS PORDERP ON T01.ProvideProjectNO = PORDERP.PJT_0
+          AND T01.OrderSite = PORDERP.PRHFCY_0
+          INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+          AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+          INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0
+          INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+        WHERE
+          PORDERQ.LINAMT_0 > 0
+      ),
+      T10 AS (
+        SELECT DISTINCT
+          src.*
+        FROM
+          (
+            -- 分支1：T00.ProjectNO = PORDERP.PJT_0
+            SELECT
+              T00.* 
+              <if test='Details == "Y" '>
+                ,
+                '' AS ProvideProjectNO,
+                '' AS ProvideQty,
+                PORDERP.PJT_0 AS PurchaseProjectNO,
+                PORDERQ.POHNUM_0 AS PurchaseNO,
+                PORDERQ.POPLIN_0 AS PurchaseLine,
+                PORDERQ.ITMREF_0 AS PurchasePN,
+                PORDERP.ITMDES1_0 AS PurchasePnDescription,
+                PORDER.ORDDAT_0 AS PurchaseDate,
+                PORDER.BPSNUM_0 AS SupplierCode,
+                BPSUPPLIER.BPSSHO_0 AS SupplierName,
+                PORDERQ.QTYSTU_0 AS PurchaseQty,
+                PORDERQ.STU_0 AS Unit,
+                PORDERQ.NETCUR_0 AS LineCurrency,
+                PORDERP.NETPRI_0 AS LineNetPrice,
+                PORDERQ.LINAMT_0 AS LineAmount,
+                PORDERQ.LINATI_0 AS LineAmountWithTax
+              </if>,
+              ROUND(
+                SUM(PORDERQ.LINAMTCPR_0) OVER (
+                  PARTITION BY
+                    T00.OrderSite,
+                    T00.ProjectNO
+                ),
+                2
+              ) AS Cost,
+              ROUND(
+                SUM(
+                  PORDERQ.LINAMTCPR_0 * PORDERQ.LINATI_0 / NULLIF(PORDERQ.LINAMT_0, 0)
+                ) OVER (
+                  PARTITION BY
+                    T00.OrderSite,
+                    T00.ProjectNO
+                ),
+                2
+              ) AS CostWithTax
+            FROM
+              T00
+              INNER JOIN EXPLOIT.PORDERP AS PORDERP ON T00.OrderSite = PORDERP.PRHFCY_0
+              AND T00.ProjectNO = PORDERP.PJT_0
+              INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+              AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+              INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0
+              INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+            WHERE
+              PORDERQ.LINAMT_0 > 0
+              AND T00.OrderStatus = 'Open'
+            UNION ALL
+            -- 分支2：T00.OriProjectNO = PORDERP.PJT_0 AND LEN(T00.OriProjectNO) > 5
+            SELECT
+              T00.* 
+              <if test='Details == "Y" '>
+                ,
+                '' AS ProvideProjectNO,
+                '' AS ProvideQty,
+                PORDERP.PJT_0 AS PurchaseProjectNO,
+                PORDERQ.POHNUM_0 AS PurchaseNO,
+                PORDERQ.POPLIN_0 AS PurchaseLine,
+                PORDERQ.ITMREF_0 AS PurchasePN,
+                PORDERP.ITMDES1_0 AS PurchasePnDescription,
+                PORDER.ORDDAT_0 AS PurchaseDate,
+                PORDER.BPSNUM_0 AS SupplierCode,
+                BPSUPPLIER.BPSSHO_0 AS SupplierName,
+                PORDERQ.QTYSTU_0 AS PurchaseQty,
+                PORDERQ.STU_0 AS Unit,
+                PORDERQ.NETCUR_0 AS LineCurrency,
+                PORDERP.NETPRI_0 AS LineNetPrice,
+                PORDERQ.LINAMT_0 AS LineAmount,
+                PORDERQ.LINATI_0 AS LineAmountWithTax
+              </if>,
+              ROUND(
+                SUM(PORDERQ.LINAMTCPR_0) OVER (
+                  PARTITION BY
+                    T00.OrderSite,
+                    T00.ProjectNO
+                ),
+                2
+              ) AS Cost,
+              ROUND(
+                SUM(
+                  PORDERQ.LINAMTCPR_0 * PORDERQ.LINATI_0 / NULLIF(PORDERQ.LINAMT_0, 0)
+                ) OVER (
+                  PARTITION BY
+                    T00.OrderSite,
+                    T00.ProjectNO
+                ),
+                2
+              ) AS CostWithTax
+            FROM
+              T00
+              INNER JOIN EXPLOIT.PORDERP AS PORDERP ON T00.OrderSite = PORDERP.PRHFCY_0
+              AND T00.OriProjectNO = PORDERP.PJT_0
+              AND LEN (T00.OriProjectNO) > 5
+              INNER JOIN EXPLOIT.PORDERQ AS PORDERQ ON PORDERP.POHNUM_0 = PORDERQ.POHNUM_0
+              AND PORDERP.POPLIN_0 = PORDERQ.POPLIN_0
+              INNER JOIN EXPLOIT.PORDER AS PORDER ON PORDERP.POHNUM_0 = PORDER.POHNUM_0
+              INNER JOIN EXPLOIT.BPSUPPLIER BPSUPPLIER ON BPSUPPLIER.BPSNUM_0 = PORDER.BPSNUM_0
+            WHERE
+              PORDERQ.LINAMT_0 > 0
+              AND T00.OrderStatus = 'Open'
+          ) src
+      )
+  </sql>
+  <select id="PROJECT_PROFIT" resultType="java.util.Map">
+    <include refid="T_PROJECT_PROFIT"/>
+    SELECT
+      ROW_NUMBER() OVER (
+        ORDER BY
+          T20.OrderSite,
+          T20.OrderNO,
+          T20.OrderLine
+      ) AS ItemNO,
+      T20.*,
+      T20.SalesAmount - T20.Cost AS Profit,
+      T20.SalesAmountWithTax - T20.CostWithTax AS ProfitWithTax,
+      T20.SalesAmount / NULLIF(T20.Cost, 0) AS ProfitRate
+    FROM
+      (
+        -- Closed Order
+        SELECT
+          T03.*
+        FROM
+          T03
+        UNION ALL
+        -- Open Order
+        SELECT
+          T10.*
+        FROM
+          T10
+      ) AS T20
+    ORDER BY
+      ItemNO ASC
+  </select>
+</mapper>
